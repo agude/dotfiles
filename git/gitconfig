@@ -1,0 +1,15 @@
+[user]
+    name = Alexander Gude
+    email = alex.public.account@gmail.com
+
+[color]
+    branch = auto
+    diff = auto
+    interactive = auto
+    status = auto
+
+[core]
+    editor = vi
+
+[merge]
+    tool = meld

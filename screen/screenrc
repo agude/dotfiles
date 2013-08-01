@@ -1,0 +1,5 @@
+term screen-256color # Set the terminal to 256 colors
+startup_message off # Disable the splash screen
+autodetach on # Detach on hangup instead of close
+defscrollback 30000 # Set number of lines to keep
+termcapinfo xterm ti@:te@ # Allow scroll back

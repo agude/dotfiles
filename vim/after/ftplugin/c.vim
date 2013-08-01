@@ -1,0 +1,29 @@
+" Prevents reloading of the this file
+if exists("b:did_load_filetypes_userafter")
+  finish
+endif
+let b:did_load_filetypes_userafter = 1
+augroup filetypedetect
+  " au! commands to set the filetype go here
+augroup END
+"
+"-------------------------------------------------------------------------------
+" additional mapping : complete a classical C comment: '/*' => '/* | */'
+"-------------------------------------------------------------------------------
+imap  <buffer>  /*              /*<Space><Space>*/<Left><Left><Left>
+imap  <buffer>  /*<Space>       /*<Space><Space>*/<Left><Left><Left>
+vmap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
+"
+"-------------------------------------------------------------------------------
+" additional mapping : complete a classical C multi-line comment: 
+"                      '/*<CR>' =>  /*
+"                                    * |
+"                                    */
+"-------------------------------------------------------------------------------
+imap  <buffer>  /*<CR>  /*<CR><CR>/<Esc>kA<Space>
+"
+"-------------------------------------------------------------------------------
+" additional mapping : {<CR> always opens a block
+"-------------------------------------------------------------------------------
+imap  <buffer>  {<CR>    {<CR>}<Esc>O
+vmap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB

@@ -1,0 +1,17 @@
+# Vim directories
+vim/bundle
+vim/tmp
+
+# Vim files from Github Gitignore:
+# https://github.com/github/gitignore/blob/master/Global/vim.gitignore
+*.s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# Linux files from Github Gitignore:
+# https://github.com/github/gitignore/blob/master/Global/Linux.gitignore
+.*
+!.gitignore
+*~

@@ -1,0 +1,434 @@
+"=============================================================================
+" BASIC EDITING
+"=============================================================================
+
+set nocompatible " Break compatibility with vi
+
+" Set leader and local leader
+let mapleader=","
+let g:mapleader = ","
+let maplocalleader = "\\"
+let g:maplocalleader = "\\"
+
+" Vundle plugin installer and manager
+if filereadable(expand("~/.vim/vundles.vim"))
+    source ~/.vim/vundles.vim
+endif
+
+" Vundle plugin installer and manager
+if filereadable(expand("~/.vim/plugins.vim"))
+    source ~/.vim/plugins.vim
+endif
+
+" Vimrc editing and sourcing
+nnoremap <leader>ve :vsplit $MYVIMRC<cr>
+nnoremap <leader>vs :source $MYVIMRC<cr>
+
+" Reload vimrc when it is saved
+augroup AutoReloadVimRC
+    autocmd!
+    autocmd BufWritePost $MYVIMRC source $MYVIMRC
+augroup END
+
+"-----------------------------------------------------------------------------
+" Editing: and writing files
+"-----------------------------------------------------------------------------
+
+" If we can set a custom location for backups, turn them on
+if exists("+backupdir")
+    set backup                          " keep a backup file
+    set backupdir=~/.vim/tmp/backup//   " set backup file location
+else
+    set nobackup                        " No backup if we can't keep it neat
+endif
+
+"-----------------------------------------------------------------------------
+" Motion: for moving around
+"-----------------------------------------------------------------------------
+
+" Move by screen lines
+nnoremap j gj
+nnoremap k gk
+
+" Swap ' and ` so that ' goes to the position, and ` just the line
+nnoremap ' `
+nnoremap ` '
+
+"-----------------------------------------------------------------------------
+" Change: and replacing text
+"-----------------------------------------------------------------------------
+
+" Y yanks to end of line now to match D and C
+nnoremap Y y$
+
+" Use the OS register
+noremap <Localleader>y "+y
+noremap <Localleader>Y "+Y
+noremap <Localleader>p "+p
+
+" When using J, move the cursor back to where it started
+nnoremap J mzJ`z
+
+" Disable Entering Ex mode, instead reformat text
+noremap Q gq
+
+"-----------------------------------------------------------------------------
+" Indent: indenting for C and other languages
+"-----------------------------------------------------------------------------
+
+"-----------------------------------------------------------------------------
+" Undo: and Redo
+"-----------------------------------------------------------------------------
+
+set noswapfile                          " use memory instead of swap
+set directory=~/.vim/tmp/swap//         " set a swap directory just in case
+
+" Set up undo file
+set undolevels=10000                " number of changes that can be undone
+if exists("+undofile")
+    set undofile                    " use an undo file
+    set undodir=~/.vim/tmp/undo//   " set undo file location
+    set undoreload=10000            " save this many lines on buffer reload
+endif
+
+" U is redo, instead of undo on line
+nnoremap U <C-r>
+
+"-----------------------------------------------------------------------------
+" Repeat: commands, Vim scripts and debugging
+"-----------------------------------------------------------------------------
+
+"-----------------------------------------------------------------------------
+" Visual: the Visual mode (selecting a text area)
+"-----------------------------------------------------------------------------
+
+" Allow selecting of any blank space, regardless of if it is saved or not
+if has ("virtualedit")
+    set virtualedit=block
+endif
+
+" Reselect visual selection after indenting
+vnoremap < <gv
+vnoremap > >gv
+
+" Wrap visually selected text
+vnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
+vnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
+vnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
+vnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
+vnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
+vnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
+vnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
+vnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
+vnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
+
+" Search for visual selection with * and #
+function! s:VSetSearch()
+    let temp = @@
+    norm! gvy
+    let @/ = '\V' . substitute(escape(@@, '\'), '\n', '\\n', 'g')
+    let @@ = temp
+endfunction
+
+vnoremap * :<C-u>call <SID>VSetSearch()<CR>//<CR>
+vnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
+
+"-----------------------------------------------------------------------------
+" Various: remaining commands
+"-----------------------------------------------------------------------------
+
+"-----------------------------------------------------------------------------
+" Recover: from a crash
+"-----------------------------------------------------------------------------
+
+
+"=============================================================================
+" ADVANCED EDITING
+"=============================================================================
+"-----------------------------------------------------------------------------
+" Cmdline: editing
+"-----------------------------------------------------------------------------
+
+" Keep 1000 lines of command line history
+set history=1000
+
+"-----------------------------------------------------------------------------
+" Options: of all options
+"-----------------------------------------------------------------------------
+
+" Toggle paste
+nnoremap <Leader>p :set invpaste paste?<CR>
+
+" Toggle wrap
+set nowrap
+nnoremap <silent> <Leader>w :setlocal wrap!<CR>
+
+" Numbers off by default, but can be toggled
+set nonumber
+nnoremap <silent> <Leader>n :setlocal number!<CR>
+
+" Tab settings
+set expandtab     " expand tabs to spaces
+set smarttab      " use shiftwidth instead of tabstop for tabs at the start of lines
+set shiftwidth=4  " number of spaces to use for each step of indent
+set softtabstop=4 " <Tab> counts for 4 spaces, allows easier deleting
+set tabstop=4     " number of spaces that a <Tab> counts for
+
+" Remove message when no file argument is given
+set shortmess+=I 
+
+set scrolloff=5   " keep five lines at the bottom
+set popt=left:8pc,right:3pc     " print options
+set visualbell t_vb=            " visual bell instead of beeping, and off!
+set autoindent " copy indent from current line
+set autoread " reread open files when changed outside Vim
+set backspace=indent,eol,start  " backspacing over everything in insert mode
+set browsedir=current           " which directory to use for the file browser
+set complete+=k                 " scan the files given with 'dictionary' flag
+set listchars=tab:>.,eol:\$     " strings to use in 'list' mode
+
+" Search highlighting
+if has("extra_search")
+    set hlsearch                  " highlight the last used search pattern
+    set incsearch                 " do incremental searching
+    if has("autocmd")
+        augroup insert_hl
+            autocmd!
+            silent! autocmd InsertEnter * :setlocal nohlsearch
+            silent! autocmd InsertLeave * :setlocal hlsearch
+        augroup END
+    endif
+endif
+
+" Wildmenu settings
+if has("wildmenu")
+    set wildmenu                            " command-line completion in an
+                                            " enhanced mode
+    set wildmode=list:longest               " when more than one match, list
+                                            " all matches and complete till
+                                            " longest common string
+    if has("wildignore")
+        set wildignore+=*.bak,*.e,*~        " wildmenu: ignore extensions
+        set wildignore+=.hg,.git,.svn       " Version control
+        set wildignore+=*.aux,*.out,*.toc   " LaTeX intermediate files
+        set wildignore+=*.jpg,*.bmp,*.gif   " binary images
+        set wildignore+=*.png,*.jpeg        " binary images
+        set wildignore+=*.o,*.obj,*.exe     " compiled object files
+        set wildignore+=*.dll,*.manifest    " compiled object files
+        set wildignore+=*.spl               " compiled spelling word lists
+        set wildignore+=*.sw?               " Vim swap files
+        set wildignore+=*.DS_Store          " OSX bullshit
+        set wildignore+=*.luac              " Lua byte code
+        set wildignore+=migrations          " Django migrations
+        set wildignore+=*.pyc               " Python byte code
+        set wildignore+=*.orig              " Merge resolution files
+    endif
+endif
+
+" Prevent wrapping in the middle of words
+if has("linebreak")
+    set linebreak
+endif
+
+" Always use forward slash
+if exists('+shellslash')
+    set shellslash
+endif
+
+" Show cursor position, mode, and complete commands
+if has("cmdline_info")
+    set ruler
+    set showcmd
+    set showmode
+endif
+
+" Omnicomplete settings
+if has("insert_expand") && has("eval")
+    set completeopt=longest,menu " Complete all common letters, and use a menu
+    set omnifunc=syntaxcomplete#Complete
+endif
+
+"-----------------------------------------------------------------------------
+" Pattern: patterns and search commands
+"-----------------------------------------------------------------------------
+
+" Ignore case, unless the search term has uppercase in it
+set ignorecase
+set smartcase
+
+" Use \v for better regex matchin
+nnoremap / /\v
+nnoremap ? ?\v
+vnoremap / /\v
+vnoremap ? ?\v
+
+" Keep search matches in the middle of the screen and pulse the line when
+" moving
+nnoremap <silent> n nzz
+nnoremap <silent> N Nzz
+nnoremap <silent> } }zz
+nnoremap <silent> { {zz
+nnoremap <silent> * *zz
+nnoremap <silent> # #zz
+nnoremap <silent> g* g*zz
+nnoremap <silent> g# g#zz
+
+" Clear highlighting
+nnoremap <silent> <Leader><Space> :noh<CR>
+
+"-----------------------------------------------------------------------------
+" Map: mapping and abbreviations
+"-----------------------------------------------------------------------------
+
+nnoremap <F1> <nop>
+inoremap <F1> <nop>
+
+"-----------------------------------------------------------------------------
+" Tagsrch: and special searches
+"-----------------------------------------------------------------------------
+
+"-----------------------------------------------------------------------------
+" Windows: for using multiple windows and buffers
+"-----------------------------------------------------------------------------
+
+set hidden  " allows unsaved buffers to be navigated away from
+
+" Set status line only if two windows are open, and set the table line only if
+" there are two tabs. Set splits as vertical by default if we can.
+if has("windows")
+    set laststatus=1
+    if exists("&showtabline")
+        set showtabline=1
+    endif
+    if has("splitbelow")
+        set splitbelow
+        if has("vertsplit")
+            if has ("splitright")
+                set splitright
+            endif
+        endif
+    endif
+endif
+
+" Window naviation
+nnoremap <C-j> <C-w>j
+nnoremap <C-h> <C-w>h
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+"-----------------------------------------------------------------------------
+" Syntax: highlighting
+"-----------------------------------------------------------------------------
+if has("syntax")
+    syntax enable                   " turn on syntax highlighting
+    if !has("gui_running")
+        set background=dark
+        silent! colorscheme alex    " Custom colorscheme
+    endif
+endif
+
+"-----------------------------------------------------------------------------
+" Spell: checking
+"-----------------------------------------------------------------------------
+
+if has("spell")
+    if exists("+spelllang")
+        set spelllang=en_us
+        set spellfile=~/.vim/spell/en.utf-8.add
+    endif
+    " Toggle spelling
+    nnoremap <silent> <Leader>s :setlocal spell!<CR>
+    " Shortcuts using <LocalLeader>
+    " Go to next
+    noremap <LocalLeader>sj ]s
+    " Go to previous
+    noremap <LocalLeader>sk [s
+    " Add word and move on
+    noremap <LocalLeader>sa zg]s
+    " Show list of suggestions
+    noremap <LocalLeader>s? z=
+endif
+
+"-----------------------------------------------------------------------------
+" Autocmd: executing commands on an event
+"-----------------------------------------------------------------------------
+
+" End paste mode when leaving insert
+if has("autocmd")
+    augroup insert_paste
+        autocmd!
+        autocmd InsertLeave * set nopaste
+    augroup END
+endif
+
+" Return to last position when opening a file, unless it is invalid
+if has("autocmd")
+    augroup bufread
+        autocmd!
+        autocmd BufReadPost *
+                    \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                    \   exe "normal! g`\"" |
+                    \ endif
+    augroup END
+endif
+
+"-----------------------------------------------------------------------------
+" Filetype: done specifically for a type of file
+"-----------------------------------------------------------------------------
+
+" Turn on indenting and other file type specific options
+if has("autocmd")
+    augroup file_type_check
+        autocmd!
+        filetype on
+        filetype indent on
+        filetype plugin on
+    augroup END
+endif
+
+"-----------------------------------------------------------------------------
+" Fold: (fold) ranges of lines
+"-----------------------------------------------------------------------------
+
+" Fold on indent
+"set foldmethod=indent
+
+"=============================================================================
+" SPECIAL ISSUES
+"=============================================================================
+
+"-----------------------------------------------------------------------------
+" Netrw: Reading and writing files over a network
+"-----------------------------------------------------------------------------
+
+" Use rsync with compression and preserve file attributes
+let g:netrw_rsync_cmd= 'rsync -az'
+
+"=============================================================================
+" Custom functions
+"=============================================================================
+
+nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
+
+" Preserve the location and search when calling a function
+function! Preserve(command)
+    " Preparation: save last search, and cursor position.
+    let _s=@/
+    let l = line(".")
+    let c = col(".")
+    " Run command
+    execute a:command
+    " Clean up: restore previous search history, and cursor position
+    let @/=_s
+    call cursor(l, c)
+endfunction
+
+" Help opens help in a verticle split
+command -nargs=* -complete=help Help vertical belowright help <args>
+command -nargs=* -complete=help H vertical belowright help <args>
+
+"=============================================================================
+" Set secure last so that if any part is unset above, it is corrected now
+"=============================================================================
+
+set secure
