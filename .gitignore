@@ -1,6 +1,7 @@
 # Vim directories
 vim/bundle
-vim/tmp
+vim/tmp/ctrlp
+vim/tmp/unite
 
 # Vim files from Github Gitignore:
 # https://github.com/github/gitignore/blob/master/Global/vim.gitignore
