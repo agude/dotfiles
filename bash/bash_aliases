@@ -53,7 +53,7 @@ alias suspend-gnome='dbus-send --system --print-reply --dest="org.freedesktop.UP
 
 #Push Wiki
 wiki_push(){
-    ${HOME}/Documents/wikis/alex_campaign/scripts/pushToUMN.sh && ${HOME}/Documents/wikis/alex_campaign/scripts/pushToStraub.sh && ${HOME}/Documents/wikis/alex_campaign/scripts/pushTarballToSever.sh
+    ${HOME}/Documents/wikis/alex_campaign/scripts/pushToUMN.sh && ${HOME}/Documents/wikis/alex_campaign/scripts/pushToStraub.sh
 }
 
 alias wiki-push="wiki_push"
