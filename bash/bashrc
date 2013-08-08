@@ -193,3 +193,8 @@ hash vi &>/dev/null && export EDITOR=vi && export VISUAL=vi
 
 # Set manpage reader to vim
 #hash col && hash vim && export MANPAGER="/bin/sh -c \"col -b | vim -c 'set ft=man ts=8 nomod nolist nonu noma' -\""
+
+# Source a local .bashrc
+if [ -f ~/.bashrc_local ]; then
+    . ~/.bashrc_local
+fi

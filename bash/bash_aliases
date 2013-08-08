@@ -26,21 +26,23 @@ alias pidgin-chmod="find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=
 #Root
 CURRENT_ROOT="/opt/cern_root/5/34/07/bin/thisroot.sh"
 ROOT_SOURCED=0
-
-root_check(){
-    if [ -n ${CURRENT_ROOT} ]; then
-        if [ ${ROOT_SOURCED} -eq 0 ]; then
-            source ${CURRENT_ROOT} && ROOT_SOURCED=1;
-            root -l $*;
+if [ -x ${CURRENT_ROOT} ]; then
+    root_check(){
+        if [ -n ${CURRENT_ROOT} ]; then
+            if [ ${ROOT_SOURCED} -eq 0 ]; then
+                source ${CURRENT_ROOT} && ROOT_SOURCED=1;
+                root -l $*;
+            else
+                root -l $*;
+            fi
         else
-            root -l $*;
+            echo "No current root defined."
         fi
-    else
-        echo "No current root defined."
-    fi
-}
+    }
 
-alias root="root_check"
+    alias root="root_check"
+fi
+
 
 #pcgen
 alias pcgen="/opt/pcgen/6.00.1/pcgen.sh"
