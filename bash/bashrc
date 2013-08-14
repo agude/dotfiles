@@ -83,7 +83,6 @@ hash tput &>/dev/null && COLORS=$(tput colors) && BOLD=$(tput bold) && NORMAL=$(
 
 # Set colors based on how many we have
 if [[ $COLORS -ge 256 ]]; then
-    YELLOW=11
     COLOR_DIR='\['$(tput setaf 12)'\]'  # Blue
     COLOR_ROOT='\['$(tput setaf 9)'\]'  # Red
     COLOR_USER='\['$(tput setaf 10)'\]' # Green
