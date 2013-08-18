@@ -424,8 +424,8 @@ function! Preserve(command)
 endfunction
 
 " Help opens help in a verticle split
-command -nargs=* -complete=help Help vertical belowright help <args>
-command -nargs=* -complete=help H vertical belowright help <args>
+command! -nargs=* -complete=help Help vertical belowright help <args>
+command! -nargs=* -complete=help H vertical belowright help <args>
 
 "=============================================================================
 " Set secure last so that if any part is unset above, it is corrected now
