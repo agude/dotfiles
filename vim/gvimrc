@@ -4,3 +4,10 @@
 if exists("+guioptions")
     set guioptions-=T           " remove the toolbar
 endif
+
+"-----------------------------------------------------------------------------
+" Options
+"-----------------------------------------------------------------------------
+"
+" Set the gvim font
+set guifont=\Ubuntu\ Mono\ 12

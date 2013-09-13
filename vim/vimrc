@@ -177,15 +177,15 @@ set tabstop=4     " number of spaces that a <Tab> counts for
 " Remove message when no file argument is given
 set shortmess+=I 
 
-set scrolloff=5   " keep five lines at the bottom
-set popt=left:8pc,right:3pc     " print options
-set visualbell t_vb=            " visual bell instead of beeping, and off!
-set autoindent " copy indent from current line
-set autoread " reread open files when changed outside Vim
-set backspace=indent,eol,start  " backspacing over everything in insert mode
-set browsedir=current           " which directory to use for the file browser
-set complete+=k                 " scan the files given with 'dictionary' flag
-set listchars=tab:>.,eol:\$     " strings to use in 'list' mode
+set scrolloff=5                " keep five lines at the bottom
+set popt=left:8pc,right:3pc    " print options
+set visualbell t_vb=           " visual bell instead of beeping, and off!
+set autoindent                 " copy indent from current line
+set autoread                   " reread open files when changed outside Vim
+set backspace=indent,eol,start " backspacing over everything in insert mode
+set browsedir=current          " which directory to use for the file browser
+set complete+=k                " scan the files given with 'dictionary' flag
+set listchars=tab:>.,eol:\$    " strings to use in 'list' mode
 
 " Search highlighting
 if has("extra_search")
