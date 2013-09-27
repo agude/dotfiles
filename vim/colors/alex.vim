@@ -8,7 +8,6 @@
 " ------------------------------------------------------------------
 
 hi clear
-set background=dark
 if exists("syntax_on")
   syntax reset
 endif
@@ -16,7 +15,11 @@ endif
 let g:colors_name = "alex"
 
 " Main Text and Window Background
-highlight Normal       ctermfg=White   ctermbg=None   cterm=None        term=None       guibg=black guifg=white
+if &background == "dark"
+    highlight Normal       ctermfg=White   ctermbg=None   cterm=None        term=None       guibg=black guifg=white
+else
+    highlight Normal       ctermfg=Black   ctermbg=None   cterm=None        term=None       guibg=white guifg=black
+endif
 
 " Other Text
 highlight Comment      ctermfg=Cyan    ctermbg=None   cterm=None        term=None
@@ -53,3 +56,6 @@ highlight Pmenu        ctermfg=Black   ctermbg=Grey   cterm=None        term=Non
 
 " Colorcolum
 highlight ColorColumn                  ctermbg=Grey   guibg=Grey
+
+" Splits
+highlight VertSplit    ctermfg=White ctermbg=None   cterm=None        term=Underline
