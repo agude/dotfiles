@@ -250,9 +250,6 @@ endif
 
 " Set the internal vim character encoding
 if has("multi_byte")
-    if &termencoding == ""
-        let &termencoding = &encoding
-    endif
     set encoding=utf-8
 endif
 
