@@ -90,6 +90,12 @@ if [[ -f ${HOME}/.screenrc || -L ${HOME}/.screenrc ]]; then
 fi
 ln -s ${PWD}/screen/screenrc ${HOME}/.screenrc
 
+# Xmodmap
+if [[ -f ${HOME}/.Xmodmap || -L ${HOME}/.Xmodmap ]]; then
+    rm -f ${HOME}/.Xmodmap
+fi
+ln -s ${PWD}/xmodmap/Xmodmap ${HOME}/.Xmodmap
+
 # Vim
 
 ## Vim folder
