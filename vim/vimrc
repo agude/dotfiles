@@ -248,6 +248,19 @@ if has("insert_expand") && has("eval")
     set omnifunc=syntaxcomplete#Complete
 endif
 
+" Set the internal vim character encoding
+if has("multi_byte")
+    if &termencoding == ""
+        let &termencoding = &encoding
+    endif
+    set encoding=utf-8
+endif
+
+" Sperate VertSplits with a solid line
+if &encoding == "utf-8"
+    set fillchars=stl:―,stlnc:—,vert:│,fold:۰,diff:·
+endif
+
 "-----------------------------------------------------------------------------
 " Pattern: patterns and search commands
 "-----------------------------------------------------------------------------
