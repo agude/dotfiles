@@ -127,9 +127,3 @@ alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
 alias bin-pull="${HOME}/bin/pull -y -i -d ${HOME}/bin/"
 alias bin-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/bin/"
 alias bin-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/bin/"
-
-## ${HOME}/.vim and ${HOME}/.vimrc
-alias vim-push="${HOME}/bin/push -y -i -d -x tmp ${HOME}/.vim/ && ${HOME}/bin/push -i ${HOME}/.vimrc"
-alias vim-pull="${HOME}/bin/pull -y -i -d -x tmp ${HOME}/.vim/ && ${HOME}/bin/pull -i ${HOME}/.vimrc"
-alias vim-pusho="${HOME}/bin/push -y -i -o -d -x tmp -d ${HOME}/.vim/ && ${HOME}/bin/push -i -o ${HOME}/.vimrc"
-alias vim-pullo="${HOME}/bin/pull -y -i -o -d -x tmp -d ${HOME}/.vim/ && ${HOME}/bin/pull -i -o ${HOME}/.vimrc"
