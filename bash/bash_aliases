@@ -24,7 +24,7 @@ ssh_keyreport(){
 alias pidgin-chmod="find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
 #Root
-CURRENT_ROOT="/opt/cern_root/5/34/07/bin/thisroot.sh"
+CURRENT_ROOT="/opt/cern_root/5/34/10/bin/thisroot.sh"
 ROOT_SOURCED=0
 if [ -x ${CURRENT_ROOT} ]; then
     root_check(){
@@ -123,10 +123,10 @@ alias dot-pusho="${HOME}/bin/push -y -x -i -o ${HOME}/.dotfiles/"
 alias dot-pullo="${HOME}/bin/pull -y -x -i -o ${HOME}/.dotfiles/"
 
 ## ${HOME}/bin
-alias bin-push="${HOME}/bin/push -y -i ${HOME}/bin/"
-alias bin-pull="${HOME}/bin/pull -y -i ${HOME}/bin/"
-alias bin-pusho="${HOME}/bin/push -y -i -o ${HOME}/bin/"
-alias bin-pullo="${HOME}/bin/pull -y -i -o ${HOME}/bin/"
+alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
+alias bin-pull="${HOME}/bin/pull -y -i -d ${HOME}/bin/"
+alias bin-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/bin/"
+alias bin-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/bin/"
 
 ## ${HOME}/.vim and ${HOME}/.vimrc
 alias vim-push="${HOME}/bin/push -y -i -d -x tmp ${HOME}/.vim/ && ${HOME}/bin/push -i ${HOME}/.vimrc"
