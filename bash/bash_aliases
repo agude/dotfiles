@@ -43,10 +43,6 @@ if [ -x ${CURRENT_ROOT} ]; then
     alias root="root_check"
 fi
 
-
-#pcgen
-alias pcgen="/opt/pcgen/6.00.1/pcgen.sh"
-
 #History search
 alias hs=" history | grep"
 
