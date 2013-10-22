@@ -133,3 +133,13 @@ alias system-push="${HOME}/bin/push -y -i -d ${HOME}/.systemfiles/"
 alias system-pull="${HOME}/bin/pull -y -i -d ${HOME}/.systemfiles/"
 alias system-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/.systemfiles/"
 alias system-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/.systemfiles/"
+
+# Sync Computers
+
+## From Einstein
+alias push-to-newton="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push" 
+alias pull-from-newton="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull" 
+
+##From Newton
+alias push-to-einstein="dot-push && bin-push && system-push && projects-push && docs-push && music-push" 
+alias pull-from-einstein="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && email-pull && music-pull" 
