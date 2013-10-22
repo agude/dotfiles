@@ -122,8 +122,14 @@ alias dot-pull="${HOME}/bin/pull -y -i -x tmp ${HOME}/.dotfiles/"
 alias dot-pusho="${HOME}/bin/push -y -x -i -o ${HOME}/.dotfiles/"
 alias dot-pullo="${HOME}/bin/pull -y -x -i -o ${HOME}/.dotfiles/"
 
-## ${HOME}/bin
+## ~/bin
 alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
 alias bin-pull="${HOME}/bin/pull -y -i -d ${HOME}/bin/"
 alias bin-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/bin/"
 alias bin-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/bin/"
+
+## Systemfiles
+alias system-push="${HOME}/bin/push -y -i -d ${HOME}/.systemfiles/"
+alias system-pull="${HOME}/bin/pull -y -i -d ${HOME}/.systemfiles/"
+alias system-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/.systemfiles/"
+alias system-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/.systemfiles/"
