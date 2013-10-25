@@ -1,3 +1,6 @@
 # Allow search based on the string already typed in the terminal
 "\e[A": history-search-backward
 "\e[B": history-search-forward
+
+# In the completion list, replaces already substituted part with ...
+set completion-prefix-display-length 2
