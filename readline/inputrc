@@ -6,5 +6,5 @@
 set completion-prefix-display-length 2
 
 # Control+j/k now scrolls down/up through the completion options
-Control-j: menu-complete
-Control-k: menu-complete-backward
+#Control-j: menu-complete
+#Control-k: menu-complete-backward
