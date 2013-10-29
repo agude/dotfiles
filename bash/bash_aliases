@@ -26,7 +26,7 @@ alias pidgin-chmod="find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=
 #Root
 CURRENT_ROOT="/opt/cern_root/5/34/10/bin/thisroot.sh"
 ROOT_SOURCED=0
-if [[ -x ${CURRENT_ROOT} ]]; then
+if [[ -f ${CURRENT_ROOT} ]]; then
     root_check(){
         if [[ -n ${CURRENT_ROOT} ]]; then
             if [[ ${ROOT_SOURCED} -eq 0 ]]; then
