@@ -3,7 +3,7 @@
 # $SHLVL keeps track of how many times we've run the a shell. If we run
 # multiple shells nested within eachother, this only clears when the final one
 # is closed.
-if [ "$SHLVL" = 1 ]; then
+if [[ "$SHLVL" = 1 ]]; then
     # when leaving the console clear the screen to increase privacy
-    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+    [[ -x /usr/bin/clear_console ]] && /usr/bin/clear_console -q
 fi

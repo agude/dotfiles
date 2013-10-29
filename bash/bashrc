@@ -3,7 +3,7 @@
 # for examples
 
 # set PATH so it includes user's private bin if it exists
-if [ -d ~/bin ] ; then
+if [[ -d ~/bin ]] ; then
     PATH="${PATH}":~/bin
 fi
 
@@ -62,18 +62,18 @@ hash setterm &>/dev/null && setterm -bfreq 0
 hash stty &>/dev/null && stty -ixon
 
 # make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+[[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # Gnome-terminal sets the wrong term string. Worse the right one doesn't report
 # all the features in most distributions, so we set it to xterm-256color and
 # hope for the best. This at least makes screen happy.
-if [ "x$COLORTERM" = "xgnome-terminal" ]; then
-    if [ "x$TERM" == "xxterm" ]; then
+if [[ "x$COLORTERM" = "xgnome-terminal" ]]; then
+    if [[ "x$TERM" == "xxterm" ]]; then
         export TERM=xterm-256color
     fi
 fi
@@ -132,7 +132,7 @@ LS_OPTS=
 GREP_OPTS=
 
 ## If we have a color terminal, we'll use color for ls and grep
-if [ $COLORS -ge 8 ]; then
+if [[ $COLORS -ge 8 ]]; then
     hash dircolors &>/dev/null && eval "$(dircolors -b)"
     if ls --help | grep -- --color &>/dev/null; then
         LS_OPTS="${LS_OPTS} --color=auto"
@@ -163,24 +163,24 @@ alias fgrep="fgrep ${GREP_OPTS}"
 alias egrep="egrep ${GREP_OPTS}"
 
 # enable programmable completion features
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+if [[ -f /etc/bash_completion ]] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
-if [ -f ~/.bash_aliases ]; then
+if [[ -f ~/.bash_aliases ]]; then
     . ~/.bash_aliases
 fi
 
 # Export special user variables
-if [ -f ~/.bash_var ]; then
+if [[ -f ~/.bash_var ]]; then
     . ~/.bash_var
 fi
 
 # Make /tmp/${USER}/
-if [ -f ~/.bashx ]; then
+if [[ -f ~/.bashx ]]; then
     . ~/.bashx
 fi
 
@@ -194,6 +194,6 @@ hash vi &>/dev/null && export EDITOR=vi && export VISUAL=vi
 #hash col && hash vim && export MANPAGER="/bin/sh -c \"col -b | vim -c 'set ft=man ts=8 nomod nolist nonu noma' -\""
 
 # Source a local .bashrc
-if [ -f ~/.bashrc_local ]; then
+if [[ -f ~/.bashrc_local ]]; then
     . ~/.bashrc_local
 fi

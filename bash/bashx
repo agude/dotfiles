@@ -27,6 +27,6 @@ for dir in adobe macromedia ; do
 done
 
 # Chmod so that only the user can access
-if [ -d /${TMPDIR:-/tmp}/${USER}/ ]; then
+if [[ -d /${TMPDIR:-/tmp}/${USER}/ ]]; then
     chmod -R go-wrx /${TMPDIR:-/tmp}/${USER}/
 fi
