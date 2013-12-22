@@ -20,11 +20,14 @@ ssh_keyreport(){
 #Run apt check
 #alias apt-full="${HOME}/bin/apt_full"
 
+#PEP8
+alias pep8="pep8 --repeat"
+
 #Chmod Log files
 alias pidgin-chmod="find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
 #Root
-CURRENT_ROOT="/opt/cern_root/5/34/10/bin/thisroot.sh"
+CURRENT_ROOT="/opt/cern_root/5/34/14/bin/thisroot.sh"
 ROOT_SOURCED=0
 if [[ -f ${CURRENT_ROOT} ]]; then
     root_check(){
@@ -51,7 +54,8 @@ alias suspend-gnome='dbus-send --system --print-reply --dest="org.freedesktop.UP
 
 #Push Wiki
 wiki_push(){
-    ${HOME}/Documents/wikis/alex_campaign/scripts/pushToUMN.sh && ${HOME}/Documents/wikis/alex_campaign/scripts/pushToStraub.sh
+    ${HOME}/Documents/wikis/alex_campaign/scripts/pushToUMN.sh \
+    && ${HOME}/Documents/wikis/alex_campaign/scripts/pushToStraub.sh
 }
 
 alias wiki-push="wiki_push"
