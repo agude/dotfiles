@@ -6,9 +6,9 @@ set nocompatible " Break compatibility with vi
 
 " Set leader and local leader
 let mapleader=","
-let g:mapleader = ","
-let maplocalleader = "\\"
-let g:maplocalleader = "\\"
+let g:mapleader=","
+let maplocalleader="\\"
+let g:maplocalleader="\\"
 
 " Vundle plugin installer and manager
 if filereadable(expand("~/.vim/vundles.vim"))
