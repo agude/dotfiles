@@ -60,6 +60,9 @@ wiki_push(){
 
 alias wiki-push="wiki_push"
 
+#Columns
+ccol() { awk -- "{print \$$1}"; }
+
 #Sync
 
 ##Website backup
