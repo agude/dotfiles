@@ -156,6 +156,9 @@ set history=1000
 " Options: of all options
 "-----------------------------------------------------------------------------
 
+" The screen will only redraw after a series of macros finishes
+set lazyredraw
+
 " Toggle paste
 nnoremap <Leader>p :set invpaste paste?<CR>
 
