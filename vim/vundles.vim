@@ -11,19 +11,19 @@ call vundle#rc()
 "-----------------------------------------------------------------------------
 
 "Use Vundle to manage vundle
-Bundle 'gmarik/vundle'
+Plugin 'gmarik/vundle'
 "Supertab
-Bundle 'ervandew/supertab'
+Plugin 'ervandew/supertab'
 "Surround
-Bundle 'tpope/vim-surround'
+Plugin 'tpope/vim-surround'
 "Repeat (lets you use . with surround)
-Bundle 'tpope/vim-repeat'
+Plugin 'tpope/vim-repeat'
 "Vimwiki
-Bundle 'vimwiki/vimwiki'
+Plugin 'vimwiki/vimwiki'
 "Tagbar
-Bundle 'majutsushi/tagbar'
+Plugin 'majutsushi/tagbar'
 "ctrlp
-Bundle 'kien/ctrlp.vim'
+Plugin 'kien/ctrlp.vim'
 
 "Filetype plugin indent on is required by vundle
 filetype plugin indent on

@@ -122,4 +122,4 @@ if [[ ! -d ${PWD}/vim/bundle/vundle ]]; then
 fi
 
 ## Install bundles from vimrc
-vim +BundleInstall +qall
+vim +PluginInstall +qall
