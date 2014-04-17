@@ -126,8 +126,8 @@ alias music-pullo="${HOME}/bin/pull -i -y -d -o ${HOME}/.config/banshee-1/ ${HOM
 ## Dotfiles
 alias dot-push="${HOME}/bin/push -y -i -x tmp ${HOME}/.dotfiles/"
 alias dot-pull="${HOME}/bin/pull -y -i -x tmp ${HOME}/.dotfiles/"
-alias dot-pusho="${HOME}/bin/push -y -x -i -o ${HOME}/.dotfiles/"
-alias dot-pullo="${HOME}/bin/pull -y -x -i -o ${HOME}/.dotfiles/"
+alias dot-pusho="${HOME}/bin/push -y -x tmp -i -o ${HOME}/.dotfiles/"
+alias dot-pullo="${HOME}/bin/pull -y -x tmp -i -o ${HOME}/.dotfiles/"
 
 ## ~/bin
 alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
@@ -144,9 +144,13 @@ alias system-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/.systemfiles/"
 # Sync Computers
 
 ## From Einstein
-alias push-to-newton="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push" 
-alias pull-from-newton="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull" 
+alias push-to-newton="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push"
+alias pull-from-newton="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull"
+alias pusho-to-newton="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && email-pusho && music-pusho"
+alias pullo-from-newton="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && music-pullo"
 
 ##From Newton
-alias push-to-einstein="dot-push && bin-push && system-push && projects-push && docs-push && music-push" 
-alias pull-from-einstein="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && email-pull && music-pull" 
+alias push-to-einstein="dot-push && bin-push && system-push && projects-push && docs-push && music-push"
+alias pull-from-einstein="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && email-pull && music-pull"
+alias pusho-to-einstein="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && music-pusho"
+alias pullo-from-einstein="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && email-pullo && music-pullo"
