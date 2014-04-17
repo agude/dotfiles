@@ -23,8 +23,11 @@ ssh_keyreport(){
 #PEP8
 alias pep8="pep8 --repeat"
 
-#Chmod Log files
-alias pidgin-chmod="find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
+#chmod pidgin log files
+# We killall pidgin first so that we don't change the
+# permissions on a log, sync them to another computer, and then keep writing,
+# making future rsyncs fail because the file is read only
+alias pidgin-chmod="killall pidgin > /dev/null 2>&1; find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
 #Root
 CURRENT_ROOT="/opt/cern_root/5/34/14/bin/thisroot.sh"
