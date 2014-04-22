@@ -426,6 +426,7 @@ let g:netrw_rsync_cmd= 'rsync -az'
 "=============================================================================
 
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
+vnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
 " Preserve the location and search when calling a function
 function! Preserve(command)
