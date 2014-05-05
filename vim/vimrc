@@ -178,7 +178,7 @@ set softtabstop=4 " <Tab> counts for 4 spaces, allows easier deleting
 set tabstop=4     " number of spaces that a <Tab> counts for
 
 " Remove message when no file argument is given
-set shortmess+=I 
+set shortmess+=I
 
 set scrolloff=5                " keep five lines at the bottom
 set popt=left:8pc,right:3pc    " print options
@@ -425,6 +425,7 @@ let g:netrw_rsync_cmd= 'rsync -az'
 " Custom functions
 "=============================================================================
 
+" Strip trailing spaces
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
 vnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
