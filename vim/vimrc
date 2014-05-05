@@ -429,6 +429,9 @@ let g:netrw_rsync_cmd= 'rsync -az'
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
 vnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
+" Run indenting on the whole file
+nnoremap <Leader>ff :call Preserve("normal gg=G")<CR>
+
 " Preserve the location and search when calling a function
 function! Preserve(command)
     " Preparation: save last search, and cursor position.
