@@ -1,0 +1,61 @@
+# astyle file
+
+# Indent 4 spaces
+indent=spaces=4
+
+# Remove tabs
+convert-tabs
+
+# Pad all operators with spaces
+pad-oper
+
+# Remove spaces around parenthesis
+unpad-paren
+
+# Add a space between parenthesis and if/for/while
+pad-header
+
+# Align pointer and reference operators with the type
+align-pointer=type
+align-reference=type
+
+# Maximum number of characters
+max-code-length=80
+
+# Always use brackets, even for single line commands
+add-brackets
+
+# Attach brackets to namespaces
+attach-namespaces
+
+# Attach brackets to classes
+attach-classes
+
+# Attack brackets to inline functions
+attach-inlines
+
+# Indent code inside namespaces instead of leaving it at the same level
+indent-namespaces
+
+# Indent class blocks so that public/protected/private are indented one level,
+# and methods and functions are an additional level below those
+indent-classes
+
+# Indent switch blocks so that the case keyword is indented one level
+indent-switches
+
+# Indent labels one level in
+indent-labels
+
+# Indent multi-line preprocessor definitions ending with a backslash
+indent-preproc-define
+
+# Indent C++ comments beginning in column one
+indent-col1-comments
+
+# Set the maximum of number spaces to indent a continuation line
+max-instatement-indent=80
+
+# Break closing headers ('else', 'catch', ...) from their immediately
+# preceding closing brackets
+break-closing-brackets

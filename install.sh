@@ -96,6 +96,12 @@ if [[ -f ${HOME}/.Xmodmap || -L ${HOME}/.Xmodmap ]]; then
 fi
 ln -s ${PWD}/xmodmap/Xmodmap ${HOME}/.Xmodmap
 
+# astyle
+if [[ -f ${HOME}/.astylerc || -L ${HOME}/.astylerc ]]; then
+    rm -f ${HOME}/.astylerc
+fi
+ln -s ${PWD}/astyle/astylerc ${HOME}/.astylerc
+
 # Vim
 
 ## Vim folder
