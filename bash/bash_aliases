@@ -30,7 +30,7 @@ alias pep8="pep8 --repeat"
 alias pidgin-chmod="killall pidgin > /dev/null 2>&1; find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
 #Root
-CURRENT_ROOT="/opt/cern_root/5/34/14/bin/thisroot.sh"
+CURRENT_ROOT="/opt/cern_root/5/34/18/bin/thisroot.sh"
 ROOT_SOURCED=0
 if [[ -f ${CURRENT_ROOT} ]]; then
     root_check(){
