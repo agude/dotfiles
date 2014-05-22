@@ -80,6 +80,11 @@ let g:vimwiki_list = [
         \'template_default': 'default_template',
         \'template_ext': '.html'
     \},
+    \{'path': '~/Projects/Coursera_Algorithms/notes_wiki/wiki/',
+        \'path_html': '~/Projects/Coursera_Algorithms/notes_wiki/html/',
+        \'auto_export': 1,
+        \'nested_syntaxes':  {'python': 'python', 'c++': 'cpp'}
+    \},
 \]
 
 "=============================================================================
