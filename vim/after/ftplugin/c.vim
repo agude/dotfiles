@@ -27,3 +27,13 @@ imap  <buffer>  /*<CR>  /*<CR><CR>/<Esc>kA<Space>
 "-------------------------------------------------------------------------------
 imap  <buffer>  {<CR>    {<CR>}<Esc>O
 vmap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
+"
+"-------------------------------------------------------------------------------
+" additional mapping : use astyle for formatting
+"-------------------------------------------------------------------------------
+" Q applies astyle
+set formatprg=astyle
+" = applies astlye and then indents with vim's default indenter
+vnoremap = gqgv=
+" Run astyle on the whole file
+nnoremap <Leader>ff :call Preserve("normal gggqG")<CR>
