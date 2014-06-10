@@ -79,10 +79,17 @@ fi
 ln -s ${PWD}/readline/inputrc ${HOME}/.inputrc
 
 # Git
+## Global configurations
 if [[ -f ${HOME}/.gitconfig || -L ${HOME}/.gitconfig ]]; then
     rm -f ${HOME}/.gitconfig
 fi
 ln -s ${PWD}/git/gitconfig ${HOME}/.gitconfig
+
+## Ignore List
+if [[ -f ${HOME}/.gitignore || -L ${HOME}/.gitignore ]]; then
+    rm -f ${HOME}/.gitignore
+fi
+ln -s ${PWD}/git/gitignore ${HOME}/.gitignore
 
 # Screen
 if [[ -f ${HOME}/.screenrc || -L ${HOME}/.screenrc ]]; then
