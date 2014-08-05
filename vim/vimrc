@@ -450,6 +450,15 @@ command! -nargs=* -complete=help Help vertical belowright help <args>
 command! -nargs=* -complete=help H vertical belowright help <args>
 
 "=============================================================================
+" Source a local file to allow site by site settings
+"=============================================================================
+"
+let $VIMRCLOCAL=expand("~/.vimrc_local")
+if filereadable($VIMRCLOCAL)
+    source $VIMRCLOCAL
+endif
+
+"=============================================================================
 " Set secure last so that if any part is unset above, it is corrected now
 "=============================================================================
 
