@@ -24,6 +24,8 @@ Plugin 'vimwiki/vimwiki'
 Plugin 'majutsushi/tagbar'
 "ctrlp
 Plugin 'kien/ctrlp.vim'
+"Python Syntax Highlighting 
+Plugin 'hdima/python-syntax'
 
 "Filetype plugin indent on is required by vundle
 filetype plugin indent on
