@@ -50,6 +50,13 @@ endif
 nnoremap j gj
 nnoremap k gk
 
+" Move to the beginning or end of a line
+nnoremap H ^
+nnoremap L $
+" g_ does not count the \n at the end of a line
+vnoremap H ^
+vnoremap L g_
+
 " Swap ' and ` so that ' goes to the position, and ` just the line
 nnoremap ' `
 nnoremap ` '
