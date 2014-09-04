@@ -127,10 +127,10 @@ alias music-pusho="${HOME}/bin/push -i -y -d -o ${HOME}/.config/banshee-1/ ${HOM
 alias music-pullo="${HOME}/bin/pull -i -y -d -o ${HOME}/.config/banshee-1/ ${HOME}/Music/"
 
 ## Dotfiles
-alias dot-push="${HOME}/bin/push -y -i -x tmp ${HOME}/.dotfiles/"
-alias dot-pull="${HOME}/bin/pull -y -i -x tmp ${HOME}/.dotfiles/"
-alias dot-pusho="${HOME}/bin/push -y -x tmp -i -o ${HOME}/.dotfiles/"
-alias dot-pullo="${HOME}/bin/pull -y -x tmp -i -o ${HOME}/.dotfiles/"
+alias dot-push="${HOME}/bin/push -y -i -d -x tmp ${HOME}/.dotfiles/"
+alias dot-pull="${HOME}/bin/pull -y -i -d -x tmp ${HOME}/.dotfiles/"
+alias dot-pusho="${HOME}/bin/push -y -d -x tmp -i -o ${HOME}/.dotfiles/"
+alias dot-pullo="${HOME}/bin/pull -y -d -x tmp -i -o ${HOME}/.dotfiles/"
 
 ## ~/bin
 alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
