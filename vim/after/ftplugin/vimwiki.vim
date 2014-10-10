@@ -16,6 +16,6 @@ inoremap --- —
 
 " Insert timestamp with bullet, as used in my notes
 if exists("*strftime")
-    noremap <F2> ^DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>: <Esc>
-    inoremap <F2> <ESC>^DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>:<Space>
+    noremap <F2> 0DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>: <Esc>
+    inoremap <F2> <ESC>0DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>:<Space>
 endif
