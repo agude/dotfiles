@@ -1,1 +1,1 @@
-au BufRead,BufNewFile .gnu                set filetype=gnuplot
+au BufRead,BufNewFile *.gnu                set filetype=gnuplot
