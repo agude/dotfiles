@@ -35,6 +35,11 @@ syn keyword cppStorageClass     mutable
 syn keyword cppStructure        class typename template namespace
 syn keyword cppNumber           NPOS
 syn keyword cppBoolean          true false
+syn keyword cppOperator         alignof
+syn keyword cppType             char16_t char32_t decltype
+syn keyword cppStorageClass     constexpr thread_local
+syn keyword cppConstant         nullptr
+syn keyword cppStatement        static_assert
 
 " The minimum and maximum operators in GNU C++
 syn match cppMinMax "[<>]?"
@@ -59,6 +64,7 @@ if version >= 508 || !exists("did_cpp_syntax_inits")
   HiLink cppStructure           Structure
   HiLink cppNumber              Number
   HiLink cppBoolean             Boolean
+  HiLink cppConstant            Constant
   delcommand HiLink
 endif
 
