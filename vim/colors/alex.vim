@@ -59,3 +59,9 @@ highlight ColorColumn                  ctermbg=Grey   guibg=Grey
 
 " Splits
 highlight VertSplit    ctermfg=White ctermbg=None   cterm=None        term=Underline
+
+" Git Diff Colors
+highlight DiffAdd      ctermfg=Green   ctermbg=Black  cterm=Reverse,Bold      term=None
+highlight DiffText     ctermfg=Blue    ctermbg=Black  cterm=Reverse,Bold      term=None
+highlight DiffDelete   ctermfg=Red     ctermbg=Black  cterm=Reverse,Bold      term=None
+highlight DiffChange   ctermfg=None    ctermbg=None   cterm=None              term=None
