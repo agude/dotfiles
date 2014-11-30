@@ -1,10 +1,5 @@
 " ------------------------------------------------------------------
-" local syntax file - set colors on a per-machine basis:
-" vim: tw=0 ts=4 sw=4
 " Vim color file
-" Maintainer: Alex Gude
-" Filename:	alex.vim
-" Copyright: 2013 Alex Gude
 " ------------------------------------------------------------------
 
 hi clear
