@@ -58,7 +58,7 @@ highlight Pmenu        ctermfg=Black   ctermbg=Grey   cterm=None        term=Non
 highlight ColorColumn                  ctermbg=Grey   guibg=Grey
 
 " Splits
-highlight VertSplit    ctermfg=White ctermbg=None   cterm=None        term=Underline
+highlight VertSplit    ctermfg=White   ctermbg=None   cterm=None        term=Underline
 
 " Git Diff Colors
 highlight DiffAdd      ctermfg=Green   ctermbg=Black  cterm=Reverse,Bold      term=None
