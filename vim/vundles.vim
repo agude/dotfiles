@@ -28,6 +28,8 @@ Plugin 'kien/ctrlp.vim'
 Plugin 'hdima/python-syntax'
 "Gnuplot Syntax Highlighting
 Plugin 'vim-scripts/gnuplot-syntax-highlighting'
+"Git support
+Plugin 'tpope/vim-fugitive'
 
 "Filetype plugin indent on is required by vundle
 filetype plugin indent on
