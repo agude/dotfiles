@@ -52,8 +52,8 @@ nnoremap k gk
 nnoremap H ^
 nnoremap L $
 " g_ does not count the \n at the end of a line
-vnoremap H ^
-vnoremap L g_
+xnoremap H ^
+xnoremap L g_
 
 " Swap ' and ` so that ' goes to the position, and ` just the line
 nnoremap ' `
@@ -113,19 +113,19 @@ if has ("virtualedit")
 endif
 
 " Reselect visual selection after indenting
-vnoremap < <gv
-vnoremap > >gv
+xnoremap < <gv
+xnoremap > >gv
 
 " Wrap visually selected text
-vnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
-vnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
-vnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
-vnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
-vnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
-vnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
-vnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
-vnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
-vnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
+xnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
+xnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
+xnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
+xnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
+xnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
+xnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
+xnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
+xnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
+xnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
 
 " Search for visual selection with * and #
 function! s:VSetSearch()
@@ -135,8 +135,8 @@ function! s:VSetSearch()
     let @@ = temp
 endfunction
 
-vnoremap * :<C-u>call <SID>VSetSearch()<CR>//<CR>
-vnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
+xnoremap * :<C-u>call <SID>VSetSearch()<CR>//<CR>
+xnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
 
 "-----------------------------------------------------------------------------
 " Various: remaining commands
@@ -273,8 +273,8 @@ set smartcase
 " Use \v for better regex matchin
 nnoremap / /\v
 nnoremap ? ?\v
-vnoremap / /\v
-vnoremap ? ?\v
+xnoremap / /\v
+xnoremap ? ?\v
 
 " Keep search matches in the middle of the screen and pulse the line when
 " moving
@@ -433,7 +433,7 @@ let g:netrw_rsync_cmd= 'rsync -az'
 
 " Strip trailing spaces
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
-vnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
+xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
 " Run indenting on the whole file
 nnoremap <Leader>ff :call Preserve("normal gg=G")<CR>
