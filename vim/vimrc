@@ -392,8 +392,13 @@ if has("autocmd")
 endif
 
 " Open the quickfix window if there are errors when running :make
-autocmd QuickFixCmdPost [^l]* nested cwindow
-autocmd QuickFixCmdPost    l* nested lwindow
+if has("autocmd")
+    augroup makequickfix
+        autocmd!
+        autocmd QuickFixCmdPost [^l]* nested cwindow
+        autocmd QuickFixCmdPost    l* nested lwindow
+    augroup END
+endif
 
 "-----------------------------------------------------------------------------
 " Filetype: done specifically for a type of file
