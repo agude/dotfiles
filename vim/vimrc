@@ -258,10 +258,7 @@ endif
 " Set the internal vim character encoding
 if has("multi_byte")
     set encoding=utf-8
-endif
-
-" Sperate VertSplits with a solid line
-if &encoding == "utf-8"
+    " Sperate VertSplits with a solid line
     set fillchars=stl:―,stlnc:—,vert:│,fold:۰,diff:·
 endif
 
