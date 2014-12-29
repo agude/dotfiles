@@ -262,6 +262,9 @@ if has("multi_byte")
     set fillchars=stl:―,stlnc:—,vert:│,fold:۰,diff:·
 endif
 
+" Do not add two spaces after . ? ! when using J to join lines
+set nojoinspaces
+
 "-----------------------------------------------------------------------------
 " Pattern: patterns and search commands
 "-----------------------------------------------------------------------------
