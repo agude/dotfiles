@@ -19,7 +19,7 @@
     default = simple
 
 [include]
-        path = ~/.gitconfig_local
+    path = ~/.gitconfig_local
 
 [alias]
     undo = reset --soft HEAD~1
