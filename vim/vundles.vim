@@ -12,8 +12,8 @@ call vundle#rc()
 
 "Use Vundle to manage vundle
 Plugin 'gmarik/vundle'
-"Supertab
-Plugin 'ervandew/supertab'
+"VimCompletesMe
+Plugin 'ajh17/VimCompletesMe'
 "Surround
 Plugin 'tpope/vim-surround'
 "Repeat (lets you use . with surround)

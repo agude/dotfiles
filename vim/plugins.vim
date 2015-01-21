@@ -20,29 +20,6 @@ let g:python_highlight_builtin_funcs = 1
 "let g:python_highlight_all = 1
 
 "=============================================================================
-" Supertab settings
-"=============================================================================
-
-if v:version >= 700
-    " Use context to determine the type of completion to use
-    let g:SuperTabDefaultCompletionType = "context"
-    " Complete all common letters and ask again
-    let g:SuperTabLongestEnhanced = 1
-    " Do not highlight a selection by default
-    let g:SuperTabLongestHighlight = 0
-    " <CR> completes selection
-    let g:SuperTabCrMapping = 0
-    " Try omnifunc, then fall back if this fails
-    if has("autocmd")
-        autocmd filetype *
-            \ if &omnifunc != '' |
-            \   call SuperTabChain(&omnifunc, "<c-p>") |
-            \   call SuperTabSetDefaultCompletionType("<c-x><c-u>") |
-            \ endif
-    endif
-endif
-
-"=============================================================================
 " Ctrlp Settings
 "=============================================================================
 
