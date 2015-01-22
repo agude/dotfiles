@@ -2,12 +2,13 @@
 " Remove the toolbar
 "-----------------------------------------------------------------------------
 if exists("+guioptions")
-    set guioptions-=T           " remove the toolbar
+    set guioptions-=T " remove the toolbar
+    set guioptions-=m " remove the menubar
 endif
 
 "-----------------------------------------------------------------------------
 " Options
 "-----------------------------------------------------------------------------
-"
+
 " Set the gvim font
 set guifont=\Ubuntu\ Mono\ 12
