@@ -435,6 +435,9 @@ let g:netrw_rsync_cmd= 'rsync -az'
 " Custom functions
 "=============================================================================
 
+" Find merge conflict markers
+nnoremap <Leader>mc /\v^[<\|=>]{7}( .*\|$)<CR>
+
 " Strip trailing spaces
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
 xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
