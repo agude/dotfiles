@@ -42,16 +42,10 @@ fi
 ln -s ${PWD}/bash/bashrc ${HOME}/.bash_login
 
 ## bash_aliases
-if [[ -f ${HOME}/.bash_aliases || -L ${HOME}/.bash_aliases ]]; then
-    rm -f ${HOME}/.bash_aliases
+if [[ -d ${HOME}/.bashrc.d || -L ${HOME}/.bashrc.d ]]; then
+    rm -f ${HOME}/.bashrc.d
 fi
-ln -s ${PWD}/bash/bash_aliases ${HOME}/.bash_aliases
-
-## bashx
-if [[ -f ${HOME}/.bashx || -L ${HOME}/.bashx ]]; then
-    rm -f ${HOME}/.bashx
-fi
-ln -s ${PWD}/bash/bashx ${HOME}/.bashx
+ln -s ${PWD}/bash/bashrc.d ${HOME}/.bashrc.d
 
 ## bash_logout
 if [[ -f ${HOME}/.bash_logout || -L ${HOME}/.bash_logout ]]; then
