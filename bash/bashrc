@@ -105,7 +105,7 @@ else
 fi
 
 # Change prompt for root vs. user
-if [[ $EUID -eq 0 ]]; then 
+if [[ $EUID -eq 0 ]]; then
     PS1=${COLOR_ROOT}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
 elif [[ -n $SUDO_USER ]]; then
     PS1=${COLOR_SUDO}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
