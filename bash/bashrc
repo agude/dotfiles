@@ -39,7 +39,7 @@ shopt -s extglob &>/dev/null
 unset MAILCHECK
 
 # turn off annoying shell beep
-hash setterm &>/dev/null && setterm -bfreq 0
+hash setterm &>/dev/null && setterm -bfreq 0 -blength 0
 
 # turn off flow control keys
 hash stty &>/dev/null && stty -ixon
