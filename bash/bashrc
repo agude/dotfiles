@@ -166,3 +166,6 @@ if [[ -d ${subfile_dir} ]]; then
         source "${config}"
     done
 fi
+# Unset variables to avoid polluting our shell's namespace
+unset -v config
+unset -v subfile_dir
