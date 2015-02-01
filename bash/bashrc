@@ -44,6 +44,9 @@ hash setterm &>/dev/null && setterm -bfreq 0
 # turn off flow control keys
 hash stty &>/dev/null && stty -ixon
 
+# do not let others write to my terminal
+mesg n
+
 # make less more friendly for non-text input files, see lesspipe(1)
 [[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
 
