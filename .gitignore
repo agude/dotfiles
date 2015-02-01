@@ -3,6 +3,9 @@ vim/bundle
 vim/tmp/ctrlp
 vim/tmp/unite
 
+# Local bashrc file
+bash/bashrc.d/*local.bash
+
 # Vim files from Github Gitignore:
 # https://github.com/github/gitignore/blob/master/Global/vim.gitignore
 *.s[a-w][a-z]
