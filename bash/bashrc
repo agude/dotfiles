@@ -111,15 +111,11 @@ case "$TERM" in
 esac
 
 # Reset options for ls and grep
-LS_OPTS=
 GREP_OPTS=
 
 ## If we have a color terminal, we'll use color for ls and grep
 if [[ $COLORS -ge 8 ]]; then
     hash dircolors &>/dev/null && eval "$(dircolors -b)"
-    if ls --help | grep -- --color &>/dev/null; then
-        LS_OPTS="${LS_OPTS} --color=auto"
-    fi
     if grep --help | grep -- --color &>/dev/null; then
         GREP_OPTS="${GREP_OPTS} --color=auto"
     fi
@@ -137,10 +133,7 @@ if grep --help | grep -- --exclude-dir &>/dev/null; then
     done
 fi
 
-# set options for ls and grep (color, ignore git, etc.)
-alias ls="ls ${LS_OPTS}"
-alias dir="dir ${LS_OPTS}"
-alias vdir="vdir ${LS_OPTS}"
+# set options for grep (color, ignore git, etc.)
 alias grep="grep ${GREP_OPTS}"
 alias fgrep="fgrep ${GREP_OPTS}"
 alias egrep="egrep ${GREP_OPTS}"
