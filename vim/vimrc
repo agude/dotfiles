@@ -8,9 +8,9 @@ set nocompatible " Break compatibility with vi
 let g:mapleader=","
 let g:maplocalleader="\\"
 
-" Vundle plugin installer and manager
-if filereadable(expand("~/.vim/vundles.vim"))
-    source ~/.vim/vundles.vim
+" Plugin installer and manager
+if filereadable(expand("~/.vim/plug.vim"))
+    source ~/.vim/plug.vim
 endif
 
 " Vundle plugin installer and manager

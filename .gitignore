@@ -1,5 +1,5 @@
 # Vim directories
-vim/bundle
+vim/plugged
 vim/tmp/ctrlp
 vim/tmp/unite
 

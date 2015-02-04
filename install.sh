@@ -123,10 +123,11 @@ if [[ -f ${HOME}/.gvimrc || -L ${HOME}/.gvimrc ]]; then
 fi
 ln -s ${PWD}/vim/gvimrc ${HOME}/.gvimrc
 
-## Install vundle
-if [[ ! -d ${PWD}/vim/bundle/vundle ]]; then
-    git clone https://github.com/gmarik/vundle.git ${PWD}/vim/bundle/vundle
+## Install vim-plug
+if [[ ! -f ${PWD}/vim/autoload/plug.vim ]]; then
+    curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
 
 ## Install bundles from vimrc
-vim +PluginInstall +qall
+vim +PlugInstall +qall
