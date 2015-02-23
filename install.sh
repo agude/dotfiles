@@ -103,6 +103,12 @@ if [[ -f ${HOME}/.astylerc || -L ${HOME}/.astylerc ]]; then
 fi
 ln -s ${PWD}/astyle/astylerc ${HOME}/.astylerc
 
+# terminfo
+if [[ -f ${HOME}/.terminfo || -L ${HOME}/.terminfo ]]; then
+    rm -f ${HOME}/.terminfo
+fi
+ln -s ${PWD}/terminfo ${HOME}/.terminfo
+
 # Vim
 
 ## Vim folder
