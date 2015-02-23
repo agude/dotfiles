@@ -53,6 +53,10 @@ mesg n
 # Gnome-terminal sets the wrong term string. Worse the right one doesn't report
 # all the features in most distributions, so we set it to xterm-256color and
 # hope for the best. This at least makes screen happy.
+#
+# Update: Apparenlty gnome terminal stops setting $COLORTERM in 3.13 and
+# later. At that point it might be best to set up a start up command in gnome
+# term: env TERM=xterm-256color /bin/bash
 if [[ "x$COLORTERM" = "xgnome-terminal" ]]; then
     if [[ "x$TERM" == "xxterm" ]]; then
         export TERM=xterm-256color
