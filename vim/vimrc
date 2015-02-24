@@ -5,7 +5,7 @@
 set nocompatible " Break compatibility with vi
 
 " Set leader and local leader
-let g:mapleader=","
+let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
 
 " Plugin installer and manager
