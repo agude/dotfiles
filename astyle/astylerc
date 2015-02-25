@@ -38,6 +38,9 @@ attach-classes
 # Attach brackets to inline functions
 attach-inlines
 
+# Attach brackets to extern "C" statements
+attach-extern-c
+
 # Indent code inside namespaces instead of leaving it at the same level
 indent-namespaces
 
