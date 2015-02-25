@@ -35,7 +35,7 @@ attach-namespaces
 # Attach brackets to classes
 attach-classes
 
-# Attack brackets to inline functions
+# Attach brackets to inline functions
 attach-inlines
 
 # Indent code inside namespaces instead of leaving it at the same level
