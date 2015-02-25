@@ -1,5 +1,9 @@
 # astyle file
 
+# Use Java Bracket style: attach brackets to everything and indent class
+# access modifiers (private, public, etc.) a full level
+style=java
+
 # Indent 4 spaces
 indent=spaces=4
 
