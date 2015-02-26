@@ -10,6 +10,3 @@ augroup END
 " Wrap text after 78 characters
 setlocal textwidth=78
 
-" Insert en and em dash
-inoremap -- –
-inoremap --- —
