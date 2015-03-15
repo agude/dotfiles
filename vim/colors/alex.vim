@@ -18,6 +18,7 @@ endif
 
 " Other Text
 highlight  Comment           ctermfg=Cyan     ctermbg=None   cterm=None          term=None
+highlight  String            ctermfg=Magenta  ctermbg=None   cterm=None          term=Underline
 highlight  Statement         ctermfg=Yellow   ctermbg=None   cterm=Bold          term=Bold
 highlight  PreProc           ctermfg=Blue     ctermbg=None   cterm=Bold          term=Bold
 highlight  Identifier        ctermfg=Green    ctermbg=None   cterm=Bold          term=None
