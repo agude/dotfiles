@@ -429,12 +429,25 @@ endif
 " SPECIAL ISSUES
 "=============================================================================
 
+"=============================================================================
+" STANDARD PLUGINS
+"=============================================================================
+
 "-----------------------------------------------------------------------------
 " Netrw: Reading and writing files over a network
 "-----------------------------------------------------------------------------
 
 " Use rsync with compression and preserve file attributes
 let g:netrw_rsync_cmd= 'rsync -az'
+
+"-----------------------------------------------------------------------------
+" Matchit: Match more than just parenthesis for various languages
+"-----------------------------------------------------------------------------
+
+" Load matchit.vim, but only if the user hasn't installed a newer version.
+if !exists('g:loaded_matchit') && findfile('plugin/matchit.vim', &rtp) ==# ''
+  runtime! macros/matchit.vim
+endif
 
 "=============================================================================
 " Custom functions
