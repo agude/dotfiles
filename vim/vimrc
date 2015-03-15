@@ -39,10 +39,10 @@ augroup END
 
 " If we can set a custom location for backups, turn them on
 if exists("+backupdir")
-    set backup                          " keep a backup file
-    set backupdir=~/.vim/tmp/backup//   " set backup file location
+    set backup                         " keep a backup file
+    set backupdir=~/.vim/tmp/backup//  " set backup file location
 else
-    set nobackup                        " No backup if we can't keep it neat
+    set nobackup                       " No backup if we can't keep it neat
 endif
 
 "-----------------------------------------------------------------------------
@@ -90,15 +90,15 @@ noremap Q gq
 " Undo: and Redo
 "-----------------------------------------------------------------------------
 
-set noswapfile                          " use memory instead of swap
-set directory=~/.vim/tmp/swap//         " set a swap directory just in case
+set noswapfile                   " use memory instead of swap
+set directory=~/.vim/tmp/swap//  " set a swap directory just in case
 
 " Set up undo file
-set undolevels=10000                " number of changes that can be undone
+set undolevels=10000               " number of changes that can be undone
 if exists("+undofile")
-    set undofile                    " use an undo file
-    set undodir=~/.vim/tmp/undo//   " set undo file location
-    set undoreload=10000            " save this many lines on buffer reload
+    set undofile                   " use an undo file
+    set undodir=~/.vim/tmp/undo//  " set undo file location
+    set undoreload=10000           " save this many lines on buffer reload
 endif
 
 " U is redo, instead of undo on line
@@ -181,29 +181,29 @@ set nonumber
 nnoremap <silent> <Leader>n :setlocal number!<CR>
 
 " Tab settings
-set expandtab     " expand tabs to spaces
-set smarttab      " use shiftwidth instead of tabstop for tabs at the start of lines
-set shiftwidth=4  " number of spaces to use for each step of indent
-set softtabstop=4 " <Tab> counts for 4 spaces, allows easier deleting
-set tabstop=4     " number of spaces that a <Tab> counts for
-set shiftround    " >> and << move to the nearest multiple of shiftwidth
+set expandtab      " expand tabs to spaces
+set smarttab       " use shiftwidth instead of tabstop for tabs at the start of lines
+set shiftwidth=4   " number of spaces to use for each step of indent
+set softtabstop=4  " <Tab> counts for 4 spaces, allows easier deleting
+set tabstop=4      " number of spaces that a <Tab> counts for
+set shiftround     " >> and << move to the nearest multiple of shiftwidth
 
 " Remove message when no file argument is given
 set shortmess+=I
 
-set scrolloff=5                " keep five lines at the bottom
-set popt=left:8pc,right:3pc    " print options
-set visualbell t_vb=           " visual bell instead of beeping, and off!
-set autoindent                 " copy indent from current line
-set autoread                   " reread open files when changed outside Vim
-set backspace=indent,eol,start " backspacing over everything in insert mode
-set browsedir=current          " which directory to use for the file browser
-set listchars=tab:>.,eol:\$    " strings to use in 'list' mode
+set scrolloff=5                 " keep five lines at the bottom
+set popt=left:8pc,right:3pc     " print options
+set visualbell t_vb=            " visual bell instead of beeping, and off!
+set autoindent                  " copy indent from current line
+set autoread                    " reread open files when changed outside Vim
+set backspace=indent,eol,start  " backspacing over everything in insert mode
+set browsedir=current           " which directory to use for the file browser
+set listchars=tab:>.,eol:\$     " strings to use in 'list' mode
 
 " Search highlighting
 if has("extra_search")
-    set hlsearch                  " highlight the last used search pattern
-    set incsearch                 " do incremental searching
+    set hlsearch   " highlight the last used search pattern
+    set incsearch  " do incremental searching
     if has("autocmd")
         augroup insert_hl
             autocmd!
@@ -215,26 +215,26 @@ endif
 
 " Wildmenu settings
 if has("wildmenu")
-    set wildmenu                            " command-line completion in an
-                                            " enhanced mode
-    set wildmode=list:longest               " when more than one match, list
-                                            " all matches and complete till
-                                            " longest common string
+    set wildmenu                           " command-line completion in an
+    " enhanced mode
+    set wildmode=list:longest              " when more than one match, list
+    " all matches and complete till
+    " longest common string
     if has("wildignore")
-        set wildignore+=*.bak,*.e,*~        " wildmenu: ignore extensions
-        set wildignore+=.hg,.git,.svn       " Version control
-        set wildignore+=*.aux,*.out,*.toc   " LaTeX intermediate files
-        set wildignore+=*.jpg,*.bmp,*.gif   " binary images
-        set wildignore+=*.png,*.jpeg        " binary images
-        set wildignore+=*.o,*.obj,*.exe     " compiled object files
-        set wildignore+=*.dll,*.manifest    " compiled object files
-        set wildignore+=*.spl               " compiled spelling word lists
-        set wildignore+=*.sw?               " Vim swap files
-        set wildignore+=*.DS_Store          " OSX bullshit
-        set wildignore+=*.luac              " Lua byte code
-        set wildignore+=migrations          " Django migrations
-        set wildignore+=*.pyc               " Python byte code
-        set wildignore+=*.orig              " Merge resolution files
+        set wildignore+=*.bak,*.e,*~       " wildmenu: ignore extensions
+        set wildignore+=.hg,.git,.svn      " Version control
+        set wildignore+=*.aux,*.out,*.toc  " LaTeX intermediate files
+        set wildignore+=*.jpg,*.bmp,*.gif  " binary images
+        set wildignore+=*.png,*.jpeg       " binary images
+        set wildignore+=*.o,*.obj,*.exe    " compiled object files
+        set wildignore+=*.dll,*.manifest   " compiled object files
+        set wildignore+=*.spl              " compiled spelling word lists
+        set wildignore+=*.sw?              " Vim swap files
+        set wildignore+=*.DS_Store         " OSX bullshit
+        set wildignore+=*.luac             " Lua byte code
+        set wildignore+=migrations         " Django migrations
+        set wildignore+=*.pyc              " Python byte code
+        set wildignore+=*.orig             " Merge resolution files
     endif
 endif
 
@@ -257,7 +257,7 @@ endif
 
 " Omnicomplete settings
 if has("insert_expand") && has("eval")
-    set completeopt=longest,menu " Complete all common letters, and use a menu
+    set completeopt=longest,menu  " Complete all common letters, and use a menu
     set omnifunc=syntaxcomplete#Complete
 endif
 
@@ -322,7 +322,7 @@ if has("windows")
     if exists("&showtabline")
         set showtabline=1
     endif
-" Set splits as vertical by default if we can.
+    " Set splits as vertical by default if we can.
     if has("splitbelow")
         set splitbelow
         if has("vertsplit")
@@ -343,10 +343,10 @@ nnoremap <C-l> <C-w>l
 " Syntax: highlighting
 "-----------------------------------------------------------------------------
 if has("syntax")
-    syntax enable                   " turn on syntax highlighting
+    syntax enable                 " turn on syntax highlighting
     if !has("gui_running")
-        set background=dark         " Assume a dark terminal
-        silent! colorscheme alex    " Custom colorscheme
+        set background=dark       " Assume a dark terminal
+        silent! colorscheme alex  " Custom colorscheme
     endif
 endif
 
