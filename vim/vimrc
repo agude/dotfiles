@@ -2,7 +2,12 @@
 " BASIC EDITING
 "=============================================================================
 
-set nocompatible " Break compatibility with vi
+" Break compatibility with vi, but only if the option isn't already set.
+" Having 'set nocompatible' without the if statement causes problems (like
+" reseting the history count) when calling 'source ~/.vimrc'.
+if &compatible
+    set nocompatible
+endif
 
 " Set leader and local leader
 let g:mapleader="\<Space>"
