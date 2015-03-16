@@ -14,8 +14,6 @@ Plug 'majutsushi/tagbar'
 Plug 'kien/ctrlp.vim'
 "Python Syntax Highlighting 
 Plug 'hdima/python-syntax'
-"Gnuplot Syntax Highlighting
-Plug 'vim-scripts/gnuplot-syntax-highlighting'
 "Git support
 Plug 'tpope/vim-fugitive'
 
