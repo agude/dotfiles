@@ -80,3 +80,11 @@ let g:tagbar_autoclose = 1
 "let g:tagbar_sort = 0
 " Change symbols
 let g:tagbar_iconchars = ['▾', '▸']
+
+"=============================================================================
+" Fugitive Settings
+"=============================================================================
+
+" Map various Fugitive commands to <Leader>g
+nnoremap <silent> <Leader>gd :Gvdiff<CR>
+nnoremap <silent> <Leader>gb :Gblame<CR>
