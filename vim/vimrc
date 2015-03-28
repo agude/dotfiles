@@ -395,14 +395,24 @@ if has("autocmd")
     augroup END
 endif
 
-" Return to last position when opening a file, unless it is invalid
+" Return to last position when opening a file
+function! s:SetCursorPosition()
+    " Do nothing if the file is a commit message
+    if &filetype !~ 'svn\|commit\c'
+        " Check that the position is still valid
+        if line("'\"") > 0 && line("'\"") <= line("$")
+            " Go to the position
+            normal! g`"
+            " Center the screen
+            normal! zz
+        endif
+    endif
+endfunction
+
 if has("autocmd")
     augroup bufread
         autocmd!
-        autocmd BufReadPost *
-                    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-                    \   exe "normal! g`\"" |
-                    \ endif
+        autocmd BufReadPost * call s:SetCursorPosition()
     augroup END
 endif
 
