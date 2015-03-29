@@ -355,10 +355,8 @@ nnoremap <C-l> <C-w>l
 "-----------------------------------------------------------------------------
 if has("syntax")
     syntax enable                 " turn on syntax highlighting
-    if !has("gui_running")
-        set background=dark       " Assume a dark terminal
-        silent! colorscheme alex  " Custom colorscheme
-    endif
+    set background=dark       " Assume a dark terminal
+    silent! colorscheme alex  " Custom colorscheme
 endif
 
 "-----------------------------------------------------------------------------
