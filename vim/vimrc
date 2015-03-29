@@ -65,6 +65,19 @@ nnoremap ' `
 nnoremap ` '
 
 "-----------------------------------------------------------------------------
+" Insert: and replace mode
+"-----------------------------------------------------------------------------
+
+" Start a new undo sequence before deleting text in insert mode
+inoremap <c-u> <c-g>u<c-u>
+inoremap <c-w> <c-g>u<c-w>
+
+" Start a new undo sequence every time <CR> is pressed in insert mode. This
+" allows undo to work line by line even if multiple lines are inserted in the
+" same insert session.
+inoremap <CR> <c-g>u<CR>
+
+"-----------------------------------------------------------------------------
 " Change: and replacing text
 "-----------------------------------------------------------------------------
 
