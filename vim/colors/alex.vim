@@ -87,7 +87,7 @@ let  ColourAssignment['MoreMsg']       =  {"GUIFG":  s:green,         "CTERMFG":
 
 " Visual aid
 " ----------
-let  ColourAssignment['MatchParen']  =  {"GUI":  'Reverse'}
+let  ColourAssignment['MatchParen']  =  {"GUIBG": s:cyan, "CTERMBG": "cyan"}
 let  ColourAssignment['Visual']      =  {"GUIBG":  'DarkGrey'}
 highlight! link VisualNOS Visual
 let  ColourAssignment['NonText']  =  {"GUIFG":  s:blue,  "CTERMFG":  'blue'}
