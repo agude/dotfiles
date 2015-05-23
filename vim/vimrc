@@ -295,6 +295,9 @@ endif
 " Do not add two spaces after . ? ! when using J to join lines
 set nojoinspaces
 
+" Change CTRL-A and CTRL-X to treat numbers with leading 0s as normal numbers
+set nrformats-=octal
+
 "-----------------------------------------------------------------------------
 " Pattern: patterns and search commands
 "-----------------------------------------------------------------------------
