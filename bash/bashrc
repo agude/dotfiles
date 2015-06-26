@@ -13,8 +13,6 @@ fi
 # true incorrectly, so we use [[ $- != *i* ]] as a backup
 
 ####################### BELOW ONLY RUNS ON PHYSICAL ###########################
-# don't put duplicate lines in the history. See bash(1) for more options
-# ... or force ignoredups and ignorespace
 
 # check the window size after each command and, if necessary, update the values
 # of LINES and COLUMNS.
