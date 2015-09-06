@@ -11,12 +11,12 @@ endif
 let g:colors_name = "alex"
 
 " Define colors
-let s:red     = '#FF5555'
-let s:yellow  = '#FFFF55'
-let s:green   = '#55FF55'
-let s:cyan    = '#55FFFF'
-let s:blue    = '#5555FF'
-let s:magenta = '#FF55FF'
+let s:red     = '#EF2929'
+let s:yellow  = '#FCE94F'
+let s:green   = '#8AE234'
+let s:cyan    = '#34E2E2'
+let s:blue    = '#729FCF'
+let s:magenta = '#AD7FA8'
 
 " The ColourAssignment map and function to unpack it are from the bandit
 " colorscheme by Al Bunden, avaliable here:
