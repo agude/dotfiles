@@ -29,26 +29,6 @@ alias pep8="pep8 --repeat"
 # making future rsyncs fail because the file is read only
 alias pidgin-chmod="killall pidgin > /dev/null 2>&1; find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
-#Root
-CURRENT_ROOT="/opt/cern_root/5/34/18/bin/thisroot.sh"
-ROOT_SOURCED=0
-if [[ -f ${CURRENT_ROOT} ]]; then
-    root_check(){
-        if [[ -n ${CURRENT_ROOT} ]]; then
-            if [[ ${ROOT_SOURCED} -eq 0 ]]; then
-                source ${CURRENT_ROOT} && ROOT_SOURCED=1;
-                root -l $*;
-            else
-                root -l $*;
-            fi
-        else
-            echo "No current root defined."
-        fi
-    }
-
-    alias root="root_check"
-fi
-
 #History search
 alias hs=" history | grep"
 
