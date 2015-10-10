@@ -56,6 +56,7 @@ nnoremap k gk
 " Move to the beginning or end of a line
 nnoremap H ^
 nnoremap L $
+
 " g_ does not count the \n at the end of a line
 xnoremap H ^
 xnoremap L g_
@@ -173,10 +174,10 @@ xnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
 " Recover: from a crash
 "-----------------------------------------------------------------------------
 
-
 "=============================================================================
 " ADVANCED EDITING
 "=============================================================================
+
 "-----------------------------------------------------------------------------
 " Cmdline: editing
 "-----------------------------------------------------------------------------
@@ -237,11 +238,8 @@ endif
 
 " Wildmenu settings
 if has("wildmenu")
-    set wildmenu                           " command-line completion in an
-    " enhanced mode
-    set wildmode=list:longest              " when more than one match, list
-    " all matches and complete till
-    " longest common string
+    set wildmenu                           " command-line completion in an enhanced mode
+    set wildmode=list:longest              " when more than one match, list all matches and complete till longest common string
     if has("wildignore")
         set wildignore+=*.bak,*.e,*~       " wildmenu: ignore extensions
         set wildignore+=.hg,.git,.svn      " Version control
@@ -333,6 +331,7 @@ nnoremap <silent> <Leader><Space> :noh<CR>
 " Map: mapping and abbreviations
 "-----------------------------------------------------------------------------
 
+" Turn off help
 nnoremap <F1> <nop>
 inoremap <F1> <nop>
 
@@ -363,7 +362,7 @@ if has("windows")
     endif
 endif
 
-" Window naviation
+" Window navigation
 nnoremap <C-j> <C-w>j
 nnoremap <C-h> <C-w>h
 nnoremap <C-k> <C-w>k
@@ -373,9 +372,9 @@ nnoremap <C-l> <C-w>l
 " Syntax: highlighting
 "-----------------------------------------------------------------------------
 if has("syntax")
-    syntax enable                 " turn on syntax highlighting
+    syntax enable             " turn on syntax highlighting
     set background=dark       " Assume a dark terminal
-    silent! colorscheme alex  " Custom colorscheme
+    silent! colorscheme alex  " Custom color scheme
 endif
 
 "-----------------------------------------------------------------------------
@@ -476,7 +475,7 @@ endif
 "-----------------------------------------------------------------------------
 
 " Use rsync with compression and preserve file attributes
-let g:netrw_rsync_cmd= 'rsync -az'
+let g:netrw_rsync_cmd = 'rsync -az'
 
 "-----------------------------------------------------------------------------
 " Matchit: Match more than just parenthesis for various languages
@@ -484,11 +483,11 @@ let g:netrw_rsync_cmd= 'rsync -az'
 
 " Load matchit.vim, but only if the user hasn't installed a newer version.
 if !exists('g:loaded_matchit') && findfile('plugin/matchit.vim', &rtp) ==# ''
-  runtime! macros/matchit.vim
+    runtime! macros/matchit.vim
 endif
 
 "=============================================================================
-" Custom functions
+" Custom functions and mappings
 "=============================================================================
 
 " Find merge conflict markers
@@ -504,13 +503,13 @@ nnoremap <Leader>ff :call Preserve("normal gg=G")<CR>
 " Preserve the location and search when calling a function
 function! Preserve(command)
     " Preparation: save last search, and cursor position.
-    let _s=@/
+    let _s = @/
     let l:l = line(".")
     let l:c = col(".")
     " Run command
     execute a:command
     " Clean up: restore previous search history, and cursor position
-    let @/=_s
+    let @/ = _s
     call cursor(l:l, l:c)
 endfunction
 
@@ -521,7 +520,7 @@ command! -nargs=* -complete=help H vertical belowright help <args>
 "=============================================================================
 " Source a local file to allow site by site settings
 "=============================================================================
-"
+
 let $VIMRCLOCAL=expand("~/.vimrc_local")
 if filereadable($VIMRCLOCAL)
     source $VIMRCLOCAL
