@@ -151,6 +151,9 @@ xnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
 xnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
 xnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
 
+" Select the last inserted characters
+nnoremap gV `[v`]
+
 " Search for visual selection with * and #
 function! s:VSetSearch()
     let temp = @@
