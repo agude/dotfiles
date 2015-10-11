@@ -182,8 +182,10 @@ xnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
 " Cmdline: editing
 "-----------------------------------------------------------------------------
 
-" Keep 1000 lines of command line history
-set history=1000
+" Keep the maximum number of lines of command line history
+if has("cmdline_hist")
+    set history=10000
+endif
 
 "-----------------------------------------------------------------------------
 " Options: of all options
