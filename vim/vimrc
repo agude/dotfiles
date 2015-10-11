@@ -299,6 +299,9 @@ set nojoinspaces
 " Change CTRL-A and CTRL-X to treat numbers with leading 0s as normal numbers
 set nrformats-=octal
 
+" Match pairs of <> as well with %
+set matchpairs+=<:>
+
 "-----------------------------------------------------------------------------
 " Pattern: patterns and search commands
 "-----------------------------------------------------------------------------
