@@ -1,0 +1,26 @@
+# EditorConfig: http://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Defaults for all files
+[*]
+# Unix-style newlines
+end_of_line = lf
+insert_final_newline = true
+# Indenting
+indent_size = 4
+indent_style = space
+tab_width = 4
+# Remove trailing whitespace
+trim_trailing_whitespace = true
+# Character set
+charset = utf-8
+
+# Makefiles require tabs
+[Makefile,makefile]
+indent_style = tab
+
+# Markdown uses spaces at the end of lines to separate words
+[*.md,*.markdown]
+trim_trailing_whitespace = false

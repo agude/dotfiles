@@ -96,6 +96,12 @@ if [[ -f ${HOME}/.terminfo || -L ${HOME}/.terminfo ]]; then
 fi
 ln -s ${PWD}/terminfo ${HOME}/.terminfo
 
+# EditorConfig
+if [[ -f ${HOME}/.editorconfig || -L ${HOME}/.editorconfig ]]; then
+    rm -f ${HOME}/.editorconfig
+fi
+ln -s ${PWD}/editorconfig/editorconfig ${HOME}/.editorconfig
+
 # Vim
 
 ## Vim folder
