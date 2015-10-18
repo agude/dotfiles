@@ -102,6 +102,18 @@ if [[ -f ${HOME}/.editorconfig || -L ${HOME}/.editorconfig ]]; then
 fi
 ln -s ${PWD}/editorconfig/editorconfig ${HOME}/.editorconfig
 
+# ~/bin
+for full_path in ${PWD}/bin/*; do
+    # Take the file name from the path
+    script_file=${full_path##*/}
+    # Remove the suffix
+    script_name=${script_file%%.*}
+    if [[ -f ${HOME}/bin/${script_name} || -L ${HOME}/bin/${script_name} ]]; then
+        rm -f ${HOME}/bin/${script_name}
+    fi
+    ln -s ${PWD}/bin/${script_file} ${HOME}/bin/${script_name}
+done
+
 # Vim
 
 ## Vim folder
