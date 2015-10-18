@@ -103,6 +103,8 @@ fi
 ln -s ${PWD}/editorconfig/editorconfig ${HOME}/.editorconfig
 
 # ~/bin
+mkdir -p ${HOME}/bin
+
 for full_path in ${PWD}/bin/*; do
     # Take the file name from the path
     script_file=${full_path##*/}
