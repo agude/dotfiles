@@ -11,8 +11,8 @@ Plug 'vimwiki/vimwiki'
 "Tagbar
 Plug 'majutsushi/tagbar'
 "ctrlp
-Plug 'kien/ctrlp.vim'
-"Python Syntax Highlighting 
+Plug 'ctrlpvim/ctrlp.vim'
+"Python Syntax Highlighting
 Plug 'hdima/python-syntax'
 "Git support
 Plug 'tpope/vim-fugitive'
