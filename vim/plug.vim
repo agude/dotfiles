@@ -16,5 +16,7 @@ Plug 'kien/ctrlp.vim'
 Plug 'hdima/python-syntax'
 "Git support
 Plug 'tpope/vim-fugitive'
+" Better Diffing using git 1.8
+Plug 'chrisbra/vim-diff-enhanced'
 
 call plug#end()
