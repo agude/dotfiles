@@ -18,5 +18,7 @@ Plug 'hdima/python-syntax'
 Plug 'tpope/vim-fugitive'
 " Better Diffing using git 1.8
 Plug 'chrisbra/vim-diff-enhanced'
+" PEP8 compliant indenting
+Plug 'hynek/vim-python-pep8-indent'
 
 call plug#end()
