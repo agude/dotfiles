@@ -1,0 +1,66 @@
+- clean: [
+    '~',
+    #'~/bin',
+    ]
+
+- link:
+    # Bashrc and aliases
+    ~/.bashrc: 
+        path: bash/bashrc
+        relink: true
+    ~/.bash_profile: 
+        path: bash/bashrc
+        relink: true
+    ~/.bash_login: 
+        path: bash/bashrc
+        relink: true
+    ~/.bashrc.d:
+        path: bash/bashrc.d
+        relink: true
+    ~/.bash_logout: 
+        path: bash/bash_logout
+        relink: true
+    # Readline
+    ~/.inputrc:
+        path: readline/inputrc
+        relink: true
+    # Git
+    ~/.gitconfig:
+        path: git/gitconfig
+        relink: true
+    ~/.gitignore:
+        path: git/gitignore
+        relink: true
+    # Screen
+    ~/.screenrc:
+        path: screen/screenrc
+        relink: true
+    # Xmodmap
+    ~/.Xmodmap:
+        path: xmodmap/Xmodmap
+        relink: true
+    # astyle
+    ~/.astylerc:
+        path: astyle/astylerc
+        relink: true
+    # terminfo
+    ~/.terminfo:
+        path: terminfo
+        relink: true
+    # EditorConfig
+    ~/.editorconfig:
+        path: editorconfig/editorconfig
+        relink: true
+    # Vim
+    ~/.vim: 
+        path: vim/
+        relink: true
+    ~/.vimrc:
+        path: vim/vimrc
+        relink: true
+    ~/.gvimrc:
+        path: vim/gvimrc
+        relink: true
+
+#- shell:
+#      - [vim +PlugInstall +qall]
