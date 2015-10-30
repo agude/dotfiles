@@ -116,6 +116,18 @@ for full_path in ${PWD}/bin/*; do
     ln -s ${PWD}/bin/${script_file} ${HOME}/bin/${script_name}
 done
 
+# ~/.config/
+mkdir -p ${HOME}/.config
+
+for full_path in ${PWD}/config/*; do
+    # Take the file name from the path
+    sub_dir=${full_path##*/}
+    if [[ -f ${HOME}/.config/${sub_dir} || -L ${HOME}/.config/${sub_dir} ]]; then
+        rm -f ${HOME}/.config/${sub_dir}
+    fi
+    ln -s ${PWD}/config/${sub_dir} ${HOME}/.config/${sub_dir}
+done
+
 # Vim
 
 ## Vim folder
