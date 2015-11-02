@@ -20,87 +20,57 @@
 #  The most recent version of this program is avaible at:
 #  https://github.com/agude/dotfiles
 
+# Helper functions
+function link() {
+    # Remove the taget file or link if it exists
+    if [[ -f ${1} || -L ${1} ]]; then
+        rm -r ${1}
+    fi
+    # Link the dotfile to the target
+    ln -s ${PWD}/${2} ${1}
+}
 
 # Copy bash config files
 
 ## bashrc
-if [[ -f ${HOME}/.bashrc || -L ${HOME}/.bashrc ]]; then
-    rm -f ${HOME}/.bashrc
-fi
-ln -s ${PWD}/bash/bashrc ${HOME}/.bashrc
+link ${HOME}/.bashrc /bash/bashrc
 
 ## bash_profile
-if [[ -f ${HOME}/.bash_profile || -L ${HOME}/.bash_profile ]]; then
-    rm -f ${HOME}/.bash_profile
-fi
-ln -s ${PWD}/bash/bashrc ${HOME}/.bash_profile
+link ${HOME}/.bash_profile /bash/bashrc
 
 ## bash_login
-if [[ -f ${HOME}/.bash_login || -L ${HOME}/.bash_login ]]; then
-    rm -f ${HOME}/.bash_login
-fi
-ln -s ${PWD}/bash/bashrc ${HOME}/.bash_login
+link ${HOME}/.bash_login /bash/bashrc
 
 ## bash_aliases
-if [[ -d ${HOME}/.bashrc.d || -L ${HOME}/.bashrc.d ]]; then
-    rm -f ${HOME}/.bashrc.d
-fi
-ln -s ${PWD}/bash/bashrc.d ${HOME}/.bashrc.d
+link ${HOME}/.bashrc.d /bash/bashrc.d
 
 ## bash_logout
-if [[ -f ${HOME}/.bash_logout || -L ${HOME}/.bash_logout ]]; then
-    rm -f ${HOME}/.bash_logout
-fi
-ln -s ${PWD}/bash/bash_logout ${HOME}/.bash_logout
+link ${HOME}/.bash_logout /bash/bash_logout
 
 # Readline
-if [[ -f ${HOME}/.inputrc || -L ${HOME}/.inputrc ]]; then
-    rm -f ${HOME}/.inputrc
-fi
-ln -s ${PWD}/readline/inputrc ${HOME}/.inputrc
+link ${HOME}/.inputrc /readline/inputrc
 
 # Git
 ## Global configurations
-if [[ -f ${HOME}/.gitconfig || -L ${HOME}/.gitconfig ]]; then
-    rm -f ${HOME}/.gitconfig
-fi
-ln -s ${PWD}/git/gitconfig ${HOME}/.gitconfig
+link ${HOME}/.gitconfig /git/gitconfig
 
 ## Ignore List
-if [[ -f ${HOME}/.gitignore || -L ${HOME}/.gitignore ]]; then
-    rm -f ${HOME}/.gitignore
-fi
-ln -s ${PWD}/git/gitignore ${HOME}/.gitignore
+link ${HOME}/.gitignore /git/gitignore
 
 # Screen
-if [[ -f ${HOME}/.screenrc || -L ${HOME}/.screenrc ]]; then
-    rm -f ${HOME}/.screenrc
-fi
-ln -s ${PWD}/screen/screenrc ${HOME}/.screenrc
+link ${HOME}/.screenrc /screen/screenrc
 
 # Xmodmap
-if [[ -f ${HOME}/.Xmodmap || -L ${HOME}/.Xmodmap ]]; then
-    rm -f ${HOME}/.Xmodmap
-fi
-ln -s ${PWD}/xmodmap/Xmodmap ${HOME}/.Xmodmap
+link ${HOME}/.Xmodmap /xmodmap/Xmodmap
 
 # astyle
-if [[ -f ${HOME}/.astylerc || -L ${HOME}/.astylerc ]]; then
-    rm -f ${HOME}/.astylerc
-fi
-ln -s ${PWD}/astyle/astylerc ${HOME}/.astylerc
+link ${HOME}/.astylerc /astyle/astylerc
 
 # terminfo
-if [[ -f ${HOME}/.terminfo || -L ${HOME}/.terminfo ]]; then
-    rm -f ${HOME}/.terminfo
-fi
-ln -s ${PWD}/terminfo ${HOME}/.terminfo
+link ${HOME}/.terminfo /terminfo
 
 # EditorConfig
-if [[ -f ${HOME}/.editorconfig || -L ${HOME}/.editorconfig ]]; then
-    rm -f ${HOME}/.editorconfig
-fi
-ln -s ${PWD}/editorconfig/editorconfig ${HOME}/.editorconfig
+link ${HOME}/.editorconfig /editorconfig/editorconfig
 
 # ~/bin
 mkdir -p ${HOME}/bin
@@ -110,10 +80,7 @@ for full_path in ${PWD}/bin/*; do
     script_file=${full_path##*/}
     # Remove the suffix
     script_name=${script_file%%.*}
-    if [[ -f ${HOME}/bin/${script_name} || -L ${HOME}/bin/${script_name} ]]; then
-        rm -f ${HOME}/bin/${script_name}
-    fi
-    ln -s ${PWD}/bin/${script_file} ${HOME}/bin/${script_name}
+    link ${HOME}/bin/${script_name} /bin/${script_file}
 done
 
 # ~/.config/
@@ -131,22 +98,13 @@ done
 # Vim
 
 ## Vim folder
-if [[ -d ${HOME}/.vim || -L ${HOME}/.vim ]]; then
-    rm -rf ${HOME}/.vim
-fi
-ln -s ${PWD}/vim ${HOME}/.vim
+link ${HOME}/.vim /vim
 
 ## vimrc
-if [[ -f ${HOME}/.vimrc || -L ${HOME}/.vimrc ]]; then
-    rm -f ${HOME}/.vimrc
-fi
-ln -s ${PWD}/vim/vimrc ${HOME}/.vimrc
+link ${HOME}/.vimrc /vim/vimrc
 
 ## gvimrc
-if [[ -f ${HOME}/.gvimrc || -L ${HOME}/.gvimrc ]]; then
-    rm -f ${HOME}/.gvimrc
-fi
-ln -s ${PWD}/vim/gvimrc ${HOME}/.gvimrc
+link ${HOME}/.gvimrc /vim/gvimrc
 
 ## Install vim-plug
 if [[ ! -f ${PWD}/vim/autoload/plug.vim ]]; then
