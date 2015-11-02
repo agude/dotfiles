@@ -86,13 +86,16 @@ done
 # ~/.config/
 mkdir -p ${HOME}/.config
 
-for full_path in ${PWD}/config/*; do
-    # Take the file name from the path
-    sub_dir=${full_path##*/}
-    if [[ -f ${HOME}/.config/${sub_dir} || -L ${HOME}/.config/${sub_dir} ]]; then
-        rm -f ${HOME}/.config/${sub_dir}
-    fi
-    ln -s ${PWD}/config/${sub_dir} ${HOME}/.config/${sub_dir}
+for config_sub_directory in ${PWD}/config/*; do
+    # Get the program name from the path, and make the corrisponding directory
+    # in the $HOME/.config
+    program_directory=${config_sub_directory##*/}
+    mkdir -p ${HOME}/.config/${program_directory}
+    # Link each file independently
+    for full_file_path in ${config_sub_directory}/*; do
+        file_name=${full_file_path##*/}
+        link ${HOME}/.config/${program_directory}/${file_name} /config/${program_directory}/${file_name}
+    done
 done
 
 # Vim
