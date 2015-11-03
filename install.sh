@@ -50,13 +50,6 @@ link ${HOME}/.bash_logout /bash/bash_logout
 # Readline
 link ${HOME}/.inputrc /readline/inputrc
 
-# Git
-## Global configurations
-link ${HOME}/.gitconfig /git/gitconfig
-
-## Ignore List
-link ${HOME}/.gitignore /git/gitignore
-
 # Screen
 link ${HOME}/.screenrc /screen/screenrc
 
