@@ -53,9 +53,6 @@ link ${HOME}/.bashrc.d /bash/bashrc.d
 ## bash_logout
 link ${HOME}/.bash_logout /bash/bash_logout
 
-# Readline
-link ${HOME}/.inputrc /readline/inputrc
-
 # Screen
 link ${HOME}/.screenrc /screen/screenrc
 

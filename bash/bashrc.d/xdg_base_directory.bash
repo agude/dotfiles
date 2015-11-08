@@ -6,3 +6,8 @@
 [[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/.cache"
 # No suggested default is given, so do not set RUNTIME
 #[[ -z $XDG_RUNTIME_DIR ]] && export XDG_RUNTIME_DIR=""
+
+# Set up variables for the programs that let us move their configuration files
+
+## Readline
+INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
