@@ -20,6 +20,12 @@
 #  The most recent version of this program is avaible at:
 #  https://github.com/agude/dotfiles
 
+# Set up the XDG Base Directory Specification
+XDG_FILE="${HOME}"/.bashrc.d/xdg_base_directory.bash
+if [[ -f ${XDG_FILE} ]]; then
+    source ${XDG_FILE}
+fi
+
 # Helper functions
 function link() {
     # Remove the taget file or link if it exists
@@ -76,18 +82,18 @@ for full_path in ${PWD}/bin/*; do
     link ${HOME}/bin/${script_name} /bin/${script_file}
 done
 
-# ~/.config/
-mkdir -p ${HOME}/.config
+# $XDG_CONFIG_HOME
+mkdir -p ${XDG_CONFIG_HOME}
 
 for config_sub_directory in ${PWD}/config/*; do
     # Get the program name from the path, and make the corrisponding directory
-    # in the $HOME/.config
+    # in ${XDG_CONFIG_HOME}
     program_directory=${config_sub_directory##*/}
-    mkdir -p ${HOME}/.config/${program_directory}
+    mkdir -p ${XDG_CONFIG_HOME}/${program_directory}
     # Link each file independently
     for full_file_path in ${config_sub_directory}/*; do
         file_name=${full_file_path##*/}
-        link ${HOME}/.config/${program_directory}/${file_name} /config/${program_directory}/${file_name}
+        link ${XDG_CONFIG_HOME}/${program_directory}/${file_name} /config/${program_directory}/${file_name}
     done
 done
 
