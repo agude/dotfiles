@@ -30,7 +30,10 @@ let g:ctrlp_custom_ignore = {
   \ 'file': '\v\.(exe|so|dll|html|htm)$',
   \ }
 " Cache directory location
-let g:ctrlp_cache_dir = '~/.vim/tmp/ctrlp'
+let g:ctrlp_cache_dir = $XDG_CACHE_HOME . "/vim/ctrlp"
+if !isdirectory(g:ctrlp_cache_dir)
+    call mkdir(g:ctrlp_cache_dir, "p", "0700")
+endif
 
 "=============================================================================
 " Vimwiki Settings
