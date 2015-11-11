@@ -9,6 +9,11 @@ if &compatible
     set nocompatible
 endif
 
+" Set up the XDG Base Directory Specification variables
+if empty($XDG_CACHE_HOME)
+    let $XDG_CACHE_HOME = '~/.cache'
+endif
+
 " Set leader and local leader
 let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
@@ -39,8 +44,12 @@ augroup END
 
 " If we can set a custom location for backups, turn them on
 if exists("+backupdir")
+    let g:BACKUP_DIR = $XDG_CACHE_HOME . "/vim/backup//"
+    if !isdirectory(g:BACKUP_DIR)
+        call mkdir(g:BACKUP_DIR, "p", "0700")
+    endif
     set backup                         " keep a backup file
-    set backupdir=~/.vim/tmp/backup//  " set backup file location
+    let &backupdir=g:BACKUP_DIR        " set backup file location
 else
     set nobackup                       " No backup if we can't keep it neat
 endif
@@ -110,14 +119,23 @@ xnoremap <silent> <C-Down> :move'>+<CR>gv=gv
 " Undo: and Redo
 "-----------------------------------------------------------------------------
 
+let g:SWAP_DIR = $XDG_CACHE_HOME . "/vim/swap//"
+if !isdirectory(g:SWAP_DIR)
+    call mkdir(g:SWAP_DIR, "p", "0700")
+endif
+
 set noswapfile                   " use memory instead of swap
-set directory=~/.vim/tmp/swap//  " set a swap directory just in case
+let &directory=g:SWAP_DIR        " set a swap directory just in case
 
 " Set up undo file
 set undolevels=10000               " number of changes that can be undone
 if exists("+undofile")
+    let g:UNDO_DIR = $XDG_CACHE_HOME . "/vim/undo//"
+    if !isdirectory(g:UNDO_DIR)
+        call mkdir(g:UNDO_DIR)
+    endif
     set undofile                   " use an undo file
-    set undodir=~/.vim/tmp/undo//  " set undo file location
+    let &undodir=g:UNDO_DIR        " set undo file location
     set undoreload=10000           " save this many lines on buffer reload
 endif
 
