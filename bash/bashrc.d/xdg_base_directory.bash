@@ -11,3 +11,8 @@
 
 ## Readline
 INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
+
+## Jupyter/ipython
+export IPYTHONDIR="${XDG_CONFIG_HOME}"/jupyter
+export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}"/jupyter
+mkdir -p ${IPYTHONDIR} ${JUPYTER_CONFIG_DIR}
