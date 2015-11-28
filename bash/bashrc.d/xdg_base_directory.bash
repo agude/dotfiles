@@ -12,6 +12,9 @@
 ## Readline
 INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
 
+## Screen
+export SCREENRC="${XDG_CONFIG_HOME}"/screen/screenrc
+
 ## Jupyter/ipython
 export IPYTHONDIR="${XDG_CONFIG_HOME}"/jupyter
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}"/jupyter
