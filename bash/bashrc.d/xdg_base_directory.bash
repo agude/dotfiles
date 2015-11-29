@@ -23,3 +23,7 @@ mkdir -p ${IPYTHONDIR} ${JUPYTER_CONFIG_DIR}
 ## libice
 export ICEAUTHORITY="${XDG_RUNTIME_DIR}"/X11/iceauthority
 mkdir -p $(dirname ${ICEAUTHORITY})
+
+## Gimp
+export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}"/gimp
+mkdir -p ${GIMP2_DIRECTORY}
