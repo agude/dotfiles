@@ -8,7 +8,7 @@ shopt -s histappend &>/dev/null
 shopt -s cmdhist &>/dev/null
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-unset HISTFILESIZE
+unset -v HISTFILESIZE
 HISTSIZE=1000000
 
 # keep the times of the commands in history
