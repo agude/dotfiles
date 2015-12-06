@@ -24,9 +24,9 @@ ssh_keyreport(){
 alias pep8="pep8 --repeat"
 
 #chmod pidgin log files
-# We killall pidgin first so that we don't change the
-# permissions on a log, sync them to another computer, and then keep writing,
-# making future rsyncs fail because the file is read only
+# We killall pidgin first so that we don't change the permissions on a log,
+# sync them to another computer, and then keep writing, making future rsyncs
+# fail because the file is read only
 alias pidgin-chmod="killall pidgin > /dev/null 2>&1; find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+"
 
 #History search
@@ -34,14 +34,6 @@ alias hs=" history | grep"
 
 #Suspend
 alias suspend-gnome='dbus-send --system --print-reply --dest="org.freedesktop.UPower" /org/freedesktop/UPower org.freedesktop.UPower.Suspend'
-
-#Push Wiki
-wiki_push(){
-    ${HOME}/Documents/wikis/alex_campaign/scripts/pushToUMN.sh \
-    && ${HOME}/Documents/wikis/alex_campaign/scripts/pushToStraub.sh
-}
-
-alias wiki-push="wiki_push"
 
 #Columns
 ccol() { awk -- "{print \$$1}"; }
@@ -51,39 +43,23 @@ alias now='date +"%Y%m%d"'
 
 #Sync
 
-##Website backup
-alias website-pull="rsync -vazhhy --delete-after --itemize-changes -e ssh cms007:~/public_html/* ${HOME}/Documents/website/"
-
 ## Pidgin
 srpull="\n\nRemote Pull\n\n"
 srpush="\n\nRemote Push\n\n"
 slpull="\n\nLocal Pull\n\n"
 slpush="\n\nLocal Push\n\n"
-### To Sink
-#### Local
+### Local
 alias pidgin-pull="${HOME}/bin/pull -a -i ${HOME}/.purple/logs/"
 alias pidgin-push="${HOME}/bin/push -a -i ${HOME}/.purple/logs/"
-#### External
+### External
 alias pidgin-pullo="${HOME}/bin/pull -a -i -o ${HOME}/.purple/logs/"
 alias pidgin-pusho="${HOME}/bin/push -a -i -o ${HOME}/.purple/logs/"
-#### Local windows
+### Local windows
 alias pidgin-winpull="printf '%b' '${slpull}' && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/ ${HOME}/.purple/logs/"
 alias pidgin-winpush="printf '%b' '${slpush}' && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify ${HOME}/.purple/logs/ /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/"
 ### Combined
 alias pidgin-sync="pidgin-winpull && pidgin-pull && pidgin-push && pidgin-winpush"
 alias pidgin-synco="pidgin-winpull && pidgin-pullo && pidgin-pusho && pidgin-winpush"
-
-## Schoolwork
-alias homework-push="${HOME}/bin/push -d -y -i ${HOME}/Documents/school/gradschool/"
-alias homework-pull="${HOME}/bin/pull -d -y -i ${HOME}/Documents/school/gradschool/"
-alias homework-pusho="${HOME}/bin/push -d -y -i -o ${HOME}/Documents/school/gradschool/"
-alias homework-pullo="${HOME}/bin/pull -d -y -i -o ${HOME}/Documents/school/gradschool/"
-
-## Science
-alias science-push="${HOME}/bin/push -d -y -i ${HOME}/Documents/science/"
-alias science-pull="${HOME}/bin/pull -d -y -i ${HOME}/Documents/science/"
-alias science-pusho="${HOME}/bin/push -d -y -i -o ${HOME}/Documents/science/"
-alias science-pullo="${HOME}/bin/pull -d -y -i -o ${HOME}/Documents/science/"
 
 ## Documents
 ### All - Email
@@ -130,10 +106,10 @@ alias system-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/.systemfiles/"
 # Sync Computers
 
 ## From Einstein
-alias push-to-newton="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push"
-alias pull-from-newton="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull"
-alias pusho-to-newton="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && email-pusho && music-pusho"
-alias pullo-from-newton="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && music-pullo"
+alias push-to-dirac="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push"
+alias pull-from-dirac="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull"
+alias pusho-to-dirac="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && email-pusho && music-pusho"
+alias pullo-from-dirac="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && music-pullo"
 
 ##From Newton
 alias push-to-einstein="dot-push && bin-push && system-push && projects-push && docs-push && music-push"
