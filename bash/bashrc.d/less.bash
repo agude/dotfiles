@@ -1,3 +1,3 @@
 # Disable Less's search history file
-LESSHISTFILE=/dev/null
-LESSHISTSIZE=0
+export LESSHISTFILE=/dev/null
+export LESSHISTSIZE=0
