@@ -1,5 +1,5 @@
 " Prevents reloading of the this file
-if exists("b:did_load_filetypes_userafter")
+if exists('b:did_load_filetypes_userafter')
   finish
 endif
 let b:did_load_filetypes_userafter = 1
@@ -11,11 +11,15 @@ augroup END
 setlocal textwidth=78
 
 " Insert en and em dash
-inoremap -- –
-inoremap --- —
+if has('multi_byte')
+    scriptencoding utf-8
+    " Separate VertSplits with a solid line
+    inoremap -- –
+    inoremap --- —
+endif
 
 " Insert timestamp with bullet, as used in my notes
-if exists("*strftime")
+if exists('*strftime')
     noremap <F2> 0DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>: <Esc>
     inoremap <F2> <ESC>0DI* <C-R>=strftime("%Y.%m.%d %H:%M:%S")<CR>:<Space>
 endif

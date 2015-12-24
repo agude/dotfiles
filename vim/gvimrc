@@ -7,7 +7,7 @@
 "-----------------------------------------------------------------------------
 
 " Remove the toolbar
-if exists("+guioptions")
+if exists('+guioptions')
     set guioptions-=T " remove the toolbar
     set guioptions-=m " remove the menubar
     set guioptions-=r " remove the scrollbar

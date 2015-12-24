@@ -30,9 +30,9 @@ let g:ctrlp_custom_ignore = {
   \ 'file': '\v\.(exe|so|dll|html|htm)$',
   \ }
 " Cache directory location
-let g:ctrlp_cache_dir = $XDG_CACHE_HOME . "/vim/ctrlp"
+let g:ctrlp_cache_dir = $XDG_CACHE_HOME . '/vim/ctrlp'
 if !isdirectory(g:ctrlp_cache_dir)
-    call mkdir(g:ctrlp_cache_dir, "p", "0700")
+    call mkdir(g:ctrlp_cache_dir, 'p', '0700')
 endif
 
 "=============================================================================
@@ -82,7 +82,11 @@ let g:tagbar_autoclose = 1
 " Sort tags by name, not location
 "let g:tagbar_sort = 0
 " Change symbols
-let g:tagbar_iconchars = ['▾', '▸']
+if has('multi_byte')
+    scriptencoding utf-8
+    " Separate VertSplits with a solid line
+    let g:tagbar_iconchars = ['▾', '▸']
+endif
 
 "=============================================================================
 " Fugitive Settings

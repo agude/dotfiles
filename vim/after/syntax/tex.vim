@@ -1,5 +1,5 @@
 " Prevents reloading of the this file
-if exists("b:did_load_sytanx_userafter")
+if exists('b:did_load_sytanx_userafter')
   finish
 endif
 let b:did_load_sytanx_userafter = 1

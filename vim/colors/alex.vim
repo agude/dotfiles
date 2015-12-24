@@ -4,11 +4,11 @@
 " Author: Alexander Gude
 
 highlight clear
-if exists("syntax_on")
+if exists('syntax_on')
   syntax reset
 endif
 
-let g:colors_name = "alex"
+let g:colors_name = 'alex'
 
 " Define colors
 let s:red     = '#EF2929'
@@ -22,7 +22,7 @@ let s:magenta = '#AD7FA8'
 " colorscheme by Al Bunden, avaliable here:
 " http://www.cgtk.co.uk/vim-scripts/bandit
 
-let ColourAssignment = {}
+let s:ColourAssignment = {}
 
 " Unspecified colours default to NONE, EXCEPT cterm(.*) which default to matching gui(.*)
 "
@@ -32,7 +32,7 @@ let ColourAssignment = {}
 " Set the Main Text and Background based on whether light or dark is selected.
 " This theme does not work well on light backgrounds, but at least this will
 " give you black text.
-if &background == "dark"
+if &background ==# 'dark'
     let s:fg = 'White'
     let s:bg = 'Black'
 else
@@ -43,85 +43,85 @@ endif
 
 " Editor settings
 " ---------------
-let  ColourAssignment['Normal']        =  {"GUIFG":  s:fg,        "GUIBG":  s:bg}
-let  ColourAssignment['Cursor']        =  {"GUI":    'Reverse'}
-let  ColourAssignment['CursorLine']    =  {"GUI":    'NONE'}
-let  ColourAssignment['LineNr']        =  {"GUIFG":  'DarkGray'}
-let  ColourAssignment['CursorLineNr']  =  {"GUIFG":  'White'}
+let  s:ColourAssignment['Normal']        =  {'GUIFG':  s:fg,        'GUIBG':  s:bg}
+let  s:ColourAssignment['Cursor']        =  {'GUI':    'Reverse'}
+let  s:ColourAssignment['CursorLine']    =  {'GUI':    'NONE'}
+let  s:ColourAssignment['LineNr']        =  {'GUIFG':  'DarkGray'}
+let  s:ColourAssignment['CursorLineNr']  =  {'GUIFG':  'White'}
 
 
 " Number column
 " -------------
-let  ColourAssignment['CursorColumn']  =  {"GUIBG":  'DarkGrey'}
-let  ColourAssignment['Folded']        =  {"GUIFG":  'Cyan',      "GUIBG":  'DarkGrey'}
-let  ColourAssignment['FoldColumn']    =  {"GUIBG":  'DarkGrey'}
+let  s:ColourAssignment['CursorColumn']  =  {'GUIBG':  'DarkGrey'}
+let  s:ColourAssignment['Folded']        =  {'GUIFG':  'Cyan',      'GUIBG':  'DarkGrey'}
+let  s:ColourAssignment['FoldColumn']    =  {'GUIBG':  'DarkGrey'}
 highlight! link SignColumn FoldColumn
 
 
 " Window/Tab delimiters
 " ---------------------
-let  ColourAssignment['VertSplit']    =  {"GUIFG":  'White',     "GUIBG":  'NONE'}
-let  ColourAssignment['ColorColumn']  =  {"GUIBG":  'DarkGray'}
-let  ColourAssignment['TabLine']      =  {"GUIFG":  'White',     "GUIBG":  'DarkGray'}
-let  ColourAssignment['TabLineFill']  =  {"GUIBG":  'DarkGray'}
-let  ColourAssignment['TabLineSel']   =  {"GUIFG":  'Black',     "GUIBG":  'Gray'}
+let  s:ColourAssignment['VertSplit']    =  {'GUIFG':  'White',     'GUIBG':  'NONE'}
+let  s:ColourAssignment['ColorColumn']  =  {'GUIBG':  'DarkGray'}
+let  s:ColourAssignment['TabLine']      =  {'GUIFG':  'White',     'GUIBG':  'DarkGray'}
+let  s:ColourAssignment['TabLineFill']  =  {'GUIBG':  'DarkGray'}
+let  s:ColourAssignment['TabLineSel']   =  {'GUIFG':  'Black',     'GUIBG':  'Gray'}
 
 
 " File Navigation / Searching
 " ---------------------------
-let  ColourAssignment['Directory']  =  {"GUIFG":  s:blue,     "CTERMFG":  'Blue',    "GUI":      'Bold'}
-let  ColourAssignment['Search']     =  {"GUIFG":  'Black',    "GUIBG":    s:yellow,  "CTERMFG":  'yellow',  "CTERMBG":  'black',  "GUI":  'Bold',  "CTERM":  'Reverse,Bold'}
-let  ColourAssignment['IncSearch']  =  {"GUI":    'Reverse'}
+let  s:ColourAssignment['Directory']  =  {'GUIFG':  s:blue,     'CTERMFG':  'Blue',    'GUI':      'Bold'}
+let  s:ColourAssignment['Search']     =  {'GUIFG':  'Black',    'GUIBG':    s:yellow,  'CTERMFG':  'yellow',  'CTERMBG':  'black',  'GUI':  'Bold',  'CTERM':  'Reverse,Bold'}
+let  s:ColourAssignment['IncSearch']  =  {'GUI':    'Reverse'}
 
 
 " Prompt/Status
 " -------------
-let  ColourAssignment['StatusLine']    =  {"GUI":    'Bold,Reverse'}
-let  ColourAssignment['StatusLineNC']  =  {"GUI":    'Reverse'}
-let  ColourAssignment['WildMenu']      =  {"GUIFG":  'White',         "GUIBG":    "DarkGrey",  "GUI":  'Bold'}
-let  ColourAssignment['Question']      =  {"GUIFG":  s:blue,          "CTERMFG":  'Blue'}
-let  ColourAssignment['Title']         =  {"GUI":    'Bold'}
-let  ColourAssignment['ModeMsg']       =  {"GUI":    'Bold'}
-let  ColourAssignment['MoreMsg']       =  {"GUIFG":  s:green,         "CTERMFG":  'Green'}
+let  s:ColourAssignment['StatusLine']    =  {'GUI':    'Bold,Reverse'}
+let  s:ColourAssignment['StatusLineNC']  =  {'GUI':    'Reverse'}
+let  s:ColourAssignment['WildMenu']      =  {'GUIFG':  'White',         'GUIBG':    'DarkGrey',  'GUI':  'Bold'}
+let  s:ColourAssignment['Question']      =  {'GUIFG':  s:blue,          'CTERMFG':  'Blue'}
+let  s:ColourAssignment['Title']         =  {'GUI':    'Bold'}
+let  s:ColourAssignment['ModeMsg']       =  {'GUI':    'Bold'}
+let  s:ColourAssignment['MoreMsg']       =  {'GUIFG':  s:green,         'CTERMFG':  'Green'}
 
 
 " Visual aid
 " ----------
-let  ColourAssignment['MatchParen']  =  {"GUIBG": s:cyan, "CTERMBG": "cyan"}
-let  ColourAssignment['Visual']      =  {"GUIBG":  'DarkGrey'}
+let  s:ColourAssignment['MatchParen']  =  {'GUIBG': s:cyan, 'CTERMBG': 'cyan'}
+let  s:ColourAssignment['Visual']      =  {'GUIBG':  'DarkGrey'}
 highlight! link VisualNOS Visual
-let  ColourAssignment['NonText']  =  {"GUIFG":  s:blue,  "CTERMFG":  'blue'}
+let  s:ColourAssignment['NonText']  =  {'GUIFG':  s:blue,  'CTERMFG':  'blue'}
 
-let  ColourAssignment['Todo']        =  {"GUIFG":  'Black',  "GUIBG":    s:yellow,  "CTERMBG":  'yellow'}
-let  ColourAssignment['Underlined']  =  {"GUIFG":  s:cyan,   "CTERMFG":  'cyan',    "GUI":      'Underline'}
-let  ColourAssignment['Error']       =  {"GUIFG":  s:red,    "GUIBG":    'Black',   "CTERMFG":  'red',        "GUI":  'Reverse,Bold'}
-let  ColourAssignment['ErrorMsg']    =  {"GUIFG":  s:red,    "GUIBG":    'White',   "CTERMFG":  'red',        "GUI":  'Reverse,Bold'}
-let  ColourAssignment['WarningMsg']  =  {"GUIFG":  s:red,    "CTERMFG":  'red'}
-let  ColourAssignment['Ignore']      =  {"GUIFG":  'bg',     "CTERMFG":  s:bg}
-let  ColourAssignment['SpecialKey']  =  {"GUIFG":  s:cyan,   "CTERMFG":  'Cyan'}
+let  s:ColourAssignment['Todo']        =  {'GUIFG':  'Black',  'GUIBG':    s:yellow,  'CTERMBG':  'yellow'}
+let  s:ColourAssignment['Underlined']  =  {'GUIFG':  s:cyan,   'CTERMFG':  'cyan',    'GUI':      'Underline'}
+let  s:ColourAssignment['Error']       =  {'GUIFG':  s:red,    'GUIBG':    'Black',   'CTERMFG':  'red',        'GUI':  'Reverse,Bold'}
+let  s:ColourAssignment['ErrorMsg']    =  {'GUIFG':  s:red,    'GUIBG':    'White',   'CTERMFG':  'red',        'GUI':  'Reverse,Bold'}
+let  s:ColourAssignment['WarningMsg']  =  {'GUIFG':  s:red,    'CTERMFG':  'red'}
+let  s:ColourAssignment['Ignore']      =  {'GUIFG':  'bg',     'CTERMFG':  s:bg}
+let  s:ColourAssignment['SpecialKey']  =  {'GUIFG':  s:cyan,   'CTERMFG':  'Cyan'}
 
 
 " Variable types
 " --------------
-let  ColourAssignment['Constant']  =  {"GUIFG":  s:magenta,  "CTERMFG":  'magenta'}
-let  ColourAssignment['Number']    =  {"GUIFG":  s:red,      "CTERMFG":  'red'}
+let  s:ColourAssignment['Constant']  =  {'GUIFG':  s:magenta,  'CTERMFG':  'magenta'}
+let  s:ColourAssignment['Number']    =  {'GUIFG':  s:red,      'CTERMFG':  'red'}
 highlight! link String Constant
 highlight! link Boolean Constant
 highlight! link Float Number
 
-let  ColourAssignment['Identifier']  =  {"GUIFG":  s:green,  "CTERMFG":  'green',  "GUI":  'Bold'}
+let  s:ColourAssignment['Identifier']  =  {'GUIFG':  s:green,  'CTERMFG':  'green',  'GUI':  'Bold'}
 highlight! link Function Identifier
 
 
 " Comments
 " --------
-let  ColourAssignment['Comment']  =  {"GUIFG":  s:cyan,  "CTERMFG":  'cyan'}
+let  s:ColourAssignment['Comment']  =  {'GUIFG':  s:cyan,  'CTERMFG':  'cyan'}
 highlight! link SpecialComment Special
 
 
 " Language constructs
 " -------------------
-let  ColourAssignment['Statement']  =  {"GUIFG":  s:yellow,  "CTERMFG":  'yellow',  "GUI":  'Bold'}
+let  s:ColourAssignment['Statement']  =  {'GUIFG':  s:yellow,  'CTERMFG':  'yellow',  'GUI':  'Bold'}
 highlight! link Conditional Statement
 highlight! link Repeat Statement
 highlight! link Label Statement
@@ -129,7 +129,7 @@ highlight! link Operator Statement
 highlight! link Keyword Statement
 highlight! link Exception Statement
 
-let  ColourAssignment['Special']  =  {"GUIFG":  s:red,  "CTERMFG":  'red'}
+let  s:ColourAssignment['Special']  =  {'GUIFG':  s:red,  'CTERMFG':  'red'}
 highlight! link SpecialChar Special
 highlight! link Tag Special
 highlight! link Delimiter Special
@@ -138,47 +138,47 @@ highlight! link Debug Special
 
 " C like
 " ------
-let  ColourAssignment['PreProc']  =  {"GUIFG":  s:blue,  "CTERMFG":  'blue',  "GUI":  'Bold'}
+let  s:ColourAssignment['PreProc']  =  {'GUIFG':  s:blue,  'CTERMFG':  'blue',  'GUI':  'Bold'}
 highlight! link Include PreProc
 highlight! link Define PreProc
 highlight! link Macro PreProc
 highlight! link PreCondit PreProc
 
-let  ColourAssignment['Type']       =  {"GUIFG":  s:green,    "CTERMFG":  'green',    "GUI":  'Bold'}
-let  ColourAssignment['Structure']  =  {"GUIFG":  s:magenta,  "CTERMFG":  'magenta'}
+let  s:ColourAssignment['Type']       =  {'GUIFG':  s:green,    'CTERMFG':  'green',    'GUI':  'Bold'}
+let  s:ColourAssignment['Structure']  =  {'GUIFG':  s:magenta,  'CTERMFG':  'magenta'}
 highlight! link StorageClass Type
 highlight! link Typedef Type
 
 
 " Diff
 " ----
-let  ColourAssignment['DiffAdd']     =  {"GUIFG":  s:green,  "GUIBG":    'Black',  "CTERMFG":  'Green',  "GUI":  'Reverse,Bold'}
-let  ColourAssignment['DiffChange']  =  {"GUIFG":  'NONE'}
-let  ColourAssignment['DiffDelete']  =  {"GUIFG":  s:red,    "GUIBG":    'Black',  "CTERMFG":  'Red',    "GUI":  'Reverse,Bold'}
-let  ColourAssignment['DiffText']    =  {"GUIFG":  s:blue,   "GUIBG":    'Black',  "CTERMFG":  'Blue',   "GUI":  'Reverse,Bold'}
+let  s:ColourAssignment['DiffAdd']     =  {'GUIFG':  s:green,  'GUIBG':    'Black',  'CTERMFG':  'Green',  'GUI':  'Reverse,Bold'}
+let  s:ColourAssignment['DiffChange']  =  {'GUIFG':  'NONE'}
+let  s:ColourAssignment['DiffDelete']  =  {'GUIFG':  s:red,    'GUIBG':    'Black',  'CTERMFG':  'Red',    'GUI':  'Reverse,Bold'}
+let  s:ColourAssignment['DiffText']    =  {'GUIFG':  s:blue,   'GUIBG':    'Black',  'CTERMFG':  'Blue',   'GUI':  'Reverse,Bold'}
 
 
 " Completion menu
 " ---------------
-let  ColourAssignment['Pmenu']       =  {"GUIFG":  'Black',     "GUIBG":  'Grey'}
-let  ColourAssignment['PmenuSel']    =  {"GUIFG":  s:yellow,    "GUIBG":  'DarkGrey',  "GUI":  'Bold',  "CTERMFG":  'yellow'}
-let  ColourAssignment['PmenuThumb']  =  {"GUIBG":  'DarkGrey'}
+let  s:ColourAssignment['Pmenu']       =  {'GUIFG':  'Black',     'GUIBG':  'Grey'}
+let  s:ColourAssignment['PmenuSel']    =  {'GUIFG':  s:yellow,    'GUIBG':  'DarkGrey',  'GUI':  'Bold',  'CTERMFG':  'yellow'}
+let  s:ColourAssignment['PmenuThumb']  =  {'GUIBG':  'DarkGrey'}
 highlight! link PmenuSbar Pmenu
 
 
 " Spelling
 " --------
-let  ColourAssignment['SpellBad']    =  {"GUIFG":  'NONE',  "GUISP":  s:red,     "CTERMFG":  'red',     "GUI":  'undercurl'}
-let  ColourAssignment['SpellCap']    =  {"GUIFG":  'NONE',  "GUISP":  s:blue,    "CTERMFG":  'blue',    "GUI":  'undercurl'}
-let  ColourAssignment['SpellLocal']  =  {"GUIFG":  'NONE',  "GUISP":  s:yellow,  "CTERMFG":  'yellow',  "GUI":  'undercurl'}
-let  ColourAssignment['SpellRare']   =  {"GUIFG":  'NONE',  "GUISP":  s:green,   "CTERMFG":  'green',   "GUI":  'undercurl'}
+let  s:ColourAssignment['SpellBad']    =  {'GUIFG':  'NONE',  'GUISP':  s:red,     'CTERMFG':  'red',     'GUI':  'undercurl'}
+let  s:ColourAssignment['SpellCap']    =  {'GUIFG':  'NONE',  'GUISP':  s:blue,    'CTERMFG':  'blue',    'GUI':  'undercurl'}
+let  s:ColourAssignment['SpellLocal']  =  {'GUIFG':  'NONE',  'GUISP':  s:yellow,  'CTERMFG':  'yellow',  'GUI':  'undercurl'}
+let  s:ColourAssignment['SpellRare']   =  {'GUIFG':  'NONE',  'GUISP':  s:green,   'CTERMFG':  'green',   'GUI':  'undercurl'}
 
 
 " Text Formatting
 " ---------------
-let  ColourAssignment['Italic']      =  {"GUIFG":  'White',  "GUI":  'Italic'}
-let  ColourAssignment['Bold']        =  {"GUIFG":  'White',  "GUI":  'Bold'}
-let  ColourAssignment['BoldItalic']  =  {"GUIFG":  'White',  "GUI":  'Italic,Bold'}
+let  s:ColourAssignment['Italic']      =  {'GUIFG':  'White',  'GUI':  'Italic'}
+let  s:ColourAssignment['Bold']        =  {'GUIFG':  'White',  'GUI':  'Bold'}
+let  s:ColourAssignment['BoldItalic']  =  {'GUIFG':  'White',  'GUI':  'Italic,Bold'}
 highlight! link htmlItalic Italic
 highlight! link htmlBold Bold
 highlight! link htmlBoldItalic BoldItalic
@@ -186,7 +186,7 @@ highlight! link htmlBoldItalic BoldItalic
 
 " Function to translate the ColourAssignments to highlight lines
 let s:colours = {}
-let valid_cterm_colours =
+let s:valid_cterm_colours =
         \ [
         \  'Black',      'DarkBlue',     'DarkGreen',  'DarkCyan',
         \  'DarkRed',    'DarkMagenta',  'Brown',      'DarkYellow',
@@ -197,58 +197,58 @@ let valid_cterm_colours =
         \  'Yellow',     'LightYellow',  'White',
         \ ]
 
-for key in keys(ColourAssignment)
-    let s:colours = ColourAssignment[key]
+for s:key in keys(s:ColourAssignment)
+    let s:colours = s:ColourAssignment[s:key]
     if has_key(s:colours, 'TERM')
-        let term = s:colours['TERM']
+        let s:term = s:colours['TERM']
     else
-        let term = 'NONE'
+        let s:term = 'NONE'
     endif
     if has_key(s:colours, 'GUI')
-        let gui = s:colours['GUI']
+        let s:gui = s:colours['GUI']
     else
-        let gui='NONE'
+        let s:gui = 'NONE'
     endif
     if has_key(s:colours, 'GUIFG')
-        let guifg = s:colours['GUIFG']
+        let s:guifg = s:colours['GUIFG']
     else
-        let guifg='NONE'
+        let s:guifg = 'NONE'
     endif
     if has_key(s:colours, 'GUIBG')
-        let guibg = s:colours['GUIBG']
+        let s:guibg = s:colours['GUIBG']
     else
-        let guibg='NONE'
+        let s:guibg = 'NONE'
     endif
     if has_key(s:colours, 'CTERM')
-        let cterm = s:colours['CTERM']
+        let s:cterm = s:colours['CTERM']
     else
-        let cterm=gui
+        let s:cterm = s:gui
     endif
     if has_key(s:colours, 'CTERMFG')
-        let ctermfg = s:colours['CTERMFG']
+        let s:ctermfg = s:colours['CTERMFG']
     else
-        if index(valid_cterm_colours, guifg) != -1
-            let ctermfg=guifg
+        if index(s:valid_cterm_colours, s:guifg) != -1
+            let s:ctermfg = s:guifg
         else
-            let ctermfg='NONE'
+            let s:ctermfg = 'NONE'
         endif
     endif
     if has_key(s:colours, 'CTERMBG')
-        let ctermbg = s:colours['CTERMBG']
+        let s:ctermbg = s:colours['CTERMBG']
     else
-        if index(valid_cterm_colours, guibg) != -1
-            let ctermbg=guibg
+        if index(s:valid_cterm_colours, s:guibg) != -1
+            let s:ctermbg = s:guibg
         else
-            let ctermbg='NONE'
+            let s:ctermbg = 'NONE'
         endif
     endif
     if has_key(s:colours, 'GUISP')
-        let guisp = s:colours['GUISP']
+        let s:guisp = s:colours['GUISP']
     else
-        let guisp='NONE'
+        let s:guisp = 'NONE'
     endif
 
-    if key =~ '^\k*$'
-        execute "highlight ".key." term=".term." cterm=".cterm." gui=".gui." ctermfg=".ctermfg." guifg=".guifg." ctermbg=".ctermbg." guibg=".guibg." guisp=".guisp
+    if s:key =~# '^\k*$'
+        execute 'highlight '.s:key.' term='.s:term.' cterm='.s:cterm.' gui='.s:gui.' ctermfg='.s:ctermfg.' guifg='.s:guifg.' ctermbg='.s:ctermbg.' guibg='.s:guibg.' guisp='.s:guisp
     endif
 endfor

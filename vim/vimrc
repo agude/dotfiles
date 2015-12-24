@@ -19,12 +19,12 @@ let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
 
 " Plugin installer and manager
-if filereadable(expand("~/.vim/plug.vim"))
+if filereadable(expand('~/.vim/plug.vim'))
     source ~/.vim/plug.vim
 endif
 
 " Vundle plugin installer and manager
-if filereadable(expand("~/.vim/plugins.vim"))
+if filereadable(expand('~/.vim/plugins.vim'))
     source ~/.vim/plugins.vim
 endif
 
@@ -33,20 +33,22 @@ nnoremap <leader>ve :vsplit $MYVIMRC<cr>
 nnoremap <leader>vs :source $MYVIMRC<cr>
 
 " Reload vimrc when it is saved
-augroup AutoReloadVimRC
-    autocmd!
-    autocmd BufWritePost $MYVIMRC source $MYVIMRC
-augroup END
+if has('autocmd')
+    augroup AutoReloadVimRC
+        autocmd!
+        autocmd BufWritePost $MYVIMRC source $MYVIMRC
+    augroup END
+endif
 
 "-----------------------------------------------------------------------------
 " Editing: and writing files
 "-----------------------------------------------------------------------------
 
 " If we can set a custom location for backups, turn them on
-if exists("+backupdir")
-    let g:BACKUP_DIR = $XDG_CACHE_HOME . "/vim/backup//"
+if exists('+backupdir')
+    let g:BACKUP_DIR = $XDG_CACHE_HOME . '/vim/backup//'
     if !isdirectory(g:BACKUP_DIR)
-        call mkdir(g:BACKUP_DIR, "p", "0700")
+        call mkdir(g:BACKUP_DIR, 'p', '0700')
     endif
     set backup                         " keep a backup file
     let &backupdir=g:BACKUP_DIR        " set backup file location
@@ -119,9 +121,9 @@ xnoremap <silent> <C-Down> :move'>+<CR>gv=gv
 " Undo: and Redo
 "-----------------------------------------------------------------------------
 
-let g:SWAP_DIR = $XDG_CACHE_HOME . "/vim/swap//"
+let g:SWAP_DIR = $XDG_CACHE_HOME . '/vim/swap//'
 if !isdirectory(g:SWAP_DIR)
-    call mkdir(g:SWAP_DIR, "p", "0700")
+    call mkdir(g:SWAP_DIR, 'p', '0700')
 endif
 
 set noswapfile                   " use memory instead of swap
@@ -129,8 +131,8 @@ let &directory=g:SWAP_DIR        " set a swap directory just in case
 
 " Set up undo file
 set undolevels=10000               " number of changes that can be undone
-if exists("+undofile")
-    let g:UNDO_DIR = $XDG_CACHE_HOME . "/vim/undo//"
+if exists('+undofile')
+    let g:UNDO_DIR = $XDG_CACHE_HOME . '/vim/undo//'
     if !isdirectory(g:UNDO_DIR)
         call mkdir(g:UNDO_DIR)
     endif
@@ -151,7 +153,7 @@ nnoremap U <C-r>
 "-----------------------------------------------------------------------------
 
 " Allow selecting of any blank space, regardless of if it is saved or not
-if has ("virtualedit")
+if has ('virtualedit')
     set virtualedit=block
 endif
 
@@ -175,10 +177,10 @@ nnoremap gV `[v`]
 
 " Search for visual selection with * and #
 function! s:VSetSearch()
-    let temp = @@
+    let l:temp = @@
     norm! gvy
     let @/ = '\V' . substitute(escape(@@, '\'), '\n', '\\n', 'g')
-    let @@ = temp
+    let @@ = l:temp
 endfunction
 
 xnoremap * :<C-u>call <SID>VSetSearch()<CR>//<CR>
@@ -201,7 +203,7 @@ xnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
 "-----------------------------------------------------------------------------
 
 " Keep the maximum number of lines of command line history
-if has("cmdline_hist")
+if has('cmdline_hist')
     set history=10000
 endif
 
@@ -234,20 +236,20 @@ set shiftround     " >> and << move to the nearest multiple of shiftwidth
 " Remove message when no file argument is given
 set shortmess+=I
 
-set scrolloff=5                 " keep five lines at the bottom
-set popt=left:8pc,right:3pc     " print options
-set visualbell t_vb=            " visual bell instead of beeping, and off!
-set autoindent                  " copy indent from current line
-set autoread                    " reread open files when changed outside Vim
-set backspace=indent,eol,start  " backspacing over everything in insert mode
-set browsedir=current           " which directory to use for the file browser
-set listchars=tab:>.,eol:\$     " strings to use in 'list' mode
+set scrolloff=5                      " keep five lines at the bottom
+set printoptions=left:8pc,right:3pc  " print options
+set visualbell t_vb=                 " visual bell instead of beeping, and off!
+set autoindent                       " copy indent from current line
+set autoread                         " reread open files when changed outside Vim
+set backspace=indent,eol,start       " backspacing over everything in insert mode
+set browsedir=current                " which directory to use for the file browser
+set listchars=tab:>.,eol:\$          " strings to use in 'list' mode
 
 " Search highlighting
-if has("extra_search")
+if has('extra_search')
     set hlsearch   " highlight the last used search pattern
     set incsearch  " do incremental searching
-    if has("autocmd")
+    if has('autocmd')
         augroup insert_hl
             autocmd!
             silent! autocmd InsertEnter * :setlocal nohlsearch
@@ -257,10 +259,10 @@ if has("extra_search")
 endif
 
 " Wildmenu settings
-if has("wildmenu")
+if has('wildmenu')
     set wildmenu                           " command-line completion in an enhanced mode
     set wildmode=list:longest              " when more than one match, list all matches and complete till longest common string
-    if has("wildignore")
+    if has('wildignore')
         set wildignore+=*.bak,*.e,*~       " wildmenu: ignore extensions
         set wildignore+=.hg,.git,.svn      " Version control
         set wildignore+=*.aux,*.out,*.toc  " LaTeX intermediate files
@@ -279,7 +281,7 @@ if has("wildmenu")
 endif
 
 " Prevent wrapping in the middle of words
-if has("linebreak")
+if has('linebreak')
     set linebreak
 endif
 
@@ -289,27 +291,28 @@ if exists('+shellslash')
 endif
 
 " Show cursor position, mode, and complete commands
-if has("cmdline_info")
+if has('cmdline_info')
     set ruler
     set showcmd
     set showmode
 endif
 
 " Omnicomplete settings
-if has("insert_expand") && has("eval")
+if has('insert_expand') && has('eval')
     set completeopt=longest,menu  " Complete all common letters, and use a menu
     set omnifunc=syntaxcomplete#Complete
 endif
 
 " Set the internal vim character encoding
-if has("multi_byte")
+if has('multi_byte')
     set encoding=utf-8
-    " Sperate VertSplits with a solid line
+    scriptencoding utf-8
+    " Separate VertSplits with a solid line
     set fillchars=stl:―,stlnc:—,vert:│,fold:۰,diff:·
 endif
 
 " Remove comment characters when joining two lines with J
-if v:version > 703 || v:version == 703 && has("patch541")
+if v:version > 703 || v:version == 703 && has('patch541')
     set formatoptions+=j
 endif
 
@@ -369,16 +372,16 @@ inoremap <F1> <nop>
 set hidden  " allows unsaved buffers to be navigated away from
 
 " Set status line always, and set the tab line only if there are two tabs.
-if has("windows")
+if has('windows')
     set laststatus=2
-    if exists("&showtabline")
+    if exists('&showtabline')
         set showtabline=1
     endif
     " Set splits as vertical by default if we can.
-    if has("splitbelow")
+    if has('splitbelow')
         set splitbelow
-        if has("vertsplit")
-            if has ("splitright")
+        if has('vertsplit')
+            if has ('splitright')
                 set splitright
             endif
         endif
@@ -394,7 +397,7 @@ nnoremap <C-l> <C-w>l
 "-----------------------------------------------------------------------------
 " Syntax: highlighting
 "-----------------------------------------------------------------------------
-if has("syntax")
+if has('syntax')
     syntax enable             " turn on syntax highlighting
     set background=dark       " Assume a dark terminal
     silent! colorscheme alex  " Custom color scheme
@@ -404,8 +407,8 @@ endif
 " Spell: checking
 "-----------------------------------------------------------------------------
 
-if has("spell")
-    if exists("+spelllang")
+if has('spell')
+    if exists('+spelllang')
         set spelllang=en_us
         set spellfile=~/.vim/spell/en.utf-8.add
     endif
@@ -427,7 +430,7 @@ endif
 "-----------------------------------------------------------------------------
 
 " End paste mode when leaving insert
-if has("autocmd")
+if has('autocmd')
     augroup insert_paste
         autocmd!
         autocmd InsertLeave * set nopaste
@@ -437,9 +440,9 @@ endif
 " Return to last position when opening a file
 function! s:SetCursorPosition()
     " Do nothing if the file is a commit message
-    if &filetype !~ 'svn\|commit\c'
+    if &filetype !~# 'svn\|commit\c'
         " Check that the position is still valid
-        if line("'\"") > 0 && line("'\"") <= line("$")
+        if line("'\"") > 0 && line("'\"") <= line('$')
             " Go to the position
             normal! g`"
             " Center the screen
@@ -448,7 +451,7 @@ function! s:SetCursorPosition()
     endif
 endfunction
 
-if has("autocmd")
+if has('autocmd')
     augroup bufread
         autocmd!
         autocmd BufReadPost * call s:SetCursorPosition()
@@ -456,7 +459,7 @@ if has("autocmd")
 endif
 
 " Open the quickfix window if there are errors when running :make
-if has("autocmd")
+if has('autocmd')
     augroup makequickfix
         autocmd!
         autocmd QuickFixCmdPost [^l]* nested cwindow
@@ -469,7 +472,7 @@ endif
 "-----------------------------------------------------------------------------
 
 " Turn on indenting and other file type specific options
-if has("autocmd")
+if has('autocmd')
     augroup file_type_check
         autocmd!
         filetype on
@@ -517,22 +520,22 @@ endif
 nnoremap <Leader>mc /\v^[<\|=>]{7}( .*\|$)<CR>
 
 " Strip trailing spaces
-nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
-xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
+nnoremap <Leader>rs :call <SID>Preserve("%s/\\s\\+$//e")<CR>
+xnoremap <Leader>rs :call <SID>Preserve("'<,'>s/\\s\\+$//e")<CR>
 
 " Run indenting on the whole file
-nnoremap <Leader>ff :call Preserve("normal gg=G")<CR>
+nnoremap <Leader>ff :call <SID>Preserve("normal! gg=G")<CR>
 
 " Preserve the location and search when calling a function
-function! Preserve(command)
+function! s:Preserve(command)
     " Preparation: save last search, and cursor position.
-    let _s = @/
-    let l:l = line(".")
-    let l:c = col(".")
+    let l:_s = @/
+    let l:l = line('.')
+    let l:c = col('.')
     " Run command
     execute a:command
     " Clean up: restore previous search history, and cursor position
-    let @/ = _s
+    let @/ = l:_s
     call cursor(l:l, l:c)
 endfunction
 
@@ -544,7 +547,7 @@ command! -nargs=* -complete=help H vertical belowright help <args>
 " Source a local file to allow site by site settings
 "=============================================================================
 
-let $VIMRCLOCAL=expand("~/.vimrc_local")
+let $VIMRCLOCAL=expand('~/.vimrc_local')
 if filereadable($VIMRCLOCAL)
     source $VIMRCLOCAL
 endif
