@@ -91,7 +91,7 @@ alias dot-pull="${HOME}/bin/pull -y -i -d -x tmp ${HOME}/.dotfiles/"
 alias dot-pusho="${HOME}/bin/push -y -d -x tmp -i -o ${HOME}/.dotfiles/"
 alias dot-pullo="${HOME}/bin/pull -y -d -x tmp -i -o ${HOME}/.dotfiles/"
 
-## ~/bin
+## $HOME/bin
 alias bin-push="${HOME}/bin/push -y -i -d ${HOME}/bin/"
 alias bin-pull="${HOME}/bin/pull -y -i -d ${HOME}/bin/"
 alias bin-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/bin/"

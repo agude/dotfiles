@@ -65,7 +65,7 @@ link ${HOME}/.terminfo /terminfo
 # EditorConfig
 link ${HOME}/.editorconfig /editorconfig/editorconfig
 
-# ~/bin
+# $HOME/bin
 mkdir -p ${HOME}/bin
 
 for full_path in ${PWD}/bin/*; do
@@ -104,7 +104,7 @@ link ${HOME}/.gvimrc /vim/gvimrc
 
 ## Install vim-plug
 if [[ ! -f ${PWD}/vim/autoload/plug.vim ]]; then
-    curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    curl -fLo ${HOME}/.vim/autoload/plug.vim --create-dirs \
         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
 
