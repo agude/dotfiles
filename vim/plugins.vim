@@ -95,3 +95,10 @@ endif
 " Map various Fugitive commands to <Leader>g
 nnoremap <silent> <Leader>gd :Gvdiff<CR>
 nnoremap <silent> <Leader>gb :Gblame<CR>
+
+"=============================================================================
+" EnchancedDiff
+"=============================================================================
+
+" Always use Patience Diff
+let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
