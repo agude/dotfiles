@@ -11,7 +11,7 @@ endif
 
 " Set up the XDG Base Directory Specification variables
 if empty($XDG_CACHE_HOME)
-    let $XDG_CACHE_HOME = '~/.cache'
+    let $XDG_CACHE_HOME = expand('~/.cache')
 endif
 
 " Set leader and local leader
@@ -560,7 +560,7 @@ command! -nargs=* -complete=help H vertical belowright help <args>
 " Source a local file to allow site by site settings
 "=============================================================================
 
-let $VIMRCLOCAL=expand('~/.vimrc_local')
+let $VIMRCLOCAL = expand('~/.vimrc_local')
 if filereadable($VIMRCLOCAL)
     source $VIMRCLOCAL
 endif
