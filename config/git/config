@@ -20,6 +20,9 @@
 [push]
     default = simple
 
+[pull]
+    rebase = true
+
 [diff]
     renames = copies
     mnemonicprefix = true
@@ -30,3 +33,6 @@
 [alias]
     undo = reset --soft HEAD~1
     lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an-%ae>%Creset' --abbrev-commit
+
+[branch]
+    autosetuprebase = always
