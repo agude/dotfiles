@@ -20,6 +20,10 @@
 [push]
     default = simple
 
+[diff]
+    renames = copies
+    mnemonicprefix = true
+
 [include]
     path = ~/.gitconfig_local
 
