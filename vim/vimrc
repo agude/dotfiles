@@ -501,6 +501,18 @@ endif
 " Fold on indent
 "set foldmethod=indent
 
+"-----------------------------------------------------------------------------
+" Nvim Terminal: Run a terminal in nvim
+"-----------------------------------------------------------------------------
+
+" Use escape to exit insert mode in the terminal
+if exists(':tnoremap')
+    tnoremap <Esc> <C-\><C-n>
+endif
+
+" When starting a terminal buffer, start in insert mode
+:au BufEnter * if &buftype == 'terminal' | :startinsert | endif
+
 "=============================================================================
 " SPECIAL ISSUES
 "=============================================================================
