@@ -258,6 +258,9 @@ if has('extra_search')
     endif
 endif
 
+" Turn off the mouse
+set mouse=
+
 " Wildmenu settings
 if has('wildmenu')
     set wildmenu                           " command-line completion in an enhanced mode
