@@ -416,7 +416,7 @@ nnoremap <C-l> :call <SID>WinMove('l')<cr>
 if has('syntax')
     syntax enable             " turn on syntax highlighting
     set background=dark       " Assume a dark terminal
-    silent! colorscheme alex  " Custom color scheme
+    silent! colorscheme eldar " Custom color scheme
 endif
 
 "-----------------------------------------------------------------------------
