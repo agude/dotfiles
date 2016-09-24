@@ -102,6 +102,9 @@ link ${HOME}/.vimrc /vim/vimrc
 ## gvimrc
 link ${HOME}/.gvimrc /vim/gvimrc
 
+## neovim
+link ${XDG_CONFIG_HOME}/nvim /vim
+
 ## Install vim-plug
 if [[ ! -f ${PWD}/vim/autoload/plug.vim ]]; then
     curl -fLo ${HOME}/.vim/autoload/plug.vim --create-dirs \
