@@ -1,5 +1,7 @@
 call plug#begin('~/.vim/plugged')
 
+"My color scheme
+Plug 'agude/eldar.vim'
 "VimCompletesMe
 Plug 'ajh17/VimCompletesMe'
 "Surround
