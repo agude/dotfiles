@@ -103,13 +103,19 @@ alias system-pull="${HOME}/bin/pull -y -i -d ${HOME}/.systemfiles/"
 alias system-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/.systemfiles/"
 alias system-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/.systemfiles/"
 
+## Games
+alias game-push="${HOME}/bin/push -y -i -d ${HOME}/Games/"
+alias game-pull="${HOME}/bin/pull -y -i -d ${HOME}/Games/"
+alias game-pusho="${HOME}/bin/push -y -i -o -d ${HOME}/Games/"
+alias game-pullo="${HOME}/bin/pull -y -i -o -d ${HOME}/Games/"
+
 # Sync Computers
 
 ## From Einstein
-alias push-to-dirac="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push"
-alias pull-from-dirac="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull"
-alias pusho-to-dirac="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && email-pusho && music-pusho"
-alias pullo-from-dirac="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && music-pullo"
+alias push-to-dirac="dot-push && bin-push && system-push && projects-push && docs-push && email-push && music-push && game-push"
+alias pull-from-dirac="dot-pull && bin-pull && system-pull && projects-pull && docs-pull && music-pull && game-pull"
+alias pusho-to-dirac="dot-pusho && bin-pusho && system-pusho && projects-pusho && docs-pusho && email-pusho && music-pusho && game-pusho"
+alias pullo-from-dirac="dot-pullo && bin-pullo && system-pullo && projects-pullo && docs-pullo && music-pullo && game-pullo"
 
 ##From Newton
 alias push-to-einstein="dot-push && bin-push && system-push && projects-push && docs-push && music-push"
