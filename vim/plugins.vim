@@ -101,4 +101,7 @@ nnoremap <silent> <Leader>gb :Gblame<CR>
 "=============================================================================
 
 " Always use Patience Diff
-let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
+if &diff
+    let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
+endif
+
