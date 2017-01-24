@@ -23,4 +23,16 @@ Plug 'chrisbra/vim-diff-enhanced'
 " PEP8 compliant indenting
 Plug 'hynek/vim-python-pep8-indent'
 
+" Neovim only
+
+if has("nvim")
+    " Autocomplete
+    function! DoRemote(arg)
+        UpdateRemotePlugins
+    endfunction
+    Plug 'Shougo/deoplete.nvim', { 'do': function('DoRemote') }
+    " Jedi autocomplete
+    Plug 'zchee/deoplete-jedi'
+endif
+
 call plug#end()
