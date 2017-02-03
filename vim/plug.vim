@@ -21,7 +21,7 @@ Plug 'tpope/vim-fugitive'
 " Better Diffing using git 1.8
 Plug 'chrisbra/vim-diff-enhanced'
 " PEP8 compliant indenting
-Plug 'hynek/vim-python-pep8-indent'
+Plug 'Vimjas/vim-python-pep8-indent'
 
 " Neovim only
 
