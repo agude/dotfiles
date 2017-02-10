@@ -36,38 +36,6 @@ if !isdirectory(g:ctrlp_cache_dir)
 endif
 
 "=============================================================================
-" Vimwiki Settings
-"=============================================================================
-
-let g:vimwiki_list = [
-    \{'path': '~/Documents/wikis/cms/wiki/',
-        \'path_html': '~/Documents/wikis/cms/html/',
-        \'diary_rel_path': '',
-        \'auto_export': 1,
-        \'nested_syntaxes':  {'python': 'python', 'c++': 'cpp'}
-    \},
-        \{'path': '~/Documents/wikis/alex_campaign/player_wiki/wiki/',
-        \'path_html': '~/Documents/wikis/alex_campaign/player_wiki/html/',
-        \'auto_export': 1,
-        \'template_path': '~/Documents/wikis/alex_campaign/templates',
-        \'template_default': 'default_template',
-        \'template_ext': '.html'
-    \},
-    \{'path': '~/Documents/wikis/alex_campaign/dm_wiki/wiki/',
-        \'path_html': '~/Documents/wikis/alex_campaign/dm_wiki/html/',
-        \'auto_export': 1,
-        \'template_path': '~/Documents/wikis/alex_campaign/templates',
-        \'template_default': 'default_template',
-        \'template_ext': '.html'
-    \},
-    \{'path': '~/Projects/Coursera_Algorithms/notes_wiki/wiki/',
-        \'path_html': '~/Projects/Coursera_Algorithms/notes_wiki/html/',
-        \'auto_export': 1,
-        \'nested_syntaxes':  {'python': 'python', 'c++': 'cpp'}
-    \},
-\]
-
-"=============================================================================
 " TagBar Settings
 "=============================================================================
 

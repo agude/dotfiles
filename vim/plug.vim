@@ -8,8 +8,6 @@ Plug 'ajh17/VimCompletesMe'
 Plug 'tpope/vim-surround'
 "Repeat (lets you use . with surround)
 Plug 'tpope/vim-repeat'
-"Vimwiki
-Plug 'vimwiki/vimwiki'
 "Tagbar
 Plug 'majutsushi/tagbar'
 "ctrlp
