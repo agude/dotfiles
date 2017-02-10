@@ -20,6 +20,8 @@ Plug 'tpope/vim-fugitive'
 Plug 'chrisbra/vim-diff-enhanced'
 " PEP8 compliant indenting
 Plug 'Vimjas/vim-python-pep8-indent'
+" Jekyll Liquid syntax
+Plug 'tpope/vim-liquid'
 
 " Neovim only
 
