@@ -579,6 +579,15 @@ endfunction
 command! -nargs=* -complete=help Help vertical belowright help <args>
 command! -nargs=* -complete=help H vertical belowright help <args>
 
+" Show syntax highlighting groups for word under cursor
+nmap <Leader>c :call <SID>SynStack()<CR>
+function! <SID>SynStack()
+    if !exists("*synstack")
+        return
+    endif
+    echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+endfunc
+
 "=============================================================================
 " Source a local file to allow site by site settings
 "=============================================================================
