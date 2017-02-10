@@ -1,6 +1,7 @@
 # Vim directories
 vim/plugged
 vim/autoload/plug.vim
+vim/autoload/plug.vim.old
 vim/tmp/ctrlp
 vim/tmp/unite
 
