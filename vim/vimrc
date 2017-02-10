@@ -331,6 +331,11 @@ set nrformats-=octal
 " Match pairs of <> as well with %
 set matchpairs+=<:>
 
+" Show a live preview of substitute commands
+if exists('&inccommand')
+    set inccommand=nosplit
+endif
+
 "-----------------------------------------------------------------------------
 " Pattern: patterns and search commands
 "-----------------------------------------------------------------------------
