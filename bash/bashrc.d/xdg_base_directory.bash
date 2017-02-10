@@ -10,7 +10,7 @@
 # Set up variables for the programs that let us move their configuration files
 
 ## Readline
-INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
+export INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
 
 ## Screen
 export SCREENRC="${XDG_CONFIG_HOME}"/screen/screenrc
