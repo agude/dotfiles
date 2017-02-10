@@ -22,6 +22,8 @@ Plug 'chrisbra/vim-diff-enhanced'
 Plug 'Vimjas/vim-python-pep8-indent'
 " Jekyll Liquid syntax
 Plug 'tpope/vim-liquid'
+" Conky Syntax
+Plug 'smancill/conky-syntax.vim'
 
 " Neovim only
 
