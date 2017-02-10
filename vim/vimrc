@@ -190,6 +190,9 @@ xnoremap # :<C-u>call <SID>VSetSearch()<CR>??<CR>
 " Various: remaining commands
 "-----------------------------------------------------------------------------
 
+" Toggle invisible characters
+nnoremap <Leader>i :set list!<CR>
+
 "-----------------------------------------------------------------------------
 " Recover: from a crash
 "-----------------------------------------------------------------------------
