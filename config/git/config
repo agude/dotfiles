@@ -6,7 +6,11 @@
     branch = auto
     diff = auto
     interactive = auto
-    status = auto
+
+[color "status"]
+    added = green
+    changed = yellow bold
+    untracked = red bold
 
 [core]
     editor = vim
@@ -19,6 +23,7 @@
 
 [push]
     default = simple
+    followTags = true
 
 [pull]
     rebase = true
@@ -31,8 +36,22 @@
     path = ~/.gitconfig_local
 
 [alias]
+    fpush = push --force-with-lease
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    prune = fetch --prune
     undo = reset --soft HEAD~1
-    lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an-%ae>%Creset' --abbrev-commit
 
 [branch]
     autosetuprebase = always
+
+[transfer]
+    fsckobjects = true
+
+[stash]
+	showPatch = true
+
+[rebase]
+	autostash = true
+
+[log]
+	decorate = full
