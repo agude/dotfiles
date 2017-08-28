@@ -7,6 +7,23 @@ if [[ -d "${HOME}"/bin ]] ; then
     PATH="${PATH}":"${HOME}"/bin
 fi
 
+# Check the operating system
+#
+# PLATFORM is set instead of using OSTYPE in latter statements because it is
+# annoying to have to constantly strip trailing version numbers.
+if [[ "${OSTYPE}" == "linux-gnu" ]]; then
+    PLATFORM="linux";
+elif [[ "${OSTYPE}" == "darwin"* ]]; then
+    # Mac OSX
+    PLATFORM="mac";
+elif [[ "${OSTYPE}" == "win32" ]]; then
+    # I'm not sure this can happen.
+    PLATFORM="win32";
+else
+    # Unknown
+    PLATFORM="";
+fi
+
 # Set up the XDG Base Directory Specification
 XDG_FILE="${HOME}"/.bashrc.d/xdg_base_directory.bash
 if [[ -f ${XDG_FILE} ]]; then
