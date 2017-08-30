@@ -24,20 +24,24 @@ else # No color support
     COLOR_UNDO=
 fi
 
-# Change the color of the prompte based on the user
+# Change the color of the user's name in the prompt based on the user
+#
 # Root
 if [[ $EUID -eq 0 ]]; then
-    PS1=${COLOR_ROOT}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
+    COLOR_USERNAME=${COLOR_ROOT}
 # Other users on the machine
 elif [[ -n $SUDO_USER ]]; then
-    PS1=${COLOR_SUDO}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
+    COLOR_USERNAME=${COLOR_SUDO}
 # When sshed to another machine
 elif [[ -n "$SSH_CLIENT" ]]; then
-    PS1=${COLOR_SSH}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
+    COLOR_USERNAME=${COLOR_SSH}
 # Normal user
 else
-    PS1=${COLOR_USER}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
+    COLOR_USERNAME=${COLOR_USER}
 fi
+
+# Set the prompt
+PS1=${COLOR_USERNAME}'\u@\h'${COLOR_UNDO}':'${COLOR_DIR}'\w'${COLOR_UNDO}'\$ '${COLOR_UNDO}${NORM}
 
 # If debian_chroot is set, display in prompt
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
