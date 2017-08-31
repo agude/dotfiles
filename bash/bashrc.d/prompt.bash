@@ -20,18 +20,21 @@ if [[ $COLORS -ge 256 ]]; then
     COLOR_USER="${GREEN}"
     COLOR_SUDO="${YELLOW}"
     COLOR_SSH="${MAGENTA}"
+    COLOR_GIT="${RED}"
 elif [[ $COLORS -ge 8 ]]; then
     COLOR_DIR='\[\e[1;34m\]'  # Blue
     COLOR_ROOT='\[\e[1;31m\]' # Red
     COLOR_USER='\[\e[1;32m\]' # Green
     COLOR_SUDO='\[\e[1;33m\]' # Yellow
     COLOR_SSH='\[\e[1;35m\]'  # Magenta
+    COLOR_GIT='\[\e[1;31m\]'  # Red
 else # No color support
     COLOR_DIR=
     COLOR_ROOT=
     COLOR_USER=
     COLOR_SUDO=
     COLOR_SSH=
+    COLOR_GIT=
 fi
 
 # Change the color of the user's name in the prompt based on the user
@@ -50,8 +53,16 @@ else
     COLOR_USERNAME=${COLOR_USER}
 fi
 
+# Add git branch to the prompt
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+
 # Set the prompt
-PS1="${COLOR_USERNAME}\u@\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}\$ ${FORMAT_RESET}"
+#
+# The part in " " expand when the variable is defined while the part in ' ' is
+# left as is and hence rerun every time $PS1 is called
+PS1="${COLOR_USERNAME}\u@\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
 
 # If debian_chroot is set, display in prompt
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
