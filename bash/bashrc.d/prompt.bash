@@ -1,17 +1,21 @@
 # Get the number of colors, and the formatting codes
+#
 # These use "bright" colors, for "normal" colors subtract 8
+#
+# The wrapping \[ \] tell bash to ignore the non-printing characters when
+# figuring out the size of the prompt
 hash tput &>/dev/null \
     && COLORS=$(tput colors) \
-    && BOLD=$(tput bold) \
-    && FORMAT_RESET=$(tput sgr0) \
-    && BLACK=$(tput setaf 8) \
-    && RED=$(tput setaf 9) \
-    && GREEN=$(tput setaf 10) \
-    && YELLOW=$(tput setaf 11) \
-    && BLUE=$(tput setaf 12) \
-    && MAGENTA=$(tput setaf 13) \
-    && CYAN=$(tput setaf 14) \
-    && WHITE=$(tput setaf 15)
+    && BOLD="\[$(tput bold)\]" \
+    && FORMAT_RESET="\[$(tput sgr0)\]" \
+    && BLACK="\[$(tput setaf 8)\]" \
+    && RED="\[$(tput setaf 9)\]" \
+    && GREEN="\[$(tput setaf 10)\]" \
+    && YELLOW="\[$(tput setaf 11)\]" \
+    && BLUE="\[$(tput setaf 12)\]" \
+    && MAGENTA="\[$(tput setaf 13)\]" \
+    && CYAN="\[$(tput setaf 14)\]" \
+    && WHITE="\[$(tput setaf 15)\]"
 
 # Set colors based on how many we have
 if [[ $COLORS -ge 256 ]]; then
