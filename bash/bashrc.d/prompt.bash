@@ -74,7 +74,19 @@ if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
 fi
 PS1='${debian_chroot:+($debian_chroot)}'${PS1}
 
-# If this is an xterm or rxvt set the title to user@host:dir
+# You can set various resources in xterm, rxvt, and some other terminals by
+# printing a string of the form:
+#
+#     \[\e]N;New Title\a\]
+#
+# Where the enclosing \[ \] tells bash to ignore it when calculating prompt
+# size and the \e]; and \a are literal Operating System Command (OSC) and BEL
+# sequences. The N is used by the terminal to control what resource is set,
+# where 0 is the "icon name and window title", 1 is the "icon name", and 2 is
+# the "window title". For more see man console_codes.
+#
+# A convenient way to print this to the terminal this is to put it in the $PS1
+# prompt.
 case "$TERM" in
     xterm*|rxvt*)
         PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
