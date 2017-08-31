@@ -1,8 +1,8 @@
 # Check for anaconda and miniconda installs in $HOME/bin
 for CONDA in anaconda miniconda; do
-    LOCATION="${HOME}"/bin/${CONDA}/bin
+    LOCATION="${HOME}/bin/${CONDA}/bin"
     if [[ -d $LOCATION ]]; then
-        export PATH="$LOCATION:$PATH"
+        export PATH="${LOCATION}:${PATH}"
     fi
 done
 

@@ -51,7 +51,7 @@ else
 fi
 
 # Set the prompt
-PS1=${COLOR_USERNAME}'\u@\h'${FORMAT_RESET}':'${COLOR_DIR}'\w'${FORMAT_RESET}'\$ '${FORMAT_RESET}
+PS1="${COLOR_USERNAME}\u@\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}\$ ${FORMAT_RESET}"
 
 # If debian_chroot is set, display in prompt
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
@@ -69,4 +69,5 @@ case "$TERM" in
 esac
 
 # Unset the color and line part variables
-unset -v COLORS BOLD FORMAT_RESET BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH
+unset -v COLORS BOLD FORMAT_RESET BLACK RED GREEN YELLOW BLUE MAGENTA CYAN \
+         WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH

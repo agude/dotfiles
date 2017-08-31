@@ -10,22 +10,22 @@
 # Set up variables for the programs that let us move their configuration files
 
 ## Readline
-export INPUTRC=${XDG_CONFIG_HOME}/readline/inputrc
+export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc"
 
 ## Screen
-export SCREENRC="${XDG_CONFIG_HOME}"/screen/screenrc
+export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc"
 
 ## Jupyter/ipython
-export IPYTHONDIR="${XDG_CONFIG_HOME}"/jupyter
-export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}"/jupyter
-mkdir -p ${IPYTHONDIR} ${JUPYTER_CONFIG_DIR}
+export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter"
+export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter"
+mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
 
 ## libice
 if [[ "${PLATFORM}" != "mac" ]]; then
-    export ICEAUTHORITY="${XDG_RUNTIME_DIR}"/X11/iceauthority
-    mkdir -p $(dirname ${ICEAUTHORITY})
+    export ICEAUTHORITY="${XDG_RUNTIME_DIR}/X11/iceauthority"
+    mkdir -p $(dirname "${ICEAUTHORITY}")
 fi
 
 ## Gimp
-export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}"/gimp
-mkdir -p ${GIMP2_DIRECTORY}
+export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
+mkdir -p "${GIMP2_DIRECTORY}"

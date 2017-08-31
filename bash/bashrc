@@ -3,8 +3,8 @@
 # for examples
 
 # set PATH so it includes user's private bin if it exists
-if [[ -d "${HOME}"/bin ]] ; then
-    PATH="${PATH}":"${HOME}"/bin
+if [[ -d ${HOME}/bin ]] ; then
+    PATH=${PATH}:${HOME}/bin
 fi
 
 # Check the operating system
@@ -25,13 +25,13 @@ else
 fi
 
 # Set up the XDG Base Directory Specification
-XDG_FILE="${HOME}"/.bashrc.d/xdg_base_directory.bash
+XDG_FILE=${HOME}/.bashrc.d/xdg_base_directory.bash
 if [[ -f ${XDG_FILE} ]]; then
-    source ${XDG_FILE}
+    source "${XDG_FILE}"
 fi
 
 # If not running interactively, stop now
-[[ -z "$PS1" || $- != *i* ]] && return
+[[ -z $PS1 || $- != *i* ]] && return
 # When using rsync over ssh to older versions of bash, [[ -z $PS1 ]] returns
 # true incorrectly, so we use [[ $- != *i* ]] as a backup
 
@@ -83,7 +83,7 @@ fi
 
 # enable programmable completion features
 if [[ -f /etc/bash_completion ]] && ! shopt -oq posix; then
-    . /etc/bash_completion
+    source /etc/bash_completion
 fi
 
 # Umask to set file permissions on creation
@@ -93,12 +93,12 @@ umask 077
 #hash col && hash vim && export MANPAGER="/bin/sh -c \"col -b | vim -c 'set ft=man ts=8 nomod nolist nonu noma' -\""
 
 # Load configuration subfiles
-subfile_dir="${HOME}"/.bashrc.d/
+subfile_dir=${HOME}/.bashrc.d/
 if [[ -d ${subfile_dir} ]]; then
     for config in ${subfile_dir}/*.bash; do
         source "${config}"
     done
 fi
+
 # Unset variables to avoid polluting our shell's namespace
-unset -v config
-unset -v subfile_dir
+unset -v config subfile_dir
