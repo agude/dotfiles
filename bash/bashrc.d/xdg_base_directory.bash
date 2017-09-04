@@ -29,3 +29,7 @@ fi
 ## Gimp
 export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
 mkdir -p "${GIMP2_DIRECTORY}"
+
+## GnuPG
+export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
+mkdir -p "${GNUPGHOME}"
