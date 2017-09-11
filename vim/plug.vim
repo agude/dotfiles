@@ -24,9 +24,10 @@ Plug 'Vimjas/vim-python-pep8-indent'
 Plug 'tpope/vim-liquid'
 " Conky Syntax
 Plug 'smancill/conky-syntax.vim'
+" Mediawiki Syntax
+Plug 'chikamichi/mediawiki.vim'
 
 " Neovim only
-
 if has("nvim")
     " Autocomplete
     function! DoRemote(arg)
