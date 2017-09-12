@@ -13,6 +13,9 @@ convert-tabs
 # Pad all operators with spaces
 pad-oper
 
+# Add a space after commas
+pad-comma
+
 # Remove spaces around parenthesis
 unpad-paren
 
@@ -65,4 +68,7 @@ max-instatement-indent=80
 
 # Break closing headers ('else', 'catch', ...) from their immediately
 # preceding closing brackets
-break-closing-brackets
+break-closing-braces
+
+# Break the command from a one line statement ('if', 'while', ...) onto it's own line
+break-one-line-headers
