@@ -1,0 +1,183 @@
+" https://stackoverflow.com/questions/34528322/how-to-include-only-some-of-vimrc-in-ideavimrc
+" https://upsource.jetbrains.com/idea-ce/file/idea-ce-d00d8b4ae3ed33097972b8a4286b336bf4ffcfab/platform/platform-api/src/com/intellij/openapi/actionSystem/IdeActions.java
+"
+"=============================================================================
+" BASIC EDITING
+"=============================================================================
+
+" Set leader and local leader
+let mapleader=" "
+
+"-----------------------------------------------------------------------------
+" Motion: for moving around
+"-----------------------------------------------------------------------------
+
+" Move by screen lines
+nnoremap j gj
+nnoremap k gk
+
+" Move to the beginning or end of a line
+nnoremap H ^
+nnoremap L $
+
+" g_ does not count the \n at the end of a line
+xnoremap H ^
+xnoremap L g_
+
+" Swap ' and ` so that ' goes to the position, and ` just the line
+nnoremap ' `
+nnoremap ` '
+
+"-----------------------------------------------------------------------------
+" Change: and replacing text
+"-----------------------------------------------------------------------------
+
+" Y yanks to end of line now to match D and C
+nnoremap Y y$
+
+" Use the OS register
+noremap <Localleader>y "+y
+noremap <Localleader>Y "+Y
+noremap <Localleader>p "+p
+
+" When using J, move the cursor back to where it started
+nnoremap J mzJ`z
+
+" Reformat entire script
+noremap <Leader>ff :action ReformatCode<CR>
+
+" Move lines up and down
+nnoremap <C-Up>   :action MoveStatementUp<CR>
+nnoremap <C-Down> :action MoveStatementDown<CR>
+xnoremap <C-Up>   :action MoveStatementUp<CR>
+xnoremap <C-Down> :action MoveStatementDown<CR>
+
+"-----------------------------------------------------------------------------
+" Undo: and Redo
+"-----------------------------------------------------------------------------
+
+" Set up undo file
+set undolevels=10000               " number of changes that can be undone
+
+" U is redo, instead of undo on line
+nnoremap U <C-r>
+
+"-----------------------------------------------------------------------------
+" Visual: the Visual mode (selecting a text area)
+"-----------------------------------------------------------------------------
+
+" Reselect visual selection after indenting
+xnoremap < <gv
+xnoremap > >gv
+
+" Wrap visually selected text
+xnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
+xnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
+xnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
+xnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
+xnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
+xnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
+xnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
+xnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
+xnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
+
+" Select the last inserted characters
+nnoremap gV `[v`]
+
+"=============================================================================
+" ADVANCED EDITING
+"=============================================================================
+
+"-----------------------------------------------------------------------------
+" Cmdline: editing
+"-----------------------------------------------------------------------------
+
+" Keep the maximum number of lines of command line history
+set history=10000
+
+"-----------------------------------------------------------------------------
+" Options: of all options
+"-----------------------------------------------------------------------------
+
+" Numbers off by default, but can be toggled
+set nonumber
+
+set scrolloff=5 " keep five lines at the bottom
+
+set hlsearch   " highlight the last used search pattern
+set incsearch  " do incremental searching
+
+set showmode " Show editor mode
+
+" Change CTRL-A and CTRL-X to treat numbers with leading 0s as normal numbers
+set nrformats-=octal
+
+" Match pairs of <> as well with %
+set matchpairs+=<:>
+
+"-----------------------------------------------------------------------------
+" Pattern: patterns and search commands
+"-----------------------------------------------------------------------------
+
+" Ignore case, unless the search term has uppercase in it
+set ignorecase
+set smartcase
+
+" Use \v for better regex matchin
+nnoremap / /\v
+nnoremap ? ?\v
+xnoremap / /\v
+xnoremap ? ?\v
+
+" Keep search matches in the middle of the screen and pulse the line when
+" moving
+nnoremap <silent> n nzz
+nnoremap <silent> N Nzz
+nnoremap <silent> } }zz
+nnoremap <silent> { {zz
+nnoremap <silent> * *zz
+nnoremap <silent> # #zz
+nnoremap <silent> g* g*zz
+nnoremap <silent> g# g#zz
+
+" Clear highlighting
+nnoremap <silent> <Leader><Space> :noh<CR>
+
+"-----------------------------------------------------------------------------
+" Map: mapping and abbreviations
+"-----------------------------------------------------------------------------
+
+" Turn off help
+nnoremap <F1> <nop>
+inoremap <F1> <nop>
+
+"-----------------------------------------------------------------------------
+" Windows: for using multiple windows and buffers
+"-----------------------------------------------------------------------------
+
+" TODO: Remap correctly
+nnoremap <C-j> :call <SID>WinMove('j')<cr>
+nnoremap <C-h> :call <SID>WinMove('h')<cr>
+nnoremap <C-k> :call <SID>WinMove('k')<cr>
+nnoremap <C-l> :call <SID>WinMove('l')<cr>
+
+"-----------------------------------------------------------------------------
+" Spell: checking
+"-----------------------------------------------------------------------------
+
+" Toggle spelling
+nnoremap <silent> <Leader>s :setlocal spell!<CR>
+" Shortcuts using <LocalLeader>
+" Go to next
+noremap <LocalLeader>sj ]s
+" Go to previous
+noremap <LocalLeader>sk [s
+" Add word and move on
+noremap <LocalLeader>sa zg]s
+" Show list of suggestions
+noremap <LocalLeader>s? z=
+
+"-----------------------------------------------------------------------------
+" Spell: checking
+"-----------------------------------------------------------------------------
+set suround
