@@ -21,8 +21,8 @@ nnoremap H ^
 nnoremap L $
 
 " g_ does not count the \n at the end of a line
-xnoremap H ^
-xnoremap L g_
+vnoremap H ^
+vnoremap L g_
 
 " Swap ' and ` so that ' goes to the position, and ` just the line
 nnoremap ' `
@@ -49,8 +49,8 @@ noremap <Leader>ff :action ReformatCode<CR>
 " Move lines up and down
 nnoremap <C-Up>   :action MoveStatementUp<CR>
 nnoremap <C-Down> :action MoveStatementDown<CR>
-xnoremap <C-Up>   :action MoveStatementUp<CR>
-xnoremap <C-Down> :action MoveStatementDown<CR>
+vnoremap <C-Up>   :action MoveStatementUp<CR>
+vnoremap <C-Down> :action MoveStatementDown<CR>
 
 "-----------------------------------------------------------------------------
 " Undo: and Redo
@@ -67,19 +67,19 @@ nnoremap U <C-r>
 "-----------------------------------------------------------------------------
 
 " Reselect visual selection after indenting
-xnoremap < <gv
-xnoremap > >gv
+vnoremap < <gv
+vnoremap > >gv
 
 " Wrap visually selected text
-xnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
-xnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
-xnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
-xnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
-xnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
-xnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
-xnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
-xnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
-xnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
+vnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
+vnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
+vnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
+vnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
+vnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
+vnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
+vnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
+vnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
+vnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
 
 " Select the last inserted characters
 nnoremap gV `[v`]
@@ -123,12 +123,6 @@ set matchpairs+=<:>
 set ignorecase
 set smartcase
 
-" Use \v for better regex matchin
-nnoremap / /\v
-nnoremap ? ?\v
-xnoremap / /\v
-xnoremap ? ?\v
-
 " Keep search matches in the middle of the screen and pulse the line when
 " moving
 nnoremap <silent> n nzz
@@ -141,7 +135,7 @@ nnoremap <silent> g* g*zz
 nnoremap <silent> g# g#zz
 
 " Clear highlighting
-nnoremap <silent> <Leader><Space> :noh<CR>
+nnoremap <Leader><Space> :noh<CR>
 
 "-----------------------------------------------------------------------------
 " Map: mapping and abbreviations
@@ -156,28 +150,47 @@ inoremap <F1> <nop>
 "-----------------------------------------------------------------------------
 
 " TODO: Remap correctly
-nnoremap <C-j> :call <SID>WinMove('j')<cr>
-nnoremap <C-h> :call <SID>WinMove('h')<cr>
-nnoremap <C-k> :call <SID>WinMove('k')<cr>
-nnoremap <C-l> :call <SID>WinMove('l')<cr>
+"nnoremap <C-j> :call <SID>WinMove('j')<cr>
+"nnoremap <C-h> :call <SID>WinMove('h')<cr>
+"nnoremap <C-k> :call <SID>WinMove('k')<cr>
+"nnoremap <C-l> :call <SID>WinMove('l')<cr>
+
+" Split windows
+nnoremap <C-l> <C-w><C-v>
+nnoremap <C-j> <C-w><C-s>
+
+" Close splits
+"nnoremap <C-q> <C-w><C-q>
 
 "-----------------------------------------------------------------------------
 " Spell: checking
 "-----------------------------------------------------------------------------
 
 " Toggle spelling
-nnoremap <silent> <Leader>s :setlocal spell!<CR>
+"nnoremap <silent> <Leader>s :setlocal spell!<CR>
 " Shortcuts using <LocalLeader>
 " Go to next
-noremap <LocalLeader>sj ]s
+"noremap <LocalLeader>sj ]s
 " Go to previous
-noremap <LocalLeader>sk [s
+"noremap <LocalLeader>sk [s
 " Add word and move on
-noremap <LocalLeader>sa zg]s
+"noremap <LocalLeader>sa zg]s
 " Show list of suggestions
-noremap <LocalLeader>s? z=
+"noremap <LocalLeader>s? z=
+
+"=============================================================================
+" GUI
+"=============================================================================
 
 "-----------------------------------------------------------------------------
-" Spell: checking
+" GUI: Graphical User Interface
 "-----------------------------------------------------------------------------
-set suround
+
+set clipboard=unnamed
+
+"=============================================================================
+" IDEA Vim
+"=============================================================================
+
+" Mimic Tim Pope's Surround
+set surround
