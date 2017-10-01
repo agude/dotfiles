@@ -13,7 +13,7 @@ Plug 'majutsushi/tagbar'
 "ctrlp
 Plug 'ctrlpvim/ctrlp.vim'
 "Python Syntax Highlighting
-Plug 'hdima/python-syntax'
+Plug 'vim-python/python-syntax'
 "Git support
 Plug 'tpope/vim-fugitive'
 " Better Diffing using git 1.8
