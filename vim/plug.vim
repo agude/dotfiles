@@ -34,8 +34,10 @@ if has("nvim")
         UpdateRemotePlugins
     endfunction
     Plug 'Shougo/deoplete.nvim', { 'do': function('DoRemote') }
-    " Jedi autocomplete
+    " Jedi autocomplete for Python
     Plug 'zchee/deoplete-jedi'
+    " Asynchronous linting
+    Plug 'w0rp/ale'
 endif
 
 call plug#end()
