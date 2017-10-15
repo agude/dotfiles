@@ -9,9 +9,14 @@ fi
 
 # Check the operating system
 #
-# PLATFORM is set instead of using OSTYPE in latter statements because it is
-# annoying to have to constantly strip trailing version numbers.
-if [[ "${OSTYPE}" == "linux-gnu" ]]; then
+# PLATFORM is set instead of using OSTYPE in latter statements because Windows
+# Subsystem for Linux (WSL) does not set a unqiue value and so must be checked
+# in a different way.
+#
+# WSL must be first, because it reports the same OSTYPE as real Linux.
+if grep -qE "(Microsoft|WSL)" /proc/version &> /dev/null ; then
+    PLATFORM="wsl";
+elif [[ "${OSTYPE}" == "linux-gnu" ]]; then
     PLATFORM="linux";
 elif [[ "${OSTYPE}" == "darwin"* ]]; then
     # Mac OSX
