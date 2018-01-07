@@ -5,7 +5,7 @@ Plug 'agude/vim-eldar'
 "VimCompletesMe
 Plug 'ajh17/VimCompletesMe'
 "Surround
-Plug 'tpope/vim-surround'
+Plug 'machakann/vim-sandwich'
 "Repeat (lets you use . with surround)
 Plug 'tpope/vim-repeat'
 "Tagbar
