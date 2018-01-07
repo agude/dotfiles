@@ -1,18 +1,26 @@
-# ignore duplicate entires, and ignore commands that start with space
-HISTCONTROL=ignoredups:ignorespace
+# Ignore commands that start with space
+HISTCONTROL=ignorespace
 
-# append to the history file, don't overwrite it
+# Append to the history file, don't overwrite it
 shopt -s histappend &>/dev/null
 
-# put multi-line commands onto one line of history.
+# Put multi-line commands onto one line of history.
 shopt -s cmdhist &>/dev/null
 
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+# Undocumented feature which sets the size to "unlimited".
+# http://stackoverflow.com/questions/9457233/unlimited-bash-history
 unset -v HISTFILESIZE
-HISTSIZE=1000000
+unset -v HISTSIZE
+export HISTFILESIZE=
+export HISTSIZE=
 
-# keep the times of the commands in history
-HISTTIMEFORMAT='%F %T  '
+# Move the default location because some processes truncate ~/.bash_history
+# http://superuser.com/questions/575479/bash-history-truncated-to-500-lines-on-each-login
+export HISTFILE=~/.bash_eternal_history
 
-# add history entries immediately, not on exit
-PROMPT_COMMAND='history -a'
+# Keep the times of the commands in history
+export HISTTIMEFORMAT="[%F %T] "
+
+# Add history entries immediately, not on exit
+# http://superuser.com/questions/20900/bash-history-loss
+PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
