@@ -28,7 +28,7 @@ Plug 'smancill/conky-syntax.vim'
 Plug 'chikamichi/mediawiki.vim'
 
 " Neovim only
-if has("nvim")
+if has('nvim')
     " Autocomplete
     function! DoRemote(arg)
         UpdateRemotePlugins

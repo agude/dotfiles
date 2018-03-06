@@ -520,7 +520,12 @@ if exists(':tnoremap')
 endif
 
 " When starting a terminal buffer, start in insert mode
-:au BufEnter * if &buftype == 'terminal' | :startinsert | endif
+if has('autocmd')
+    augroup nvim_terminal
+        autocmd!
+        :autocmd BufEnter * if &buftype == 'terminal' | :startinsert | endif
+    augroup END
+endif
 
 "=============================================================================
 " SPECIAL ISSUES
@@ -542,7 +547,7 @@ let g:netrw_rsync_cmd = 'rsync -az'
 "-----------------------------------------------------------------------------
 
 " Load matchit.vim, but only if the user hasn't installed a newer version.
-if !exists('g:loaded_matchit') && findfile('plugin/matchit.vim', &rtp) ==# ''
+if !exists('g:loaded_matchit') && findfile('plugin/matchit.vim', &runtimepath) ==# ''
     runtime! macros/matchit.vim
 endif
 
@@ -577,7 +582,7 @@ command! -nargs=* -complete=help H vertical belowright help <args>
 " Show syntax highlighting groups for word under cursor
 nmap <Leader>c :call <SID>SynStack()<CR>
 function! <SID>SynStack()
-    if !exists("*synstack")
+    if !exists('*synstack')
         return
     endif
     echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
