@@ -233,7 +233,7 @@ set expandtab      " expand tabs to spaces
 set smarttab       " use shiftwidth instead of tabstop for tabs at the start of lines
 set shiftwidth=4   " number of spaces to use for each step of indent
 set softtabstop=4  " <Tab> counts for 4 spaces, allows easier deleting
-set tabstop=4      " number of spaces that a <Tab> counts for
+set tabstop=8      " number of spaces that a <Tab> counts for
 set shiftround     " >> and << move to the nearest multiple of shiftwidth
 
 " Remove message when no file argument is given
