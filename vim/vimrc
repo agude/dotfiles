@@ -382,21 +382,19 @@ inoremap <F1> <nop>
 
 set hidden  " allows unsaved buffers to be navigated away from
 
-" Set status line always, and set the tab line only if there are two tabs.
 if has('windows')
+    " Set the status line always
     set laststatus=2
+
+    " Set the tab line only if there are two tabs
     if exists('&showtabline')
         set showtabline=1
     endif
+
     " Set splits as vertical by default if we can.
-    if has('splitbelow')
-        set splitbelow
-        if has('vertsplit')
-            if has ('splitright')
-                set splitright
-            endif
-        endif
-    endif
+    set splitbelow
+    set splitright
+    set equalalways
 endif
 
 " Window navigation
