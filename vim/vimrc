@@ -19,14 +19,10 @@ let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
 
 " Plugin installer and manager
-if filereadable(expand('~/.vim/plug.vim'))
-    source ~/.vim/plug.vim
-endif
+runtime plug.vim
 
-" Vundle plugin installer and manager
-if filereadable(expand('~/.vim/plugins.vim'))
-    source ~/.vim/plugins.vim
-endif
+" Configuration of plugins
+runtime plugins.vim
 
 " Vimrc editing and sourcing
 nnoremap <leader>ve :vsplit $MYVIMRC<cr>
