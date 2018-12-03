@@ -554,21 +554,12 @@ endif
 nnoremap <Leader>mc /\v^[<\|=>]{7}( .*\|$)<CR>
 
 " Strip trailing spaces
-nnoremap <Leader>rs :call <SID>Preserve("%s/\\s\\+$//e")<CR>
-xnoremap <Leader>rs :call <SID>Preserve("'<,'>s/\\s\\+$//e")<CR>
+nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
+xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
 " Run indenting on the whole file
-nnoremap <Leader>ff :call <SID>Preserve("normal! gg=G")<CR>
+nnoremap <Leader>ff :call Preserve("normal! gg=G")<CR>
 
-" Preserve the view when running a command
-function! s:Preserve(command)
-    " Save the window information
-    let l:saved_winview = winsaveview()
-    " Run the command
-    execute a:command
-    " Restore previous window information
-    call winrestview(l:saved_winview)
-endfunction
 
 " Help opens help in a verticle split
 command! -nargs=* -complete=help Help vertical belowright help <args>
