@@ -24,10 +24,11 @@ vmap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
 "-------------------------------------------------------------------------------
 
 " Q applies astyle
-set formatprg=astyle
+setlocal formatprg=astyle
+let b:undo_ftplugin .= '|setlocal formatprg<'
 
 " = applies astlye and then indents with vim's default indenter
-vnoremap = gqgv=
+vnoremap <buffer> = gqgv=
 
 " Run astyle on the whole file
-nnoremap <Leader>ff :call Preserve("normal gggqG")<CR>
+nnoremap <buffer> <Leader>ff :call Preserve("normal gggqG")<CR>
