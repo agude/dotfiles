@@ -1,9 +1,9 @@
 "-------------------------------------------------------------------------------
 " additional mapping : complete a classical C comment: '/*' => '/* | */'
 "-------------------------------------------------------------------------------
-imap  <buffer>  /*              /*<Space><Space>*/<Left><Left><Left>
-imap  <buffer>  /*<Space>       /*<Space><Space>*/<Left><Left><Left>
-vmap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
+inoremap  <buffer>  /*              /*<Space><Space>*/<Left><Left><Left>
+inoremap  <buffer>  /*<Space>       /*<Space><Space>*/<Left><Left><Left>
+vnoremap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
 
 "-------------------------------------------------------------------------------
 " additional mapping : complete a classical C multi-line comment:
@@ -11,13 +11,13 @@ vmap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
 "                                    * |
 "                                    */
 "-------------------------------------------------------------------------------
-imap  <buffer>  /*<CR>  /*<CR><CR>/<Esc>kA<Space>
+inoremap  <buffer>  /*<CR>  /*<CR><CR>/<Esc>kA<Space>
 
 "-------------------------------------------------------------------------------
 " additional mapping : {<CR> always opens a block
 "-------------------------------------------------------------------------------
-imap  <buffer>  {<CR>    {<CR>}<Esc>O
-vmap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
+inoremap  <buffer>  {<CR>    {<CR>}<Esc>O
+vnoremap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
 
 "-------------------------------------------------------------------------------
 " additional mapping : use astyle for formatting

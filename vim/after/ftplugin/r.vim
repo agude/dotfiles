@@ -1,5 +1,5 @@
 "-------------------------------------------------------------------------------
 " additional mapping : {<CR> always opens a block
 "-------------------------------------------------------------------------------
-imap  <buffer>  {<CR>    {<CR>}<Esc>O
-vmap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
+inoremap  <buffer>  {<CR>    {<CR>}<Esc>O
+vnoremap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
