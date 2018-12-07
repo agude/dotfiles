@@ -1,5 +1,2 @@
-"-------------------------------------------------------------------------------
-" additional mapping : {<CR> always opens a block
-"-------------------------------------------------------------------------------
-inoremap  <buffer>  {<CR>    {<CR>}<Esc>O
-vnoremap  <buffer>  {<CR>   S{<CR>}<Esc>Pk=iB
+" Mappings that insert matching curly braces
+runtime shared/brace_mapping.vim
