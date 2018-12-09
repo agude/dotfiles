@@ -48,10 +48,13 @@
     fsckobjects = true
 
 [stash]
-	showPatch = true
+    showPatch = true
 
 [rebase]
-	autostash = true
+    autostash = true
 
 [log]
-	decorate = full
+    decorate = full
+
+[commit]
+    verbose = true
