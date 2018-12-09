@@ -1,7 +1,7 @@
 " complete a classical C comment: '/*' => '/* | */'
 inoremap  <buffer>  /*              /*<Space><Space>*/<Left><Left><Left>
 inoremap  <buffer>  /*<Space>       /*<Space><Space>*/<Left><Left><Left>
-vnoremap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
+xnoremap  <buffer>  /*              s/*<Space><Space>*/<Left><Left><Left><Esc>p
 
 " complete a classical C multi-line comment:
 "                      '/*<CR>' =>  /*

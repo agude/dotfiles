@@ -7,7 +7,7 @@ setlocal formatprg=astyle
 let b:undo_ftplugin .= '|setlocal formatprg<'
 
 " = applies astlye and then indents with vim's default indenter
-vnoremap <buffer> = gqgv=
+xnoremap <buffer> = gqgv=
 
 " Run astyle on the whole file
 nnoremap <buffer> <Leader>ff :call Preserve("normal gggqG")<CR>
