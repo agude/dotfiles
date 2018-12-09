@@ -311,6 +311,13 @@ if v:version > 703 || v:version == 703 && has('patch541')
     set formatoptions+=j
 endif
 
+" Allow formatting to recognized numbered lists
+set formatoptions+=n
+
+" Automatically add current comment leader when hitting enter or o or O
+set formatoptions+=r
+set formatoptions+=o
+
 " Do not add two spaces after . ? ! when using J to join lines
 set nojoinspaces
 
