@@ -540,11 +540,15 @@ nnoremap <Leader>mc /\v^[<\|=>]{7}( .*\|$)<CR>
 nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
 xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
 
+" Replace smart quotes with straight quotes
+nnoremap <Leader>rq :call Preserve("%s/[“”]/\"/ge <BAR> %s/[‘’]/'/ge")<CR>
+xnoremap <Leader>rq :call Preserve("'<,'>s/[“”]/\"/ge <BAR> '<,'>s/[‘’]/'/ge")<CR>
+
 " Run indenting on the whole file
 nnoremap <Leader>ff :call Preserve("normal! gg=G")<CR>
 
 
-" Help opens help in a verticle split
+" Help opens help in a vertical split
 command! -nargs=* -complete=help Help vertical belowright help <args>
 command! -nargs=* -complete=help H vertical belowright help <args>
 
