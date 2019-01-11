@@ -537,8 +537,8 @@ endif
 nnoremap <Leader>mc /\v^[<\|=>]{7}( .*\|$)<CR>
 
 " Strip trailing spaces
-nnoremap <Leader>rs :call Preserve("%s/\\s\\+$//e")<CR>
-xnoremap <Leader>rs :call Preserve("'<,'>s/\\s\\+$//e")<CR>
+nnoremap <Leader>rs :call spaces#StripTrailingNormal()<CR>
+xnoremap <Leader>rs :call spaces#StripTrailingVisual()<CR>
 
 " Replace smart quotes with straight quotes
 nnoremap <Leader>rq :call Preserve("%s/[“”]/\"/ge <BAR> %s/[‘’]/'/ge")<CR>
