@@ -11,3 +11,6 @@ xnoremap <buffer> = gqgv=
 
 " Run astyle on the whole file
 nnoremap <buffer> <Leader>ff :call Preserve("normal gggqG")<CR>
+
+" Remove trailing spaces
+auto BufWrite *.c,*.cpp call spaces#StripTrailingNormal()
