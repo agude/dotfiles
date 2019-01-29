@@ -541,12 +541,11 @@ nnoremap <Leader>rs :call spaces#StripTrailingNormal()<CR>
 xnoremap <Leader>rs :call spaces#StripTrailingVisual()<CR>
 
 " Replace smart quotes with straight quotes
-nnoremap <Leader>rq :call Preserve("%s/[“”]/\"/ge <BAR> %s/[‘’]/'/ge")<CR>
-xnoremap <Leader>rq :call Preserve("'<,'>s/[“”]/\"/ge <BAR> '<,'>s/[‘’]/'/ge")<CR>
+nnoremap <Leader>rq :call quotes#ReplaceSmartQuotesNormal()<CR>
+xnoremap <Leader>rq :call quotes#ReplaceSmartQuotesVisual()<CR>
 
 " Run indenting on the whole file
 nnoremap <Leader>ff :call Preserve("normal! gg=G")<CR>
-
 
 " Help opens help in a vertical split
 command! -nargs=* -complete=help Help vertical belowright help <args>
