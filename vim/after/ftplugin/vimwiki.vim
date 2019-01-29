@@ -1,6 +1,6 @@
 " Wrap text after 78 characters
 setlocal textwidth=78
-let b:undo_ftplugin = 'setlocal textwidth<'
+let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin('setlocal textwidth<')
 
 " Insert en and em dash
 if has('multi_byte')
@@ -10,7 +10,7 @@ if has('multi_byte')
     inoremap <buffer> --- —
     scriptencoding
     " using an empty scriptencoding ends the condition (or rather, sets the
-    " rest of the lines to the default
+    " rest of the lines to the default)
 endif
 
 " Insert timestamp with bullet, as used in my notes

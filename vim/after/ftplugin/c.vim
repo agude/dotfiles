@@ -4,7 +4,7 @@ runtime shared/c_comment_mapping.vim
 
 " Q applies astyle
 setlocal formatprg=astyle
-let b:undo_ftplugin .= '|setlocal formatprg<'
+let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin('setlocal formatprg<')
 
 " = applies astlye and then indents with vim's default indenter
 xnoremap <buffer> = gqgv=
@@ -20,4 +20,4 @@ augroup TrailingSpacesC
     autocmd BufWritePre <buffer> call spaces#StripTrailingNormal()
 augroup END
 " If the buffer changes filetype, we have to unload the autocmd
-let b:undo_ftplugin = "exec 'autocmd! TrailingSpacesC * <buffer>'"
+let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! TrailingSpacesC * <buffer>'")

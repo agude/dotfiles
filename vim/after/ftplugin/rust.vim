@@ -10,4 +10,4 @@ augroup TrailingSpacesRust
     autocmd BufWritePre <buffer> call spaces#StripTrailingNormal()
 augroup END
 " If the buffer changes filetype, we have to unload the autocmd
-let b:undo_ftplugin = "exec 'autocmd! TrailingSpacesRust * <buffer>'"
+let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! TrailingSpacesRust * <buffer>'")
