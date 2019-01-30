@@ -1,3 +1,5 @@
+scriptencoding utf-8
+
 " Remove spaces at the end of lines across the whole file
 function! quotes#ReplaceSmartQuotesNormal()
     :silent call Preserve("%s/[“”]/\"/ge | %s/[‘’]/'/ge")
