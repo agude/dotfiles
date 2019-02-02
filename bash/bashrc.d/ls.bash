@@ -1,5 +1,8 @@
 # From https://github.com/tejr/dotfiles
 
+# Revert *STUPID* new behavior in coreutils 8.25+
+export QUOTING_STYLE=literal
+
 # Return appropriate options for ls
 lsopts() {
     # Snarf the output of `ls --help` into a variable
