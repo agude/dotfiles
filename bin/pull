@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+a=""
+c=""
+d=""
+e=""
+i=""
+x=""
+y=""
+end="i"
+
+# Check flags
+while getopts "acdeoisyx:" flag
+do
+    case "${flag}" in
+        a) a="--append-verify";;
+        c) c="--chmod=Du=rwx,Fu=rw,Dgo-rwx,Fgo-rwx";;
+        d) d="--delete-after";;
+        e) e="--delete-excluded";;
+        o) end="o";;
+        i) i="--itemize-changes";;
+        s) s="--checksum";;
+        y) y="--fuzzy";;
+        x) xlist="${OPTARG}";;
+    esac
+done
+
+# Write an exclude for each excluded entry
+for ex in ${xlist}
+do
+    x+="--exclude=${ex} "
+done
+
+# Shift n changes $N to $N-n so that $@ is just the arguments
+shift $((OPTIND-1))
+
+locs="$@"
+
+for loc in ${locs}
+do
+    printf "%b" "\n\nRemote Pull: ${loc}\n\n"
+    /usr/bin/rsync -avzhhHAX ${s} ${y} ${e} ${i} ${a} ${d} ${c} ${x} --exclude google_docs -e ssh there${end}:${loc} ${loc}
+done
