@@ -47,11 +47,13 @@ def get_rsync_location():
         ERR_MSG = "Can not find rsync."
         logging.error(ERR_MSG)
         raise RuntimeError(ERR_MSG)
+    logging.debug("Found rsync: %s", rsync_loc)
     return rsync_loc
 
 
 class Rsync:
     def __init__(self, rsync_loc, flags, remote, location, is_pull):
+        logging.info("Constructing rsync object.")
         self.rsync_loc = rsync_loc
         self.flags = sorted(flags)  # Sorting makes it easier to scan by eye
         self.remote = remote
@@ -71,6 +73,8 @@ class Rsync:
         # Output is (source, target)
         output = (remote_path, local)
 
+        logging.debug("Is --pull: '%s'", self.is_pull)
+
         return output if self.is_pull else reversed(output)
 
     def __build_command(self):
@@ -84,6 +88,7 @@ class Rsync:
         return command
 
     def run(self):
+        logging.info("Running rsync command.")
         call(self.command)
 
 
