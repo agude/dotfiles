@@ -78,10 +78,7 @@ class Rsync:
         return output if self.is_pull else reversed(output)
 
     def __build_command(self):
-        command = [self.rsync_loc]
-        command += self.flags
-        command += [self.source]
-        command += [self.target]
+        command = [self.rsync_loc] + self.flags + [self.source, self.target]
 
         logging.debug("Command: `%s`", ' '.join(command))
 
@@ -123,18 +120,6 @@ if __name__ == "__main__":
         dest="pull",
     )
     parser.add_argument(
-        "--delete-after",
-        action="append_const",
-        const="--delete-after",
-        dest="new_flags",
-    )
-    parser.add_argument(
-        "--checksum",
-        action="append_const",
-        const="--checksum",
-        dest="new_flags",
-    )
-    parser.add_argument(
         "--log",
         help="set the logging level, defaults to WARNING",
         dest="log_level",
@@ -148,22 +133,29 @@ if __name__ == "__main__":
         ],
     )
 
-    args = parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
 
     # Set the logging level based on the arguments
     logging.basicConfig(level=args.log_level)
 
     logging.debug("Arguments: %s", args)
 
-    # Build a set of additional flags to pass in to rsync
-    if args.new_flags:
-        for flag in args.new_flags:
+    # Pass through flags unknown to argparse to rsync
+    logging.info("Checking for pass through flags.")
+    if unknown_args:
+        logging.info("Pass through flags found.")
+        for flag in unknown_args:
+            logging.debug("Adding pass through flag: '%s'", flag)
             FLAGS.add(flag)
 
     # Add excludes to flags
+    logging.info("Checking for excluded items.")
     if args.exclude:
+        logging.info("Excluded items found.")
         for ex in args.exclude:
-            FLAGS.add("--exclude={}".format(ex))
+            exclude_statement = "--exclude={}".format(ex)
+            logging.debug("Adding excluded item: '%s'", exclude_statement)
+            FLAGS.add(exclude_statement)
 
     # Build the full directory path
     full_path = os.path.normpath(args.directory)
