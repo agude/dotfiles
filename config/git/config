@@ -40,6 +40,9 @@
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
     prune = fetch --prune
     undo = reset --mixed HEAD~1
+    up = !git pull --rebase --prune $@ && git submodule update --init --recursive
+    bclean = "!f() { git checkout ${1-master} && git branch --merged ${1-master} | grep -v " ${1-master}$" | xargs git branch -d; }; f"
+    bdone = "!f() { git checkout ${1-master} && git up && git bclean ${1-master}; }; f"
 
 [branch]
     autosetuprebase = always
