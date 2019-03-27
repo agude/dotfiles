@@ -25,7 +25,7 @@ if [[ $COLORS -ge 256 ]]; then
     COLOR_SUDO="${YELLOW}"
     COLOR_SSH="${MAGENTA}"
     COLOR_GIT="${RED}"
-    
+
 elif [[ $COLORS -ge 8 ]]; then
     COLOR_DIR='\[\e[1;34m\]'  # Blue
     COLOR_ROOT='\[\e[1;31m\]' # Red
@@ -33,6 +33,7 @@ elif [[ $COLORS -ge 8 ]]; then
     COLOR_SUDO='\[\e[1;33m\]' # Yellow
     COLOR_SSH='\[\e[1;35m\]'  # Magenta
     COLOR_GIT='\[\e[1;31m\]'  # Red
+
 else # No color support
     COLOR_DIR=
     COLOR_ROOT=
@@ -47,12 +48,15 @@ fi
 # Root
 if [[ $EUID -eq 0 ]]; then
     COLOR_USERNAME=${COLOR_ROOT}
+
 # Other users on the machine
 elif [[ -n $SUDO_USER ]]; then
     COLOR_USERNAME=${COLOR_SUDO}
+
 # When sshed to another machine
 elif [[ -n "$SSH_CLIENT" ]]; then
     COLOR_USERNAME=${COLOR_SSH}
+
 # Normal user
 else
     COLOR_USERNAME=${COLOR_USER}
