@@ -9,10 +9,10 @@ set -u
 for file in *; do
     # s/  */_/g replaces spaces with _
     # s/_-_/-/g replaces _-_ with -
-    new_name=$(echo ${file} | sed -e 's/  */_/g' -e 's/_-_/-/g')
+    new_name=$(echo "${file}" | sed -e 's/  */_/g' -e 's/_-_/-/g')
     # Only move if it doesn't already exist, and isn't already the right name
     if [[ ! -f ${new_name} && "${file}" != "${new_name}" ]]; then
-        mv "${file}" ${new_name}
+        mv "${file}" "${new_name}"
     fi
 done
 

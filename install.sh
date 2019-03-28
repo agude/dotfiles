@@ -68,7 +68,7 @@ link "${HOME}/.editorconfig" /editorconfig/editorconfig
 # $HOME/bin
 mkdir -p "${HOME}/bin"
 
-for full_path in ${PWD}/bin/*; do
+for full_path in "${PWD}/bin/"*; do
     # Take the file name from the path
     script_file=${full_path##*/}
     # Remove the suffix
@@ -79,13 +79,13 @@ done
 # $XDG_CONFIG_HOME
 mkdir -p "${XDG_CONFIG_HOME}"
 
-for config_sub_directory in ${PWD}/config/*; do
+for config_sub_directory in "${PWD}/config/"*; do
     # Get the program name from the path, and make the corrisponding directory
     # in ${XDG_CONFIG_HOME}
     program_directory=${config_sub_directory##*/}
     mkdir -p "${XDG_CONFIG_HOME}/${program_directory}"
     # Link each file independently
-    for full_file_path in ${config_sub_directory}/*; do
+    for full_file_path in "${config_sub_directory}/"*; do
         file_name="${full_file_path##*/}"
         link "${XDG_CONFIG_HOME}/${program_directory}/${file_name}" "/config/${program_directory}/${file_name}"
     done

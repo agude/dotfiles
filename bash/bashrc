@@ -103,7 +103,7 @@ umask 077
 # Load configuration subfiles
 subfile_dir=${HOME}/.bashrc.d/
 if [[ -d ${subfile_dir} ]]; then
-    for config in ${subfile_dir}/*.bash; do
+    for config in "${subfile_dir}/"*.bash; do
         source "${config}"
     done
 fi
