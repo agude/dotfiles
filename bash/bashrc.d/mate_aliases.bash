@@ -12,4 +12,4 @@ set_alias_if_program_exists() {
 set_alias_if_program_exists 'atril' 'evince'
 set_alias_if_program_exists 'caja' 'nautilus'
 set_alias_if_program_exists 'eom' 'eog'
-set_alias_if_program_exists 'pluma' 'gedit' 
+set_alias_if_program_exists 'pluma' 'gedit'
