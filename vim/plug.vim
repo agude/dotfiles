@@ -26,6 +26,8 @@ Plug 'tpope/vim-liquid'
 Plug 'smancill/conky-syntax.vim'
 " Mediawiki Syntax
 Plug 'chikamichi/mediawiki.vim'
+" Rust
+Plug 'rust-lang/rust.vim'
 
 " Neovim only
 if has('nvim')
