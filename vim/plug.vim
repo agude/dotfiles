@@ -39,7 +39,7 @@ if has('nvim')
     " Jedi autocomplete for Python
     Plug 'zchee/deoplete-jedi'
     " Asynchronous linting
-    Plug 'w0rp/ale'
+    Plug 'dense-analysis/ale'
 endif
 
 call plug#end()
