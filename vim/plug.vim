@@ -17,7 +17,9 @@ Plug 'vim-python/python-syntax'
 "Git support
 Plug 'tpope/vim-fugitive'
 " Better Diffing using git 1.8
-Plug 'chrisbra/vim-diff-enhanced'
+if !has("patch-8.1.0360")
+    Plug 'chrisbra/vim-diff-enhanced'
+endif
 " PEP8 compliant indenting
 Plug 'Vimjas/vim-python-pep8-indent'
 " Jekyll Liquid syntax

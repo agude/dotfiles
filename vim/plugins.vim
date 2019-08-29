@@ -68,8 +68,10 @@ nnoremap <silent> <Leader>gb :Gblame<CR>
 " EnchancedDiff
 "=============================================================================
 
-" Always use Patience Diff
-if &diff
-    let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
+" Use Patience Diff if we don't have xdiff built in
+if !has("patch-8.1.0360")
+    if &diff
+        let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
+    endif
 endif
 
