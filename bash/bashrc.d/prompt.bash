@@ -104,6 +104,36 @@ case "$TERM" in
         ;;
 esac
 
+# Report error codes after prompt
+export PROMPT_COMMAND=show_exit_code
+show_exit_code() {
+    # Must get the exit code first, otherwise we get the exitcode from the
+    # color setting code below
+    local exit=$?
+
+    # Set colors local to the function
+    hash tput &>/dev/null \
+        && local COLORS=$(tput colors) \
+        && local FORMAT_RESET="$(tput sgr0)" \
+        && local RED="$(tput setaf 9)"
+
+    # Set colors based on how many we have
+    if [[ $COLORS -ge 256 ]]; then
+        RED="${RED}"
+
+    elif [[ $COLORS -ge 8 ]]; then
+        RED='\e[1;31m' # Red
+
+    else # No color support
+        RED=
+    fi
+
+    # Check the exit code and display if non-0
+    if [ "$exit" -ne 0 ]; then
+        echo -e "${RED}exit: ${exit}${FORMAT_RESET}"
+    fi
+}
+
 # Unset the color and line part variables
 unset -v COLORS BOLD FORMAT_RESET BLACK RED GREEN YELLOW BLUE MAGENTA CYAN \
          WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH
