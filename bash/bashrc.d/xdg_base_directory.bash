@@ -25,8 +25,8 @@ mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
 
 ## libice
 if [[ "${PLATFORM}" != "mac" && "${PLATFORM}" != "wsl" ]]; then
-    export ICEAUTHORITY="${XDG_RUNTIME_DIR}/X11/iceauthority"
-    mkdir -p $(dirname "${ICEAUTHORITY}")
+    export ICEAUTHORITY="${XDG_CACHE_HOME}/X11/iceauthority"
+    mkdir -p "${ICEAUTHORITY}"
 fi
 
 ## Gimp
