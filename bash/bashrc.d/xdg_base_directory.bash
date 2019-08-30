@@ -1,9 +1,12 @@
 # Set up the XDG Base Directory Specification, but only if they don't exist
+# We un-set `set -u` here because the whole point is the variables might be
+# unset at this point
+set +u
 [[ -z $XDG_DATA_HOME ]] && export XDG_DATA_HOME="${HOME}/.local/share"
 [[ -z $XDG_CONFIG_HOME ]] && export XDG_CONFIG_HOME="${HOME}/.config"
+[[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/.cache"
 [[ -z $XDG_DATA_DIRS ]] && export XDG_DATA_DIRS="/usr/local/share/:/usr/share/"
 [[ -z $XDG_CONFIG_DIRS ]] && export XDG_CONFIG_DIRS="/etc/xdg"
-[[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/.cache"
 # No suggested default is given, so do not set RUNTIME
 #[[ -z $XDG_RUNTIME_DIR ]] && export XDG_RUNTIME_DIR=""
 
