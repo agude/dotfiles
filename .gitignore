@@ -20,4 +20,5 @@ Session.vim
 # https://github.com/github/gitignore/blob/master/Global/Linux.gitignore
 .*
 !.gitignore
+!.github
 *~

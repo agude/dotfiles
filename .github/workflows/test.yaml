@@ -1,0 +1,17 @@
+name: Test Install
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run the installation script
+      run: ./install.sh
+    - name: Test vim
+      run: vim +qall
+    - name: Test bashrc
+      run: source ~/.bashrc
