@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -e
+set -u
+
 # Set up the XDG Base Directory Specification
 XDG_FILE="${HOME}/.bashrc.d/xdg_base_directory.bash"
 if [[ -f ${XDG_FILE} ]]; then
