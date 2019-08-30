@@ -15,18 +15,18 @@ fi
 #
 # WSL must be first, because it reports the same OSTYPE as real Linux.
 if grep -qE "(Microsoft|WSL)" /proc/version &> /dev/null ; then
-    PLATFORM="wsl";
+    export PLATFORM="wsl";
 elif [[ "${OSTYPE}" == "linux-gnu" ]]; then
-    PLATFORM="linux";
+    export PLATFORM="linux";
 elif [[ "${OSTYPE}" == "darwin"* ]]; then
     # Mac OSX
-    PLATFORM="mac";
+    export PLATFORM="mac";
 elif [[ "${OSTYPE}" == "win32" ]]; then
     # I'm not sure this can happen.
-    PLATFORM="win32";
+    export PLATFORM="win32";
 else
     # Unknown
-    PLATFORM="";
+    export PLATFORM="";
 fi
 
 # Set up the XDG Base Directory Specification
