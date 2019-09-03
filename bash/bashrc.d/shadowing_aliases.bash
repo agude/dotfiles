@@ -13,3 +13,6 @@ set_alias_if_program_exists 'atril' 'evince'
 set_alias_if_program_exists 'caja' 'nautilus'
 set_alias_if_program_exists 'eom' 'eog'
 set_alias_if_program_exists 'pluma' 'gedit'
+
+# Add in drop-in replacements for common programs
+set_alias_if_program_exists 'bat' 'cat'
