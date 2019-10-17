@@ -22,3 +22,6 @@ Session.vim
 !.gitignore
 !.github
 *~
+
+# When using black for vim, it installs itself here
+vim/black
