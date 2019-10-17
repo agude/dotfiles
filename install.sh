@@ -4,7 +4,7 @@ set -e
 set -u
 
 # Set up the XDG Base Directory Specification
-XDG_FILE="./bash/bashrc.d/xdg_base_directory.bash"
+XDG_FILE="./bash/bashrc.d/001.xdg_base_directory.bash"
 if [[ -f ${XDG_FILE} ]]; then
     echo "Running ${XDG_FILE}"
     source "${XDG_FILE}"

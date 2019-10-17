@@ -30,7 +30,7 @@ else
 fi
 
 # Set up the XDG Base Directory Specification
-XDG_FILE=${HOME}/.bashrc.d/xdg_base_directory.bash
+XDG_FILE=${HOME}/.bashrc.d/001.xdg_base_directory.bash
 if [[ -f ${XDG_FILE} ]]; then
     source "${XDG_FILE}"
 fi
