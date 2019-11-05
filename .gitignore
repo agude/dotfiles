@@ -25,3 +25,6 @@ Session.vim
 
 # When using black for vim, it installs itself here
 vim/black
+
+# My notes I scatter throughout directories
+*TODO*
