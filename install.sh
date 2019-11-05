@@ -14,9 +14,11 @@ fi
 function link() {
     # Remove the taget file or link if it exists
     if [[ -f ${1} || -L ${1} ]]; then
+        echo "Removing: ${1}"
         rm -r "${1}"
     fi
     # Link the dotfile to the target
+    echo "Linking: ${PWD}/${2} -> ${1}"
     ln -s "${PWD}/${2}" "${1}"
 }
 
@@ -24,11 +26,7 @@ function link() {
 
 ## bashrc
 link "${HOME}/.bashrc" /bash/bashrc
-
-## bash_profile
 link "${HOME}/.bash_profile" /bash/bashrc
-
-## bash_login
 link "${HOME}/.bash_login" /bash/bashrc
 
 ## bash_aliases
