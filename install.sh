@@ -90,11 +90,5 @@ link "${XDG_CONFIG_HOME}/nvim" /vim
 ## Idea vimrc
 link "${HOME}/.ideavimrc" /vim/ideavimrc
 
-## Install vim-plug
-if [[ ! -f ${PWD}/vim/autoload/plug.vim ]]; then
-    curl -fLo "${HOME}/.vim/autoload/plug.vim" --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-fi
-
 ## Install bundles from vimrc
-vim +PlugInstall +qall
+vim -es -u "${HOME}/.vim/vimrc" -i NONE -c "PlugInstall" -c "qa"
