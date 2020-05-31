@@ -367,6 +367,16 @@ inoremap <F1> <nop>
 "-----------------------------------------------------------------------------
 " Tagsrch: and special searches
 "-----------------------------------------------------------------------------
+"
+"-----------------------------------------------------------------------------
+" Quickfix: commands for a quick edit-compile-fix cycle
+"-----------------------------------------------------------------------------
+
+" Support ripgrep, if it is installed
+if executable("rg")
+    set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case
+    set grepformat=%f:%l:%c:%m
+endif
 
 "-----------------------------------------------------------------------------
 " Windows: for using multiple windows and buffers
