@@ -16,3 +16,9 @@ set_alias_if_program_exists 'pluma' 'gedit'
 
 # Add in drop-in replacements for common programs
 set_alias_if_program_exists 'bat' 'cat'
+
+# On MacOS shadow the builtin find
+if [[ "${PLATFORM}" == "mac" ]]; then
+    set_alias_if_program_exists 'gfind' 'find'
+    set_alias_if_program_exists 'gsed' 'sed'
+fi
