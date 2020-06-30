@@ -83,4 +83,4 @@ case $HOSTNAME in
 esac
 
 # Remove the helper variables
-unset -v LOCATION
+unset -v REMOTE
