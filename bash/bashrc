@@ -20,7 +20,7 @@ if [[ -f ${XDG_FILE} ]]; then
 fi
 
 # If not running interactively, stop now
-[[ -z $PS1 || $- != *i* ]] && return
+[[ -z $PS1 || $- != *i* ]] && exit 0
 # When using rsync over ssh to older versions of bash, [[ -z $PS1 ]] returns
 # true incorrectly, so we use [[ $- != *i* ]] as a backup
 
