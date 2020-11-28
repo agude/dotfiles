@@ -16,3 +16,6 @@ augroup SmartQuoteReplaceMarkdown
 augroup END
 " If the buffer changes filetype, we have to unload the autocmd
 let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! SmartQuoteReplaceMarkdown * <buffer>'")
+
+" Always start with spellcheck on
+set spell
