@@ -439,6 +439,7 @@ endif
 " Diff: working with two to four versions of the same file
 "-----------------------------------------------------------------------------
 
+" Fixes E474 on Catalina+ MacOS, where Apple removed xdiff
 if has('mac') && $VIM == '/usr/share/vim'
 	set diffopt-=internal
 elseif has('patch-8.1.0360')
