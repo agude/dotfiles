@@ -21,4 +21,6 @@ set_alias_if_program_exists 'bat' 'cat'
 if [[ "${PLATFORM}" == "mac" ]]; then
     set_alias_if_program_exists 'gfind' 'find'
     set_alias_if_program_exists 'gsed' 'sed'
+    set_alias_if_program_exists 'ggrep' 'grep'
+    set_alias_if_program_exists 'gcat' 'cat'
 fi
