@@ -86,9 +86,6 @@ fi
 # Umask to set file permissions on creation
 umask 077
 
-# Set manpage reader to vim
-#hash col && hash vim && export MANPAGER="/bin/sh -c \"col -b | vim -c 'set ft=man ts=8 nomod nolist nonu noma' -\""
-
 # Load configuration subfiles
 subfile_dir=${HOME}/.bashrc.d/
 if [[ -d ${subfile_dir} ]]; then
