@@ -49,7 +49,9 @@ shopt -s extglob &>/dev/null
 unset -v MAILCHECK
 
 # turn off flow control keys
-hash stty &>/dev/null && stty -ixon
+if [[ -x $(command -v stty) ]]; then
+    stty -ixon
+fi
 
 # do not let others write to my terminal
 mesg n

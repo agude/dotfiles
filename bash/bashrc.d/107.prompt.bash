@@ -4,18 +4,19 @@
 #
 # The wrapping \[ \] tell bash to ignore the non-printing characters when
 # figuring out the size of the prompt
-hash tput &>/dev/null \
-    && COLORS=$(tput colors) \
-    && BOLD="\[$(tput bold)\]" \
-    && FORMAT_RESET="\[$(tput sgr0)\]" \
-    && BLACK="\[$(tput setaf 8)\]" \
-    && RED="\[$(tput setaf 9)\]" \
-    && GREEN="\[$(tput setaf 10)\]" \
-    && YELLOW="\[$(tput setaf 11)\]" \
-    && BLUE="\[$(tput setaf 12)\]" \
-    && MAGENTA="\[$(tput setaf 13)\]" \
-    && CYAN="\[$(tput setaf 14)\]" \
-    && WHITE="\[$(tput setaf 15)\]"
+if [[ -x $(command -v tput) ]]; then
+    COLORS=$(tput colors)
+    BOLD="\[$(tput bold)\]"
+    FORMAT_RESET="\[$(tput sgr0)\]"
+    BLACK="\[$(tput setaf 8)\]"
+    RED="\[$(tput setaf 9)\]"
+    GREEN="\[$(tput setaf 10)\]"
+    YELLOW="\[$(tput setaf 11)\]"
+    BLUE="\[$(tput setaf 12)\]"
+    MAGENTA="\[$(tput setaf 13)\]"
+    CYAN="\[$(tput setaf 14)\]"
+    WHITE="\[$(tput setaf 15)\]"
+fi
 
 # Set colors based on how many we have
 if [[ $COLORS -ge 256 ]]; then
@@ -112,10 +113,11 @@ show_exit_code() {
     local exit=$?
 
     # Set colors local to the function
-    hash tput &>/dev/null \
-        && local COLORS=$(tput colors) \
-        && local FORMAT_RESET="$(tput sgr0)" \
-        && local RED="$(tput setaf 9)"
+    if [[ -x $(command -v tput) ]]; then
+        local COLORS=$(tput colors)
+        local FORMAT_RESET="$(tput sgr0)"
+        local RED="$(tput setaf 9)"
+    fi
 
     # Set colors based on how many we have
     if [[ $COLORS -ge 256 ]]; then
