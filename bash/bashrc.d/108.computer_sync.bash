@@ -18,30 +18,30 @@ esac
 
 if [[ -n "$REMOTE" ]]; then
     # Pidgin
-    srpull='\n\nRemote Pull\n\n'
-    srpush='\n\nRemote Push\n\n'
-    slpull='\n\nLocal Pull\n\n'
-    slpush='\n\nLocal Push\n\n'
+    srpull=$"\n\nRemote Pull\n\n"
+    srpush=$"\n\nRemote Push\n\n"
+    slpull=$"\n\nLocal Pull\n\n"
+    slpush=$"\n\nLocal Push\n\n"
     # Local
-    alias pidgin-pull='printf %b ${srpull} && ${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/.purple/logs/'
-    alias pidgin-push='printf %b ${srpush} && ${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/.purple/logs/'
+    alias pidgin-pull="printf %b ${srpull} && ${HOME}/bin/sync --pull --remote ${REMOTE} --directory ${HOME}/.purple/logs/"
+    alias pidgin-push="printf %b ${srpush} && ${HOME}/bin/sync --push --remote ${REMOTE} --directory ${HOME}/.purple/logs/"
     # Local windows
-    alias pidgin-winpull='printf %b ${slpull} && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/ ${HOME}/.purple/logs/'
-    alias pidgin-winpush='printf %b ${slpush} && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify ${HOME}/.purple/logs/ /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/'
+    alias pidgin-winpull="printf %b ${slpull} && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/ ${HOME}/.purple/logs/"
+    alias pidgin-winpush="printf %b ${slpush} && rsync -rDvhh --modify-window=1 --itemize-changes --append-verify ${HOME}/.purple/logs/ /mnt/win/c/Users/Alexander\ Gude/AppData/Roaming/.purple/logs/"
     # Combined
-    alias pidgin-sync='pidgin-winpull && pidgin-pull && pidgin-push && pidgin-winpush'
+    alias pidgin-sync="pidgin-winpull && pidgin-pull && pidgin-push && pidgin-winpush"
 
     # Documents
     # All - Email
-    alias docs-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude email/ google_docs/ --directory ${HOME}/Documents/'
-    alias docs-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude email/ google_docs/ --directory ${HOME}/Documents/'
+    alias docs-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude email/ google_docs/ --directory ${HOME}/Documents/"
+    alias docs-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude email/ google_docs/ --directory ${HOME}/Documents/"
     # Email
-    alias email-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/Documents/email/'
-    alias email-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/Documents/email/'
+    alias email-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/Documents/email/"
+    alias email-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/Documents/email/"
 
     # Projects
-    alias projects-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude .mypy_cache/ --directory ${HOME}/Projects/'
-    alias projects-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude .mypy_cache/ --directory ${HOME}/Projects/'
+    alias projects-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude .mypy_cache/ --directory ${HOME}/Projects/"
+    alias projects-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude .mypy_cache/ --directory ${HOME}/Projects/"
 
     # Music
     # TODO: Fix me
@@ -51,20 +51,20 @@ if [[ -n "$REMOTE" ]]; then
     alias music-pull=':'
 
     # Dotfiles
-    alias dot-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude tmp/ .mypy_cache/ --directory ${HOME}/.dotfiles/'
-    alias dot-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude tmp/ .mypy_cache/ --directory ${HOME}/.dotfiles/'
+    alias dot-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --exclude tmp/ .mypy_cache/ --directory ${HOME}/.dotfiles/"
+    alias dot-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --exclude tmp/ .mypy_cache/ --directory ${HOME}/.dotfiles/"
 
     # $HOME/bin
-    alias bin-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/bin/'
-    alias bin-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/bin/'
+    alias bin-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/bin/"
+    alias bin-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/bin/"
 
     # Systemfiles
-    alias system-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/.systemfiles/'
-    alias system-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/.systemfiles/'
+    alias system-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/.systemfiles/"
+    alias system-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/.systemfiles/"
 
     # Games
-    alias game-push='${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/Games/'
-    alias game-pull='${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/Games/'
+    alias game-push="${HOME}/bin/sync --push --delete-after --remote ${REMOTE} --directory ${HOME}/Games/"
+    alias game-pull="${HOME}/bin/sync --pull --delete-after --remote ${REMOTE} --directory ${HOME}/Games/"
 fi
 
 # Sync Computers

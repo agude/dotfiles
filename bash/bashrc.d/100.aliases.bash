@@ -40,3 +40,10 @@ ccol() { awk -- "{print \$$1}"; }
 
 #Timestamp
 alias now='date +"%Y%m%d"'
+
+## Python
+alias wat='python -m pdb -c continue'
+alias prettyjson='prettyjson_f'
+prettyjson_f() {
+    python -m json.tool "$1"
+}
