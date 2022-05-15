@@ -48,3 +48,37 @@ mkdir -p "${GIMP2_DIRECTORY}"
 ## GnuPG
 export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
 mkdir -p "${GNUPGHOME}"
+
+## aspell
+export ASPELL_CONF="per-conf ${XDG_CONFIG_HOME}/aspell/aspell.conf; personal ${XDG_CONFIG_HOME}/aspell/en.pws; repl ${XDG_CONFIG_HOME}/aspell/en.prepl"
+
+## Rust Cargo
+export CARGO_HOME="${XDG_DATA_HOME}"/cargo
+
+# Docker
+export DOCKER_CONFIG="${XDG_CONFIG_HOME}"/docker
+
+# GTK 2
+export GTK2_RC_FILES="${XDG_CONFIG_HOME}"/gtk-2.0/gtkrc
+
+# mypy
+export MYPY_CACHE_DIR="${XDG_CACHE_HOME}"/mypy
+
+# pidgin
+if [[ -x $(command -v pidgin) ]]; then
+    pidgindata="$XDG_DATA_HOME"/purple
+    mkdir -p "${pidgindata}"
+
+    ln -sf ${pidgindata} "${HOME}/".purple
+
+    unset -v pidgindata
+fi
+
+# ripgrep
+export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
+
+# virtualenv
+export WORKON_HOME="${XDG_DATA_HOME}"/virtualenvs
+
+# Ansible
+# See https://github.com/ansible/ansible/pull/76114
