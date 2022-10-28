@@ -488,6 +488,23 @@ if has('autocmd')
     augroup END
 endif
 
+" Set one sentence per line for MiniFate
+"
+" Define an format function to make one sentence per line
+" From: https://vi.stackexchange.com/questions/2846/how-to-set-up-vim-to-work-with-one-sentence-per-line
+function! MyFormatExpr(start, end)
+    silent execute a:start.','.a:end.'s/[.!?]\zs /\r/g'
+endfunction
+
+if has('autocmd')
+    " Look for the directory name then set formatexpr
+    " From: https://vi.stackexchange.com/questions/77/applying-settings-to-a-directory-tree-only
+    augroup minifate
+        autocmd!
+        autocmd minifate BufNewFile,BufRead */MiniFate/*.md set formatexpr=MyFormatExpr(v:lnum,v:lnum+v:count-1)
+    augroup END
+endif
+
 "-----------------------------------------------------------------------------
 " Filetype: done specifically for a type of file
 "-----------------------------------------------------------------------------
