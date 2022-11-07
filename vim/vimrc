@@ -442,8 +442,16 @@ endif
 " Fixes E474 on Catalina+ MacOS, where Apple removed xdiff
 if has('mac') && $VIM == '/usr/share/vim'
     set diffopt-=internal
-elseif has('patch-8.1.0360')
+elseif has('patch-8.1.0360') || has('nvim-0.3.2')
+    " vim: https://github.com/vim/vim/commit/e828b7621cf9065a3582be0c4dd1e0e846e335bf
+    " nvim: https://github.com/neovim/neovim/commit/20620bae76deddd892df2d33f9e745efd5d8598b
     set diffopt+=algorithm:patience
+endif
+
+" Better diff line matching
+if has('nvim-0.9.0')
+    " nvim: https://github.com/neovim/neovim/commit/04fbb1de4488852c3ba332898b17180500f8984e
+    set diffopt+=linematch:60
 endif
 
 "-----------------------------------------------------------------------------
