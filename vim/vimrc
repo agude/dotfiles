@@ -229,7 +229,6 @@ set shiftround     " >> and << move to the nearest multiple of shiftwidth
 set shortmess+=I
 
 set scrolloff=5                      " keep five lines at the bottom
-set printoptions=left:8pc,right:3pc  " print options
 set visualbell t_vb=                 " visual bell instead of beeping, and off!
 set autoindent                       " copy indent from current line
 set autoread                         " reread open files when changed outside Vim
