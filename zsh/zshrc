@@ -14,13 +14,6 @@ export LLVM_CONFIG=$(brew --prefix llvm@11)/bin/llvm-config
 export PATH="$PATH:$HOME/.local/bin/"
 PATH="${PATH}:${HOME}/.local/bin"
 
-#LS variations
-alias -g lt="ls -Gltrh"
-alias -g ls="ls -G"
-
-#Use git for diff
-alias -g gdiff="git diff --no-index --"
-
 # Set neovim as editor, but only if it exists, fall back to vim if not
 hash vim &>/dev/null &&\
     export EDITOR=vim &&\
@@ -31,20 +24,6 @@ hash nvim &>/dev/null &&\
     export VISUAL=nvim &&\
     alias vi="nvim" &&\
     alias vim="nvim"
-
-# Shadowing aliases
-set_alias_if_program_exists() {
-    PROGRAM=$1
-    ALIAS_NAME=$2
-
-    # Check if the command exists, and if so aliases
-    if [ -x "$(command -v ${PROGRAM})" ]; then
-        alias ${ALIAS_NAME}="${PROGRAM}"
-    fi
-}
-
-set_alias_if_program_exists 'gfind' 'find'
-set_alias_if_program_exists 'gsed' 'sed'
 
 # Use up/down to search history with prefix
 # https://superuser.com/a/585004/536033
@@ -131,3 +110,12 @@ function updatePrompt {
 }
 export PROMPT_COMMAND='updatePrompt'
 precmd() { eval '$PROMPT_COMMAND' } # this line is necessary for zsh
+
+
+# Load configuration subfiles
+subfile_dir=${HOME}/.zshrc.d/
+if [[ -d ${subfile_dir} ]]; then
+    for config in "${subfile_dir}/"*.zsh; do
+        source "${config}"
+    done
+fi
