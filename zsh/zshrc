@@ -14,17 +14,6 @@ export LLVM_CONFIG=$(brew --prefix llvm@11)/bin/llvm-config
 export PATH="$PATH:$HOME/.local/bin/"
 PATH="${PATH}:${HOME}/.local/bin"
 
-# Set neovim as editor, but only if it exists, fall back to vim if not
-hash vim &>/dev/null &&\
-    export EDITOR=vim &&\
-    export VISUAL=vim
-
-hash nvim &>/dev/null &&\
-    export EDITOR=nvim &&\
-    export VISUAL=nvim &&\
-    alias vi="nvim" &&\
-    alias vim="nvim"
-
 # Use up/down to search history with prefix
 # https://superuser.com/a/585004/536033
 autoload -U up-line-or-beginning-search
