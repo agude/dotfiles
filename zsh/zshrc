@@ -1,0 +1,121 @@
+# Load local aliases
+[[ -f "$HOME/.localaliases" ]] && source "$HOME/.localaliases"
+
+# Handling Python envs
+#eval "$(pyenv init --path)"
+#eval "$(pyenv init -)"
+
+export OPENBLAS=$(brew --prefix openblas)
+export CFLAGS="-falign-functions=8 ${CFLAGS}"
+export HDF5_DIR=$(brew --prefix hdf5)
+export LLVM_CONFIG=$(brew --prefix llvm@11)/bin/llvm-config
+
+# Handling Poetry for Python
+export PATH="$PATH:$HOME/.local/bin/"
+PATH="${PATH}:${HOME}/.local/bin"
+
+#LS variations
+alias -g lt="ls -Gltrh"
+alias -g ls="ls -G"
+
+#Use git for diff
+alias -g gdiff="git diff --no-index --"
+
+# Set neovim as editor, but only if it exists, fall back to vim if not
+hash vim &>/dev/null &&\
+    export EDITOR=vim &&\
+    export VISUAL=vim
+
+hash nvim &>/dev/null &&\
+    export EDITOR=nvim &&\
+    export VISUAL=nvim &&\
+    alias vi="nvim" &&\
+    alias vim="nvim"
+
+# Shadowing aliases
+set_alias_if_program_exists() {
+    PROGRAM=$1
+    ALIAS_NAME=$2
+
+    # Check if the command exists, and if so aliases
+    if [ -x "$(command -v ${PROGRAM})" ]; then
+        alias ${ALIAS_NAME}="${PROGRAM}"
+    fi
+}
+
+set_alias_if_program_exists 'gfind' 'find'
+set_alias_if_program_exists 'gsed' 'sed'
+
+# Use up/down to search history with prefix
+# https://superuser.com/a/585004/536033
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search  # Up
+bindkey "^[[B" down-line-or-beginning-search  # Down
+
+# History
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+setopt APPEND_HISTORY
+setopt EXTENDED_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_FIND_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+
+# Set shell options
+unsetopt CORRECT  # Don't fix misspellings
+
+# Automatically title the terminal
+DISABLE_AUTO_TITLE="true"
+
+# Check if a path exists
+function append_to_path {
+  if [ -d "$1" ]; then
+    path+=$1
+  fi
+}
+
+function prepend_to_path {
+  if [ -d "$1" ]; then
+    path=($1 $path)
+  fi
+}
+
+function append_to_path {
+  if [ -d "$1" ]; then
+    path=($1 $path)
+  fi
+}
+
+# Pyenv
+#append_to_path $HOME/.pyenv/bin
+#eval "$(pyenv init -)"
+#eval "$(pyenv init --path)"
+#eval "$(pyenv virtualenv-init -)"
+
+# Add git branch to the status line
+function parse_git_branch() {
+    git branch 2> /dev/null | sed -n -e 's/^\* \(.*\)/[\1]/p'
+}
+
+# Update the prompt
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+function updatePrompt {
+    # Override the prompt
+    BASE_PROMPT='%F{green}%n%F{reset}:%F{blue}%~%F{reset}'
+
+    # Put the pyenv in front
+    if [[ "$(pyenv version-name)" != "system" ]]; then
+        # the next line should be double quote; single quote would not work for me
+        BASE_PROMPT="($(pyenv version-name)) "$BASE_PROMPT
+    fi
+
+    # And put the gitbranch at the end
+    BASE_PROMPT=${BASE_PROMPT}"%F{red}$(parse_git_branch)%F{reset}"
+
+    export PROMPT=$BASE_PROMPT"$ "
+}
+export PROMPT_COMMAND='updatePrompt'
+precmd() { eval '$PROMPT_COMMAND' } # this line is necessary for zsh

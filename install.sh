@@ -35,6 +35,9 @@ link "${HOME}/.bashrc.d" /bash/bashrc.d
 ## bash_logout
 link "${HOME}/.bash_logout" /bash/bash_logout
 
+## zshrc
+link "${HOME}/.zshrc" /zsh/zshrc
+
 # Xmodmap
 link "${HOME}/.Xmodmap" /xmodmap/Xmodmap
 
