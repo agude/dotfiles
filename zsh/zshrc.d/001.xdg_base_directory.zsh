@@ -1,0 +1,1 @@
+../../bash/bashrc.d/001.xdg_base_directory.bash
