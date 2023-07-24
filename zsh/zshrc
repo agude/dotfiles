@@ -60,44 +60,6 @@ function append_to_path {
 #eval "$(pyenv init --path)"
 #eval "$(pyenv virtualenv-init -)"
 
-# Autoload zsh add-zsh-hook and vcs_info functions
-# From: https://salferrarello.com/zsh-git-status-prompt/
-autoload -Uz vcs_info
-setopt prompt_subst
-
-# Enable checking for (un)staged changes, enabling use of %u and %c
-zstyle ':vcs_info:*' check-for-changes true
-# Set custom strings for an unstaged vcs repo changes (*) and staged changes (+)
-zstyle ':vcs_info:*' unstagedstr ' *'
-zstyle ':vcs_info:*' stagedstr ' +'
-# Set the format of the Git information for vcs_info
-zstyle ':vcs_info:git:*' formats       '(%b%u%c)'
-zstyle ':vcs_info:git:*' actionformats '(%b|%a%u%c)'
-
-# Update the prompt
-export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-function updatePrompt {
-    # Override the prompt
-    BASE_PROMPT='%F{green}%n%F{reset}:%F{blue}%~%F{reset}'
-
-    # Put the pyenv in front
-    if [[ "$(pyenv version-name)" != "system" ]]; then
-        # the next line should be double quote; single quote would not work for me
-        BASE_PROMPT="($(pyenv version-name)) "$BASE_PROMPT
-    fi
-
-    # And put the gitbranch at the end
-    vcs_info  # Run the vcs_info function to update the information in vcs_info_msg_0_
-    if [[ -v vcs_info_msg_0_ ]]; then
-        BASE_PROMPT=${BASE_PROMPT}" %F{red}${vcs_info_msg_0_}%F{reset}"
-    fi
-
-    export PROMPT=$BASE_PROMPT"$ "
-}
-export PROMPT_COMMAND='updatePrompt'
-precmd() { eval '$PROMPT_COMMAND' } # this line is necessary for zsh
-
-
 # Load configuration subfiles
 subfile_dir=${HOME}/.zshrc.d/
 if [[ -d ${subfile_dir} ]]; then
