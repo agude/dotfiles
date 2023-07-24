@@ -45,20 +45,25 @@ zstyle ':vcs_info:git:*' actionformats '(%b|%a%u%c)'
 
 prompt_git() {
   vcs_info
-  echo -n "%F{red}${vcs_info_msg_0_}%f"
+  if [[ -n $vcs_info_msg_0_ ]]; then
+    echo -n " %F{red}${vcs_info_msg_0_}%f"
+  fi
 }
 
 # Build prompt
 build_prompt() {
     local prompt
-    prompt+="$(prompt_pyenv)"
+    prompt+=$(prompt_pyenv)
     prompt+=$(prompt_username)
     prompt+=':'
     prompt+=$(prompt_dir)
-    prompt+=" "$(prompt_git)
+    prompt+=$(prompt_git)
     prompt+='$ '
 
     echo -n $prompt
 }
+
 # Set prompt
-PROMPT="$(build_prompt)"
+precmd() {
+  PROMPT=$(build_prompt)
+}
