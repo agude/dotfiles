@@ -1,3 +1,9 @@
+# Set up the platform
+PLATFORM_FILE=${HOME}/.zshrc.d/000.set_platform.zsh
+if [[ -f ${PLATFORM_FILE} ]]; then
+    source "${PLATFORM_FILE}"
+fi
+
 # Load local aliases
 [[ -f "$HOME/.localaliases" ]] && source "$HOME/.localaliases"
 
