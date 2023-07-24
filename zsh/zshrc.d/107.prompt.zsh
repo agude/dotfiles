@@ -1,5 +1,9 @@
 # Functions to generate prompt segments
 
+# Sets ZSH to do parameter expansion, command substitution and arithmetic
+# expansion in prompts
+setopt prompt_subst
+
 # username
 prompt_username() {
   if [[ $EUID -eq 0 ]]; then
@@ -32,7 +36,6 @@ prompt_pyenv() {
 
 # From: https://salferrarello.com/zsh-git-status-prompt/
 autoload -Uz vcs_info
-setopt prompt_subst
 
 # Enable checking for (un)staged changes, enabling use of %u and %c
 zstyle ':vcs_info:*' check-for-changes true
