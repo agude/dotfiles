@@ -84,6 +84,12 @@ PS1="${COLOR_USERNAME}\u${FORMAT_RESET}${COLOR_AMP}@${FORMAT_RESET}${COLOR_HOST}
 #fi
 #PS1='${debian_chroot:+($debian_chroot)}'${PS1}
 
+# Show pyenv
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+if [[ "$(pyenv virtualenvs)" == *"* $(pyenv version-name) "* ]]; then
+    export PS1='($(pyenv version-name)) '$PS1
+fi
+
 # You can set various resources in xterm, rxvt, and some other terminals by
 # printing a string of the form:
 #
