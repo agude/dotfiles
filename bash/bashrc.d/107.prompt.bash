@@ -79,10 +79,10 @@ parse_git_branch() {
 PS1="${COLOR_USERNAME}\u${FORMAT_RESET}${COLOR_AMP}@${FORMAT_RESET}${COLOR_HOST}\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
 
 # If debian_chroot is set, display in prompt
-if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-fi
-PS1='${debian_chroot:+($debian_chroot)}'${PS1}
+#if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
+#    debian_chroot=$(cat /etc/debian_chroot)
+#fi
+#PS1='${debian_chroot:+($debian_chroot)}'${PS1}
 
 # You can set various resources in xterm, rxvt, and some other terminals by
 # printing a string of the form:
