@@ -4,6 +4,12 @@
 # expansion in prompts
 setopt prompt_subst
 
+# return status
+prompt_return_status() {
+    # Display the last exit code but only if non-0
+    echo -n "%(?..%F{red}exit: %?%f\n)"
+}
+
 # username
 prompt_username() {
   if [[ $EUID -eq 0 ]]; then
@@ -56,6 +62,7 @@ prompt_git() {
 # Build prompt
 build_prompt() {
     local prompt
+    prompt+=$(prompt_return_status)
     prompt+=$(prompt_pyenv)
     prompt+=$(prompt_username)
     prompt+=':'
