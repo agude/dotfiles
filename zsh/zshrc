@@ -1,3 +1,8 @@
+# set PATH so it includes user's private bin if it exists
+if [[ -d ${HOME}/bin ]] ; then
+    PATH=${HOME}/bin:${PATH}
+fi
+
 # Set up the platform
 PLATFORM_FILE=${HOME}/.zshrc.d/000.set_platform.zsh
 if [[ -f ${PLATFORM_FILE} ]]; then
@@ -6,6 +11,12 @@ fi
 
 # Load local aliases
 [[ -f "$HOME/.localaliases" ]] && source "$HOME/.localaliases"
+
+# Set up the XDG Base Directory Specification
+XDG_FILE=${HOME}/.zshrc.d/001.xdg_base_directory.zsh
+if [[ -f ${XDG_FILE} ]]; then
+    source "${XDG_FILE}"
+fi
 
 # Handling Python envs
 #eval "$(pyenv init --path)"
