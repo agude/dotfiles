@@ -35,6 +35,9 @@ link "${HOME}/.bashrc.d" /bash/bashrc.d
 ## bash_logout
 link "${HOME}/.bash_logout" /bash/bash_logout
 
+## bash profiling
+link "${HOME}/.bashrc.profiler" /bash/bashrc.profiler
+
 ## zshrc
 link "${HOME}/.zshrc" /zsh/zshrc
 
