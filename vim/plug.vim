@@ -41,15 +41,12 @@ Plug 'rust-lang/rust.vim'
 
 " Neovim only
 if has('nvim')
-    " Autocomplete
-    function! DoRemote(arg)
-        UpdateRemotePlugins
-    endfunction
-    Plug 'Shougo/deoplete.nvim', { 'do': function('DoRemote') }
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
     " Jedi autocomplete for Python
     Plug 'zchee/deoplete-jedi'
     " Asynchronous linting
     Plug 'dense-analysis/ale'
 endif
+let g:deoplete#enable_at_startup = 1
 
 call plug#end()
