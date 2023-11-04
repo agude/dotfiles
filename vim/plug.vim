@@ -11,7 +11,7 @@ call plug#begin('~/.vim/plugged')
 "My color scheme
 Plug 'agude/vim-eldar'
 "VimCompletesMe
-Plug 'ajh17/VimCompletesMe'
+Plug 'https://git.sr.ht/~ackyshake/VimCompletesMe.vim'
 "Surround
 Plug 'machakann/vim-sandwich'
 "Repeat (lets you use . with surround)
