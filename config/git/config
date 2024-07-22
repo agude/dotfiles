@@ -42,9 +42,10 @@
     prune = fetch --prune
     undo = reset --mixed HEAD~1
     prune-all = fetch --prune --all
+    # From https://haacked.com/archive/2014/07/28/github-flow-aliases/
     up = !git pull --rebase --prune $@ && git submodule update --init --recursive
-    bclean = "!f() { git checkout ${1-master} && git branch --merged ${1-master} | grep -v " ${1-master}$" | xargs git branch -d; }; f"
-    bdone = "!f() { git checkout ${1-master} && git up && git bclean ${1-master}; }; f"
+    bclean = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v " ${1-$DEFAULT}$" | xargs git branch -d; }; f"
+    bdone = "!f() { DEFAULT=$(git default); git checkout ${1-$DEFAULT} && git up && git bclean ${1-$DEFAULT}; }; f"
 
 [branch]
     autosetuprebase = always
