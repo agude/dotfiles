@@ -42,6 +42,9 @@
     prune = fetch --prune
     undo = reset --mixed HEAD~1
     prune-all = fetch --prune --all
+    # Remove the branch on origin
+    # From https://stackoverflow.com/questions/16740268/git-alias-to-delete-local-and-remote
+    nuke = !sh -c 'git push origin :$1' -
     # From https://haacked.com/archive/2014/07/28/github-flow-aliases/
     up = !git pull --rebase --prune $@ && git submodule update --init --recursive
     bclean = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v " ${1-$DEFAULT}$" | xargs git branch -d; }; f"
