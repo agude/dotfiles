@@ -1,11 +1,13 @@
 scriptencoding utf-8
 
-" Remove spaces at the end of lines across the whole file
+" Replace smart double and single quotes with straight quotes throughout the
+" whole file
 function! quotes#ReplaceSmartQuotesNormal()
     :silent call Preserve("%s/[“”]/\"/ge | %s/[‘’]/'/ge")
 endfunction
 
-" Remove spaces at the end of lines in the visually selected area
+" Replace smart double and single quotes with straight quotes in the visually
+" selected area
 function! quotes#ReplaceSmartQuotesVisual()
     :silent call Preserve("'<,'>s/[“”]/\"/ge | '<,'>s/[‘’]/'/ge")
 endfunction
