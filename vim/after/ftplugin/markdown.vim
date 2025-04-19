@@ -7,15 +7,15 @@ let g:markdown_fenced_languages = [
             \'cpp',
             \]
 
-" Remove smart quotes on save
+" Remove smart quotes and dashes on save
 " This is a bit complicated, and a lot of it is stolen from here:
 " https://vi.stackexchange.com/questions/8056/for-an-autocmd-in-a-ftplugin-should-i-use-pattern-matching-or-buffer
-augroup SmartQuoteReplaceMarkdown
+augroup ReplaceMarkdown
     autocmd! * <buffer>
-    autocmd BufWritePre <buffer> call quotes#ReplaceSmartQuotesNormal()
+    autocmd BufWritePre <buffer> call quotes#ReplaceSmartQuotesNormal() | call dashes#ReplaceDashesNormal()
 augroup END
 " If the buffer changes filetype, we have to unload the autocmd
-let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! SmartQuoteReplaceMarkdown * <buffer>'")
+let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! ReplaceMarkdown * <buffer>'")
 
 " Always start with spellcheck on
 set spell
