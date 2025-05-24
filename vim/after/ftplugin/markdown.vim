@@ -12,7 +12,7 @@ let g:markdown_fenced_languages = [
 " https://vi.stackexchange.com/questions/8056/for-an-autocmd-in-a-ftplugin-should-i-use-pattern-matching-or-buffer
 augroup ReplaceMarkdown
     autocmd! * <buffer>
-    autocmd BufWritePre <buffer> call quotes#ReplaceSmartQuotesNormal() | call dashes#ReplaceDashesNormal()
+    autocmd BufWritePre <buffer> call quotes#ReplaceSmartQuotesNormal() | call dashes#ReplaceDashesNormal() | call ellipsis#ReplaceEllipsisNormal()
 augroup END
 " If the buffer changes filetype, we have to unload the autocmd
 let b:undo_ftplugin = undo_ftplugin#SetUndoFTPlugin("exec 'autocmd! ReplaceMarkdown * <buffer>'")
