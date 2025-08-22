@@ -57,12 +57,6 @@ function prepend_to_path {
   fi
 }
 
-function append_to_path {
-  if [ -d "$1" ]; then
-    path=($1 $path)
-  fi
-}
-
 # Pyenv
 #append_to_path $HOME/.pyenv/bin
 eval "$(pyenv init -)"
