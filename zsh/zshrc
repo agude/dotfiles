@@ -21,7 +21,7 @@ fi
 if type brew &>/dev/null; then
     export OPENBLAS=$(brew --prefix openblas)
     export HDF5_DIR=$(brew --prefix hdf5)
-    export LLVM_CONFIG=$(brew --prefix llvm@11)/bin/llvm-config
+    export LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config
 fi
 export CFLAGS="-falign-functions=8 ${CFLAGS}"
 
