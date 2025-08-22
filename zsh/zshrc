@@ -18,10 +18,6 @@ if [[ -f ${XDG_FILE} ]]; then
     source "${XDG_FILE}"
 fi
 
-# Handling Python envs
-#eval "$(pyenv init --path)"
-#eval "$(pyenv init -)"
-
 if type brew &>/dev/null; then
     export OPENBLAS=$(brew --prefix openblas)
     export HDF5_DIR=$(brew --prefix hdf5)
@@ -69,14 +65,18 @@ function append_to_path {
 
 # Pyenv
 #append_to_path $HOME/.pyenv/bin
-#eval "$(pyenv init -)"
-#eval "$(pyenv init --path)"
-#eval "$(pyenv virtualenv-init -)"
+eval "$(pyenv init -)"
+eval "$(pyenv init --path)"
+eval "$(pyenv virtualenv-init -)"
 
 # Load configuration subfiles
-subfile_dir=${HOME}/.zshrc.d/
-if [[ -d ${subfile_dir} ]]; then
+function load_config_files_from_directory {
+  local subfile_dir=${HOME}/.zshrc.d/
+  if [[ -d ${subfile_dir} ]]; then
     for config in "${subfile_dir}/"*.zsh; do
-        source "${config}"
+      source "${config}"
     done
-fi
+  fi
+}
+
+load_config_files_from_directory
