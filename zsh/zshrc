@@ -1,76 +1,60 @@
-# set PATH so it includes user's private bin if it exists
-if [[ -d ${HOME}/bin ]] ; then
-    PATH=${HOME}/bin:${PATH}
-fi
+# ------------------------------------------------------------------------------
+# Main Zsh configuration file.
+# This file sets up the environment and then sources modular configuration
+# files from the ~/.zshrc.d/ directory.
+# ------------------------------------------------------------------------------
 
-# Set up the platform
-PLATFORM_FILE=${HOME}/.zshrc.d/000.set_platform.zsh
-if [[ -f ${PLATFORM_FILE} ]]; then
-    source "${PLATFORM_FILE}"
-fi
+# --- Early Environment Setup ---
 
-# Load local aliases
-[[ -f "$HOME/.localaliases" ]] && source "$HOME/.localaliases"
+# For security, set a restrictive umask. New files will only be readable by you.
+umask 077
 
-# Set up the XDG Base Directory Specification
-XDG_FILE=${HOME}/.zshrc.d/001.xdg_base_directory.zsh
-if [[ -f ${XDG_FILE} ]]; then
-    source "${XDG_FILE}"
-fi
+# --- PATH Management ---
 
-if type brew &>/dev/null; then
-    export OPENBLAS=$(brew --prefix openblas)
-    export HDF5_DIR=$(brew --prefix hdf5)
-    export LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config
-fi
-export CFLAGS="-falign-functions=8 ${CFLAGS}"
+# Use zsh's built-in `typeset` to ensure the PATH contains only unique entries.
+# This prevents the PATH from growing with duplicate directories on re-sourcing.
+typeset -U path
 
-# Handling Poetry for Python
-export PATH="$PATH:$HOME/.local/bin/"
-PATH="${PATH}:${HOME}/.local/bin"
+# Prepend user-specific bin directories to the PATH.
+# Prepending ensures they are found before system binaries.
+path=(
+    "$HOME/.local/bin"
+    "$HOME/bin"
+    $path
+)
 
-# Use up/down to search history with prefix
-# https://superuser.com/a/585004/536033
+# --- Shell Options & Behavior ---
+
+# Don't offer spelling correction for commands.
+unsetopt CORRECT
+
+# Disable automatic terminal title setting by some frameworks (like Oh My Zsh).
+# This allows custom prompts to control the title.
+DISABLE_AUTO_TITLE="true"
+
+# --- Keybindings ---
+
+# Use Up/Down arrow keys to search history based on what's already typed.
 autoload -U up-line-or-beginning-search
 autoload -U down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search  # Up
-bindkey "^[[B" down-line-or-beginning-search  # Down
+bindkey "^[[A" up-line-or-beginning-search  # Up arrow
+bindkey "^[[B" down-line-or-beginning-search  # Down arrow
 
-# Set shell options
-unsetopt CORRECT  # Don't fix misspellings
+# --- Loading Configuration Files ---
 
-# Automatically title the terminal
-DISABLE_AUTO_TITLE="true"
+# Source all .zsh configuration files from the ~/.zshrc.d directory.
+# The glob qualifier (n) ensures they are sourced in explicit numerical order.
+if [[ -d "$HOME/.zshrc.d" ]]; then
+  for config_file in "$HOME/.zshrc.d/"*.zsh(n); do
+    [[ -f "$config_file" ]] && source "$config_file"
+  done
+fi
 
-# Check if a path exists
-function append_to_path {
-  if [ -d "$1" ]; then
-    path+=$1
-  fi
-}
+# Load a local, machine-specific aliases file if it exists.
+# This is for aliases that should not be checked into version control.
+[[ -f "$HOME/.localaliases" ]] && source "$HOME/.localaliases"
 
-function prepend_to_path {
-  if [ -d "$1" ]; then
-    path=($1 $path)
-  fi
-}
-
-# Pyenv
-#append_to_path $HOME/.pyenv/bin
-eval "$(pyenv init -)"
-eval "$(pyenv init --path)"
-eval "$(pyenv virtualenv-init -)"
-
-# Load configuration subfiles
-function load_config_files_from_directory {
-  local subfile_dir=${HOME}/.zshrc.d/
-  if [[ -d ${subfile_dir} ]]; then
-    for config in "${subfile_dir}/"*.zsh; do
-      source "${config}"
-    done
-  fi
-}
-
-load_config_files_from_directory
+# --- Cleanup ---
+unset config_file
