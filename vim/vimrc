@@ -392,12 +392,6 @@ if has('windows')
     set equalalways
 endif
 
-" Window navigation
-nnoremap <C-j> :call WinMove('j')<cr>
-nnoremap <C-h> :call WinMove('h')<cr>
-nnoremap <C-k> :call WinMove('k')<cr>
-nnoremap <C-l> :call WinMove('l')<cr>
-
 "-----------------------------------------------------------------------------
 " Syntax: highlighting
 "-----------------------------------------------------------------------------
