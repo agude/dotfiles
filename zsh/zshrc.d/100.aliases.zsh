@@ -34,28 +34,30 @@ set_alias_if_program_exists 'bat' 'cat'
 
 # This section requires the PLATFORM variable to be set by the OS detection script.
 
-# For Linux and WSL, use GNU coreutils flags for color.
+# For Linux and WSL, use the GNU --color flag.
 if [[ "$PLATFORM" == "linux" || "$PLATFORM" == "wsl" ]]; then
     alias ls='ls --color=auto'
     alias lt='ls --color=auto -ltrh'
+    alias grep='grep --color=auto'
 
-# For macOS, handle differences between built-in BSD tools and optional GNU tools.
+# For macOS, check for GNU 'gls' and fall back to BSD 'ls'.
 elif [[ "$PLATFORM" == "mac" ]]; then
-    # Prefer GNU coreutils (gfind, gsed, etc.) if installed via Homebrew.
-    # This shadows the less-featured, built-in BSD versions.
-    set_alias_if_program_exists 'gfind' 'find'
-    set_alias_if_program_exists 'gsed' 'sed'
-    set_alias_if_program_exists 'ggrep' 'grep'
-
-    # Use 'gls' from GNU coreutils for color, as macOS 'ls' uses a different flag.
+    # If GNU 'gls' is installed (via Homebrew), prefer it.
     if command -v gls >/dev/null 2>&1; then
         alias ls='gls --color=auto'
         alias lt='gls --color=auto -ltrh'
-    # If 'gls' is not installed, fall back to the built-in 'ls' with the BSD color flag.
+    # Otherwise, use the built-in BSD 'ls' with its color flag.
     else
         alias ls='ls -G'
         alias lt='ls -Gltrh'
     fi
+    # Alias for GNU grep if installed
+    set_alias_if_program_exists 'ggrep' 'grep'
+
+    # This shadows the less-featured, built-in BSD versions.
+    set_alias_if_program_exists 'gfind' 'find'
+    set_alias_if_program_exists 'gsed' 'sed'
+    set_alias_if_program_exists 'ggrep' 'grep'
 fi
 
 # ------------------------------------------------------------------------------
