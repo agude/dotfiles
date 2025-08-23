@@ -24,15 +24,13 @@ runtime plug.vim
 " Configuration of plugins
 runtime plugins.vim
 
-" Vimrc editing and sourcing
-nnoremap <leader>ve :vsplit $MYVIMRC<cr>
-nnoremap <leader>vs :source $MYVIMRC<cr>
-
 " Reload vimrc when it is saved
 if has('autocmd')
     augroup AutoReloadVimRC
         autocmd!
-        autocmd BufWritePost $MYVIMRC source $MYVIMRC
+        " Trigger on the common names for Vim and Neovim config files.
+        " 'source %' re-sources the file that was just saved.
+        autocmd BufWritePost .vimrc,init.vim,_vimrc,vimrc,ideavimrc source % | echo "Vim configuration reloaded."
     augroup END
 endif
 
