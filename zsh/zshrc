@@ -32,16 +32,6 @@ unsetopt CORRECT
 # This allows custom prompts to control the title.
 DISABLE_AUTO_TITLE="true"
 
-# --- Keybindings ---
-
-# Use Up/Down arrow keys to search history based on what's already typed.
-autoload -U up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search  # Up arrow
-bindkey "^[[B" down-line-or-beginning-search  # Down arrow
-
 # --- Loading Configuration Files ---
 
 # Source all .zsh configuration files from the ~/.zshrc.d directory.
