@@ -1,4 +1,17 @@
 "=============================================================================
+" Helper Functions
+"=============================================================================
+
+" Helper function to create a directory if it doesn't exist.
+function! s:EnsureDirExists(path)
+    if !isdirectory(a:path)
+        " The 'p' flag creates parent directories as needed.
+        " The '0700' sets permissions to be private to the user.
+        call mkdir(a:path, 'p', '0700')
+    endif
+endfunction
+
+"=============================================================================
 " BASIC EDITING
 "=============================================================================
 
@@ -13,6 +26,9 @@ endif
 if empty($XDG_CACHE_HOME)
     let $XDG_CACHE_HOME = expand('~/.cache')
 endif
+
+" Define a single base directory for all Vim cache files.
+let g:VIM_CACHE_DIR = $XDG_CACHE_HOME . '/vim'
 
 " Set leader and local leader
 let g:mapleader="\<Space>"
@@ -38,16 +54,13 @@ endif
 " Editing: and writing files
 "-----------------------------------------------------------------------------
 
-" If we can set a custom location for backups, turn them on
+" Backups: Keep a backup file, but store it neatly in the cache.
 if exists('+backupdir')
-    let g:BACKUP_DIR = $XDG_CACHE_HOME . '/vim/backup//'
-    if !isdirectory(g:BACKUP_DIR)
-        call mkdir(g:BACKUP_DIR, 'p', '0700')
-    endif
-    set backup                         " keep a backup file
-    let &backupdir=g:BACKUP_DIR        " set backup file location
+    let &backupdir = g:VIM_CACHE_DIR . '/backup//'
+    call s:EnsureDirExists(&backupdir)
+    set backup
 else
-    set nobackup                       " No backup if we can't keep it neat
+    set nobackup
 endif
 
 "-----------------------------------------------------------------------------
@@ -115,27 +128,21 @@ xnoremap <silent> <C-Down> :move'>+<CR>gv=gv
 " Undo: and Redo
 "-----------------------------------------------------------------------------
 
-let g:SWAP_DIR = $XDG_CACHE_HOME . '/vim/swap//'
-if !isdirectory(g:SWAP_DIR)
-    call mkdir(g:SWAP_DIR, 'p', '0700')
-endif
+" Swap files: Have a clean place for swap files if they are ever needed.
+let &directory = g:VIM_CACHE_DIR . '/swap//'
+call s:EnsureDirExists(&directory)
+set noswapfile " Prefer using memory; disable swap files for most editing.
 
-set noswapfile                   " use memory instead of swap
-let &directory=g:SWAP_DIR        " set a swap directory just in case
-
-" Set up undo file
-set undolevels=10000               " number of changes that can be undone
+" Persistent Undo: Enable undo history that persists after closing Vim.
 if exists('+undofile')
-    let g:UNDO_DIR = $XDG_CACHE_HOME . '/vim/undo//'
-    if !isdirectory(g:UNDO_DIR)
-        call mkdir(g:UNDO_DIR)
-    endif
-    set undofile                   " use an undo file
-    let &undodir=g:UNDO_DIR        " set undo file location
-    set undoreload=10000           " save this many lines on buffer reload
+    let &undodir = g:VIM_CACHE_DIR . '/undo//'
+    call s:EnsureDirExists(&undodir)
+    set undofile
+    set undolevels=10000
+    set undoreload=10000
 endif
 
-" U is redo, instead of undo on line
+" Remap U to redo, as the default 'undo on line' is rarely used.
 nnoremap U <C-r>
 
 "-----------------------------------------------------------------------------
