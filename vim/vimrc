@@ -162,17 +162,6 @@ endif
 xnoremap < <gv
 xnoremap > >gv
 
-" Wrap visually selected text
-xnoremap ((  <ESC>`>a)<ESC>`<i(<ESC>
-xnoremap ))  <ESC>`<i(<ESC>`><right>a)<ESC>
-xnoremap {{  <ESC>`>a}<ESC>`<i{<ESC>
-xnoremap }}  <ESC>`<i{<ESC>`><right>a}<ESC>
-xnoremap ""  <ESC>`>a"<ESC>`<i"<ESC>
-xnoremap ''  <ESC>`>a'<ESC>`<i'<ESC>
-xnoremap ``  <ESC>`>a`<ESC>`<i`<ESC>
-xnoremap [[  <ESC>`>a]<ESC>`<i[<ESC>
-xnoremap ]]  <ESC>`<i[<ESC>`><right>a]<ESC>
-
 " Select the last inserted characters
 nnoremap gV `[v`]
 
