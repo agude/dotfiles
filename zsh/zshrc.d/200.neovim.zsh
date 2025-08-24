@@ -1,1 +1,0 @@
-../../bash/bashrc.d/200.neovim.bash

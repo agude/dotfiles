@@ -87,12 +87,19 @@ fi
 umask 077
 
 # Load configuration subfiles
-subfile_dir=${HOME}/.bashrc.d/
-if [[ -d ${subfile_dir} ]]; then
-    for config in "${subfile_dir}/"*.bash; do
-        source "${config}"
+SHARED_DIR="${HOME}/.sharedrc.d"
+if [[ -d ${SHARED_DIR} ]]; then
+    for config in "${SHARED_DIR}/"*.sh; do
+        [[ -f "$config" ]] && source "${config}"
     done
 fi
+BASH_DIR="${HOME}/.bashrc.d"
+if [[ -d ${BASH_DIR} ]]; then
+    for config in "${BASH_DIR}/"*.bash; do
+        [[ -f "$config" ]] && source "${config}"
+    done
+fi
+unset -v config SHARED_DIR BASH_DIR
 
 # Unset variables to avoid polluting our shell's namespace
 unset -v config subfile_dir

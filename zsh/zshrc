@@ -36,8 +36,15 @@ DISABLE_AUTO_TITLE="true"
 
 # Source all .zsh configuration files from the ~/.zshrc.d directory.
 # The glob qualifier (n) ensures they are sourced in explicit numerical order.
-if [[ -d "$HOME/.zshrc.d" ]]; then
-  for config_file in "$HOME/.zshrc.d/"*.zsh(n); do
+SHARED_DIR="$HOME/.sharedrc.d"
+if [[ -d "$SHARED_DIR" ]]; then
+  for config_file in "$SHARED_DIR/"*.sh(n); do
+    [[ -f "$config_file" ]] && source "$config_file"
+  done
+fi
+ZSH_DIR="$HOME/.zshrc.d"
+if [[ -d "$ZSH_DIR" ]]; then
+  for config_file in "$ZSH_DIR/"*.zsh(n); do
     [[ -f "$config_file" ]] && source "$config_file"
   done
 fi
