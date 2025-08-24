@@ -76,19 +76,15 @@ parse_git_branch() {
 #
 # The part in " " expand when the variable is defined while the part in ' ' is
 # left as is and hence rerun every time $PS1 is called
-PS1="${COLOR_USERNAME}\u${FORMAT_RESET}${COLOR_AMP}@${FORMAT_RESET}${COLOR_HOST}\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
+#
+# It now includes a check for the $VIRTUAL_ENV variable at the beginning.
+PS1="\${VIRTUAL_ENV:+${CYAN}(\$(basename \"\$VIRTUAL_ENV\"))${FORMAT_RESET} }${COLOR_USERNAME}\u${FORMAT_RESET}${COLOR_AMP}@${FORMAT_RESET}${COLOR_HOST}\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
 
 # If debian_chroot is set, display in prompt
 #if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
 #    debian_chroot=$(cat /etc/debian_chroot)
 #fi
 #PS1='${debian_chroot:+($debian_chroot)}'${PS1}
-
-# Show pyenv
-#export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-#if [[ "$(pyenv virtualenvs)" == *"* $(pyenv version-name) "* ]]; then
-#    export PS1='($(pyenv version-name)) '$PS1
-#fi
 
 # You can set various resources in xterm, rxvt, and some other terminals by
 # printing a string of the form:

@@ -77,8 +77,5 @@ fi
 # ripgrep
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
 
-# virtualenv
-export WORKON_HOME="${XDG_DATA_HOME}"/virtualenvs
-
 # Ansible
 # See https://github.com/ansible/ansible/pull/76114

@@ -14,23 +14,22 @@ zstyle ':vcs_info:*' stagedstr ' +'
 zstyle ':vcs_info:git:*' formats       ' %F{red}(%b%u%c)%f'
 zstyle ':vcs_info:git:*' actionformats ' %F{red}(%b|%a%u%c)%f'
 
-# --- Pyenv/Rye Prompt Segment ---
-export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-prompt_pyenv_segment() {
-  if [[ -n "$PYENV_VERSION" ]]; then
-    pyenv_prompt_segment="($PYENV_VERSION) "
+# --- Virtual Env Prompt Segment ---
+# This function checks for the standard VIRTUAL_ENV variable.
+prompt_venv_segment() {
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    # Use basename to get just the directory name (e.g., ".venv")
+    venv_prompt_segment="%F{cyan}($(basename "$VIRTUAL_ENV"))%f "
   else
-    pyenv_prompt_segment=""
+    venv_prompt_segment=""
   fi
 }
 
 # --- precmd: Runs before each prompt is displayed ---
 precmd() {
-  # Store the exit code of the last command first.
   local exit_code=$?
 
-  # --- Set user color based on privilege ---
-  # This logic now lives here, independent of the exit code.
+  # Set user color based on privilege
   if [[ $EUID -eq 0 ]]; then
     _prompt_user_color='red'
   elif [[ -n "$SUDO_USER" ]]; then
@@ -39,23 +38,22 @@ precmd() {
     _prompt_user_color='green'
   fi
 
-  # Update other dynamic prompt segments
+  # Update all dynamic prompt segments
   vcs_info
-  prompt_pyenv_segment
+  prompt_venv_segment # <-- ADD THIS LINE
 
-  # --- Print the exit code on a separate line, ONLY if it's an error ---
+  # Print the exit code on a separate line, ONLY if it's an error
   if [[ $exit_code -ne 0 ]]; then
     print -P "%F{red}exit: ${exit_code}%f"
   fi
 }
 
 # --- Build the Main PROMPT variable ---
-# This is now set once and uses variables that precmd updates.
 
-# 1. Pyenv Segment
-PROMPT='${pyenv_prompt_segment}'
+# 1. Virtual Env Segment (updated by precmd)
+PROMPT='${venv_prompt_segment}' # <-- ADD THIS LINE
 
-# 2. Username (using the color calculated in precmd)
+# 2. Username
 PROMPT+='%F{${_prompt_user_color}}%n%f'
 
 # 3. Directory
@@ -65,4 +63,4 @@ PROMPT+=':%F{blue}%~%f'
 PROMPT+='${vcs_info_msg_0_}'
 
 # 5. Final prompt symbol
-PROMPT+=' %(!.#.$) ' # Show '#' for root, '$' for normal users
+PROMPT+=' %(!.#.$) '
