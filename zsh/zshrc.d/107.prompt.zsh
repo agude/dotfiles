@@ -11,14 +11,12 @@ zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' unstagedstr ' *'
 zstyle ':vcs_info:*' stagedstr ' +'
-# Set the format and add a space at the beginning for padding
 zstyle ':vcs_info:git:*' formats       ' %F{red}(%b%u%c)%f'
 zstyle ':vcs_info:git:*' actionformats ' %F{red}(%b|%a%u%c)%f'
 
-# --- Pyenv Prompt Setup ---
+# --- Pyenv/Rye Prompt Segment ---
 export PYENV_VIRTUALENV_DISABLE_PROMPT=1
 prompt_pyenv_segment() {
-  # This function populates the global $pyenv_prompt_segment variable
   if [[ -n "$PYENV_VERSION" ]]; then
     pyenv_prompt_segment="($PYENV_VERSION) "
   else
@@ -28,30 +26,43 @@ prompt_pyenv_segment() {
 
 # --- precmd: Runs before each prompt is displayed ---
 precmd() {
-  # Update git status. The result is stored in $vcs_info_msg_0_.
-  vcs_info
+  # Store the exit code of the last command first.
+  local exit_code=$?
 
-  # Update pyenv status.
+  # --- Set user color based on privilege ---
+  # This logic now lives here, independent of the exit code.
+  if [[ $EUID -eq 0 ]]; then
+    _prompt_user_color='red'
+  elif [[ -n "$SUDO_USER" ]]; then
+    _prompt_user_color='yellow'
+  else
+    _prompt_user_color='green'
+  fi
+
+  # Update other dynamic prompt segments
+  vcs_info
   prompt_pyenv_segment
 
-  # --- Build the PROMPT variable ---
-
-  # 1. Exit Code (only shown on error)
-  PROMPT='%(?..%F{red}exit: %?%f )'
-
-  # 2. Pyenv Segment
-  PROMPT+="${pyenv_prompt_segment}"
-
-  # 3. Username (green for normal, yellow for sudo, red for root)
-  PROMPT+='%F{%(?.green.%(?.yellow.red))}%n%f'
-
-  # 4. Directory
-  PROMPT+=':%F{blue}%~%f'
-
-  # 5. Git Segment
-  PROMPT+="${vcs_info_msg_0_}"
-
-  # 6. Final prompt symbol
-  PROMPT+=' ' # Use a space instead of '$ ' to avoid a double space if there's no git info
-  PROMPT+='%(!.#.$) ' # Show '#' for root, '$' for normal users
+  # --- Print the exit code on a separate line, ONLY if it's an error ---
+  if [[ $exit_code -ne 0 ]]; then
+    print -P "%F{red}exit: ${exit_code}%f"
+  fi
 }
+
+# --- Build the Main PROMPT variable ---
+# This is now set once and uses variables that precmd updates.
+
+# 1. Pyenv Segment
+PROMPT='${pyenv_prompt_segment}'
+
+# 2. Username (using the color calculated in precmd)
+PROMPT+='%F{${_prompt_user_color}}%n%f'
+
+# 3. Directory
+PROMPT+=':%F{blue}%~%f'
+
+# 4. Git Segment
+PROMPT+='${vcs_info_msg_0_}'
+
+# 5. Final prompt symbol
+PROMPT+=' %(!.#.$) ' # Show '#' for root, '$' for normal users
