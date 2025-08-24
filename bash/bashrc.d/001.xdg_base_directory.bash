@@ -79,3 +79,10 @@ export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
 
 # Ansible
 # See https://github.com/ansible/ansible/pull/76114
+
+
+# Ruff (Linter and Formatter)
+# Override the default config and cache paths to ensure they follow our
+# custom XDG Base Directory Specification on all platforms.
+export RUFF_CONFIG_DIR="${XDG_CONFIG_HOME}/ruff"
+export RUFF_CACHE_DIR="${XDG_CACHE_HOME}/ruff"
