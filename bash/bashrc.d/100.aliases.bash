@@ -17,12 +17,6 @@ ssh_keyreport(){
     done
 }
 
-#Run apt check
-#alias apt-full='${HOME}/bin/apt_full'
-
-#PEP8
-alias pep8="pep8 --repeat"
-
 #chmod pidgin log files
 # We killall pidgin first so that we don't change the permissions on a log,
 # sync them to another computer, and then keep writing, making future rsyncs
