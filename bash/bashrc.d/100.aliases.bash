@@ -1,13 +1,4 @@
-#Reload .bashrc
-alias reload='source ${HOME}/.bashrc'
-
-#LS variations
-alias lt="ls -ltrh"
-alias la="ls -A"
-alias ld="ls -dltrh ./*/ 2> /dev/null"
-
-#Use git for diff
-alias gdiff="git diff --no-index --"
+# Note: Common aliases (reload, ls variations, gdiff, etc.) are now in shared/sharedrc.d/100.aliases.sh
 
 #SSH Host Key Check
 alias ssh-keyreport="ssh_keyreport"
@@ -23,8 +14,7 @@ ssh_keyreport(){
 # fail because the file is read only
 alias pidgin-chmod='killall pidgin > /dev/null 2>&1; find ${HOME}/.purple/logs/ -type f -perm -u+w -exec chmod u=r,go= {} \+'
 
-#History search
-alias hs=" history | grep"
+# Note: History search alias (hs) is now in shared/sharedrc.d/100.aliases.sh
 
 #Suspend
 alias suspend-gnome='dbus-send --system --print-reply --dest="org.freedesktop.UPower" /org/freedesktop/UPower org.freedesktop.UPower.Suspend'

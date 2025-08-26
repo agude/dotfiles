@@ -29,14 +29,13 @@ prompt_venv_segment() {
 precmd() {
   local exit_code=$?
 
-  # Set user color based on privilege
-  if [[ $EUID -eq 0 ]]; then
-    _prompt_user_color='red'
-  elif [[ -n "$SUDO_USER" ]]; then
-    _prompt_user_color='yellow'
-  else
-    _prompt_user_color='green'
-  fi
+  # Set user color based on shared prompt state
+  case "$PROMPT_USER_STATE" in
+    root)   _prompt_user_color='red' ;;
+    sudo)   _prompt_user_color='yellow' ;;
+    remote) _prompt_user_color='magenta' ;;
+    *)      _prompt_user_color='green' ;;
+  esac
 
   # Update all dynamic prompt segments
   vcs_info

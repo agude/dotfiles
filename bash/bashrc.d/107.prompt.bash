@@ -44,24 +44,13 @@ else # No color support
     COLOR_GIT=
 fi
 
-# Change the color of the user's name in the prompt based on the user
-#
-# Root
-if [[ $EUID -eq 0 ]]; then
-    COLOR_USERNAME=${COLOR_ROOT}
-
-# Other users on the machine
-elif [[ -n $SUDO_USER ]]; then
-    COLOR_USERNAME=${COLOR_SUDO}
-
-# When sshed to another machine
-elif [[ -n "$SSH_CLIENT" ]]; then
-    COLOR_USERNAME=${COLOR_SSH}
-
-# Normal user
-else
-    COLOR_USERNAME=${COLOR_USER}
-fi
+# Change the color of the user's name in the prompt based on shared prompt state
+case "$PROMPT_USER_STATE" in
+    root)   COLOR_USERNAME=${COLOR_ROOT} ;;
+    sudo)   COLOR_USERNAME=${COLOR_SUDO} ;;
+    remote) COLOR_USERNAME=${COLOR_SSH} ;;
+    *)      COLOR_USERNAME=${COLOR_USER} ;;
+esac
 
 # Currently the @host is set to the same color as the username
 COLOR_AMP="${COLOR_USERNAME}"
