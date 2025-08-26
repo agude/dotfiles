@@ -24,29 +24,10 @@ fi
 # ------------------------------------------------------------------------------
 # Platform-Specific Aliases (Linux, macOS, WSL)
 # ------------------------------------------------------------------------------
+# Note: ls, lt, la, grep aliases are now handled by shared/sharedrc.d/010.tools_and_colors.sh
 
-# For Linux and WSL, use the GNU --color flag
-if [[ "$PLATFORM" == "linux" || "$PLATFORM" == "wsl" ]]; then
-    alias ls='ls --color=auto'
-    alias lt='ls --color=auto -ltrh'
-    alias grep='grep --color=auto'
-
-# For macOS, check for GNU 'gls' and fall back to BSD 'ls'
-elif [[ "$PLATFORM" == "mac" ]]; then
-    # If GNU 'gls' is installed (via Homebrew), prefer it
-    if command_exists gls; then
-        alias ls='gls --color=auto'
-        alias lt='gls --color=auto -ltrh'
-    else
-        # Use the built-in BSD 'ls' with its color flag
-        alias ls='ls -G'
-        alias lt='ls -Gltrh'
-    fi
-    
-    # Use GNU versions if available, otherwise fall back to BSD versions
-    if command_exists ggrep; then
-        alias grep='ggrep --color=auto'
-    fi
+# For macOS, use GNU versions if available
+if [[ "$PLATFORM" == "mac" ]]; then
     if command_exists gfind; then
         alias find='gfind'
     fi
@@ -59,8 +40,7 @@ fi
 # Common Aliases
 # ------------------------------------------------------------------------------
 
-# LS variations
-alias la="ls -A"
+# Additional LS variation (la and lt are handled by 010.tools_and_colors.sh)
 alias ld="ls -dltrh ./*/ 2>/dev/null"
 
 # History search
