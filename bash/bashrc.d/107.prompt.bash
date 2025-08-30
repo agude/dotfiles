@@ -52,9 +52,12 @@ case "$PROMPT_USER_STATE" in
     *)      COLOR_USERNAME=${COLOR_USER} ;;
 esac
 
-# Currently the @host is set to the same color as the username
-COLOR_AMP="${COLOR_USERNAME}"
-COLOR_HOST="${COLOR_USERNAME}"
+# Define the hostname segment conditionally
+if [[ "$PROMPT_USER_STATE" == "remote" ]]; then
+    HOST_PROMPT_SEGMENT="${COLOR_SSH}@\h${FORMAT_RESET}"
+else
+    HOST_PROMPT_SEGMENT=""
+fi
 
 # Add git branch to the prompt
 parse_git_branch() {
@@ -67,7 +70,7 @@ parse_git_branch() {
 # left as is and hence rerun every time $PS1 is called
 #
 # It now includes a check for the $VIRTUAL_ENV variable at the beginning.
-PS1="\${VIRTUAL_ENV:+${CYAN}(\$(basename \"\$VIRTUAL_ENV\"))${FORMAT_RESET} }${COLOR_USERNAME}\u${FORMAT_RESET}${COLOR_AMP}@${FORMAT_RESET}${COLOR_HOST}\h${FORMAT_RESET}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
+PS1="${COLOR_USERNAME}\u${FORMAT_RESET}${HOST_PROMPT_SEGMENT}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
 
 # If debian_chroot is set, display in prompt
 #if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
@@ -102,31 +105,19 @@ show_exit_code() {
     # Must get the exit code first, otherwise we get the exitcode from the
     # color setting code below
     local exit=$?
-
-    # Set colors local to the function
-    if [[ -x $(command -v tput) ]]; then
-        local COLORS=$(tput colors)
-        local FORMAT_RESET="$(tput sgr0)"
-        local RED="$(tput setaf 9)"
-    fi
-
-    # Set colors based on how many we have
-    if [[ $COLORS -ge 256 ]]; then
-        RED="${RED}"
-
-    elif [[ $COLORS -ge 8 ]]; then
-        RED='\e[1;31m' # Red
-
-    else # No color support
-        RED=
-    fi
-
-    # Check the exit code and display if non-0
     if [ "$exit" -ne 0 ]; then
-        echo -e "${RED}exit: ${exit}${FORMAT_RESET}"
+        # Use tput to get colors dynamically within the function
+        local RED_COLOR=""
+        local RESET_COLOR=""
+        if [[ -x $(command -v tput) ]] && [[ $(tput colors) -ge 8 ]]; then
+            RED_COLOR="$(tput setaf 9)"
+            RESET_COLOR="$(tput sgr0)"
+        fi
+        echo -e "${RED_COLOR}exit: ${exit}${RESET_COLOR}"
     fi
 }
 
 # Unset the color and line part variables
 unset -v COLORS BOLD FORMAT_RESET BLACK RED GREEN YELLOW BLUE MAGENTA CYAN \
-         WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH
+         WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH \
+         HOST_PROMPT_SEGMENT

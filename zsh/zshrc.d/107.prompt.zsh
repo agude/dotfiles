@@ -14,17 +14,6 @@ zstyle ':vcs_info:*' stagedstr ' +'
 zstyle ':vcs_info:git:*' formats       ' %F{red}(%b%u%c)%f'
 zstyle ':vcs_info:git:*' actionformats ' %F{red}(%b|%a%u%c)%f'
 
-# --- Virtual Env Prompt Segment ---
-# This function checks for the standard VIRTUAL_ENV variable.
-prompt_venv_segment() {
-  if [[ -n "$VIRTUAL_ENV" ]]; then
-    # Use basename to get just the directory name (e.g., ".venv")
-    venv_prompt_segment="%F{cyan}($(basename "$VIRTUAL_ENV"))%f "
-  else
-    venv_prompt_segment=""
-  fi
-}
-
 # --- precmd: Runs before each prompt is displayed ---
 precmd() {
   local exit_code=$?
@@ -37,9 +26,15 @@ precmd() {
     *)      _prompt_user_color='green' ;;
   esac
 
-  # Update all dynamic prompt segments
+  # Set hostname segment only if remote
+  if [[ "$PROMPT_USER_STATE" == "remote" ]]; then
+    _prompt_hostname_segment="%F{magenta}@%m%f"
+  else
+    _prompt_hostname_segment=""
+  fi
+
+  # Update VCS status
   vcs_info
-  prompt_venv_segment # <-- ADD THIS LINE
 
   # Print the exit code on a separate line, ONLY if it's an error
   if [[ $exit_code -ne 0 ]]; then
@@ -49,17 +44,15 @@ precmd() {
 
 # --- Build the Main PROMPT variable ---
 
-# 1. Virtual Env Segment (updated by precmd)
-PROMPT='${venv_prompt_segment}' # <-- ADD THIS LINE
+# 1. Username and Hostname
+PROMPT='%F{${_prompt_user_color}}%n%f' # Username
+PROMPT+='${_prompt_hostname_segment}'   # @hostname (only when remote)
 
-# 2. Username
-PROMPT+='%F{${_prompt_user_color}}%n%f'
-
-# 3. Directory
+# 2. Directory
 PROMPT+=':%F{blue}%~%f'
 
-# 4. Git Segment
+# 3. Git Segment
 PROMPT+='${vcs_info_msg_0_}'
 
-# 5. Final prompt symbol
+# 4. Final prompt symbol
 PROMPT+=' %(!.#.$) '
