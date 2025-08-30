@@ -1,2 +1,2 @@
 # Find and use the systemd-managed ssh-agent socket
-export SSH_AUTH_SOCK=$(systemctl --user show-environment | grep -oP 'SSH_AUTH_SOCK=\K.*')
+eval $(keychain --eval --quiet --noask id_ed25519_kaon_to_github)
