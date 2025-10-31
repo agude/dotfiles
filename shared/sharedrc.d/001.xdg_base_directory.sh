@@ -1,11 +1,21 @@
-# Set up the XDG Base Directory Specification, but only if they don't exist
-# We un-set `set -u` here because the whole point is the variables might be
-# unset at this point
+# XDG Base Directory and User Directory Specifications
+#
+# This script sets variables according to the XDG specifications to clean up the
+# home directory. It is idempotent and safe to source multiple times.
+#
+# Source (Base Dirs): https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+# Source (User Dirs): https://specifications.freedesktop.org/xdg-user-dirs/latest/
+
+# Temporarily disable 'exit on unset variable' to safely check for existence.
 set +u
 
+# XDG Base Directories
+#
+# Set core XDG variables for application data, config, and cache if not already defined.
 [[ -z $XDG_DATA_HOME ]] && export XDG_DATA_HOME="${HOME}/.local/share"
-
 [[ -z $XDG_CONFIG_HOME ]] && export XDG_CONFIG_HOME="${HOME}/.config"
+[[ -z $XDG_STATE_HOME ]] && export XDG_STATE_HOME="${HOME}/.local/state"
+
 if [[ "${PLATFORM}" == "mac" ]]; then
     [[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/Library/Caches/org.freedesktop"
     mkdir -p "${XDG_CACHE_HOME}"
@@ -13,46 +23,63 @@ else
     [[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/.cache"
 fi
 
-[[ -z $XDG_STATE_HOME ]] && export XDG_STATE_HOME="${HOME}/.local/state"
-
+# Set XDG search path variables if not already defined.
 [[ -z $XDG_DATA_DIRS ]] && export XDG_DATA_DIRS="/usr/local/share/:/usr/share/"
-
 [[ -z $XDG_CONFIG_DIRS ]] && export XDG_CONFIG_DIRS="/etc/xdg"
 
-# No suggested default is given, so do not set RUNTIME
-#[[ -z $XDG_RUNTIME_DIR ]] && export XDG_RUNTIME_DIR=""
 
-# Set up variables for the programs that let us move their configuration files
+# XDG User Directories
+#
+# Defines standard paths for user-facing directories like Desktop and Documents.
+[[ -z $XDG_DESKTOP_DIR ]]   && export XDG_DESKTOP_DIR="${HOME}/Desktop"
+[[ -z $XDG_DOCUMENTS_DIR ]] && export XDG_DOCUMENTS_DIR="${HOME}/Documents"
+[[ -z $XDG_DOWNLOAD_DIR ]]  && export XDG_DOWNLOAD_DIR="${HOME}/Downloads"
+[[ -z $XDG_MUSIC_DIR ]]     && export XDG_MUSIC_DIR="${HOME}/Music"
+[[ -z $XDG_PICTURES_DIR ]]  && export XDG_PICTURES_DIR="${HOME}/Pictures"
+[[ -z $XDG_VIDEOS_DIR ]]    && export XDG_VIDEOS_DIR="${HOME}/Videos"
 
-## Readline
+# Optional directories can be enabled by creating them and uncommenting below.
+# [[ -z $XDG_TEMPLATES_DIR ]]   && export XDG_TEMPLATES_DIR="${HOME}/Templates"
+# [[ -z $XDG_PUBLICSHARE_DIR ]] && export XDG_PUBLICSHARE_DIR="${HOME}/Public"
+
+# No suggested default is given for XDG_RUNTIME_DIR, so we do not set it.
+# This is typically managed by the system's login manager (e.g., systemd-logind).
+# [[ -z $XDG_RUNTIME_DIR ]] && export XDG_RUNTIME_DIR=""
+
+# Program-Specific XDG Overrides
+#
+# Set environment variables for specific applications to make them follow the
+# XDG Base Directory Specification.
+
+# Readline
 export INPUTRC="${XDG_CONFIG_HOME}/readline/inputrc"
 
-## Screen
+# Screen
 export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc"
 
-## Jupyter/ipython
+# Jupyter/ipython
 export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter"
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter"
 mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
 
-## libice
+# libice (X11)
 if [[ "${PLATFORM}" != "mac" && "${PLATFORM}" != "wsl" ]]; then
     export ICEAUTHORITY="${XDG_CACHE_HOME}/X11/iceauthority"
     mkdir -p "${ICEAUTHORITY}"
 fi
 
-## Gimp
+# Gimp
 export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
 mkdir -p "${GIMP2_DIRECTORY}"
 
-## GnuPG
+# GnuPG
 export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
 mkdir -p "${GNUPGHOME}"
 
-## aspell
+# aspell
 export ASPELL_CONF="per-conf ${XDG_CONFIG_HOME}/aspell/aspell.conf; personal ${XDG_CONFIG_HOME}/aspell/en.pws; repl ${XDG_CONFIG_HOME}/aspell/en.prepl"
 
-## Rust Cargo
+# Rust Cargo
 export CARGO_HOME="${XDG_DATA_HOME}"/cargo
 
 # Docker
@@ -80,9 +107,6 @@ export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
 # Ansible
 # See https://github.com/ansible/ansible/pull/76114
 
-
 # Ruff (Linter and Formatter)
-# Override the default config and cache paths to ensure they follow our
-# custom XDG Base Directory Specification on all platforms.
 export RUFF_CONFIG_DIR="${XDG_CONFIG_HOME}/ruff"
 export RUFF_CACHE_DIR="${XDG_CACHE_HOME}/ruff"
