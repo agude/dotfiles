@@ -143,8 +143,9 @@ if [[ "${PLATFORM}" == "linux" ]]; then
         echo "  -> Copying systemd service file (required by systemctl)..."
         cp "${SOURCE_SERVICE_FILE}" "${SERVICE_FILE}"
 
-        systemctl --user daemon-reload
-        systemctl --user enable --now empty-downloads.service
+        # Attempt to reload and enable, but don't fail the script if the user session isn't running.
+        systemctl --user daemon-reload || true
+        systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
     else
         echo "  -> Skipping systemd setup: systemctl command not found."
     fi
@@ -165,7 +166,7 @@ elif [[ "${PLATFORM}" == "mac" ]]; then
 
         # Unload the service first in case it's already running, then load it.
         launchctl unload "${PLIST_FILE}" 2>/dev/null || true
-        launchctl load "${PLIST_FILE}"
+        launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
     else
         echo "  -> Skipping launchd setup: launchctl command not found."
     fi
