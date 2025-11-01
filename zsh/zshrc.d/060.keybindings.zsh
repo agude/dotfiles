@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # ~/.zshrc.d/060.keybindings.zsh
 # ------------------------------------------------------------------------------
 # Custom Zsh Keybindings

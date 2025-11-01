@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # ------------------------------------------------------------------------------
 # Rye (Python Environment Manager) Setup
 #

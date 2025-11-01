@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 set_alias_if_program_exists() {
     PROGRAM=$1
     ALIAS_NAME=$2

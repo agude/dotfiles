@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Sync Computers
 case $HOSTNAME in
     # From Einstein

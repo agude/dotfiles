@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Get the number of colors, and the formatting codes
 #
 # These use "bright" colors, for "normal" colors subtract 8

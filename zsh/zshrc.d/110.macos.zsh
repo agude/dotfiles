@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # ------------------------------------------------------------------------------
 # macOS-Specific Environment Configuration
 #

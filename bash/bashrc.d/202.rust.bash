@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Set the cargo path
 RUST_BIN_PATH="${HOME}/.cargo/bin"
 

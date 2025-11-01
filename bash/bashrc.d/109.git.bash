@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 if [[ -x $(command -v brew) ]]; then
     SCRIPT_FILE="$(brew --prefix)"/etc/bash_completion.d/git-completion.bash
 

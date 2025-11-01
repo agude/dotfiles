@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # From: https://gist.github.com/T3sT3ro/72927cac8a3d1f74715748ffd6c56613
 # Based on https://stackoverflow.com/a/20855353/5555799
 # Store this file in ~/.bashrc.profiler and add this alias to your .bashrc:

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Ignore commands that start with space
 HISTCONTROL=ignorespace
 

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # $HOME/.bash_logout: executed by bash(1) when login shell exits.
 
 # $SHLVL keeps track of how many times we've run the a shell. If we run

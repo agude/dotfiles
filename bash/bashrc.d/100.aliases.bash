@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Note: Common aliases (reload, ls variations, gdiff, etc.) are now in shared/sharedrc.d/100.aliases.sh
 
 #SSH Host Key Check

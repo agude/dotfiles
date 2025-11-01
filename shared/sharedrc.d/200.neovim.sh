@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Set neovim as editor, but only if it exists, fall back to vim if not
 if [[ -x $(command -v nvim) ]]; then
     export EDITOR=nvim

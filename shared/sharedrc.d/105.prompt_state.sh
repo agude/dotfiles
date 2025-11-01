@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # ------------------------------------------------------------------------------
 # Prompt State Detection - Sets environment variables for shell-specific prompts
 # ------------------------------------------------------------------------------

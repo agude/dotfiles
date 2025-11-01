@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 RVM_BIN_PATH="${HOME}/.rvm/bin"
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.

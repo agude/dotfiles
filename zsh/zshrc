@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # ------------------------------------------------------------------------------
 # Main Zsh configuration file.
 # This file sets up the environment and then sources modular configuration

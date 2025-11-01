@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Add color to man pages
 
 # Color codes and line parts

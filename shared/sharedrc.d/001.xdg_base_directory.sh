@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # XDG Base Directory and User Directory Specifications
 #
 # This script sets variables according to the XDG specifications to clean up the
