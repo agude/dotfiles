@@ -8,7 +8,7 @@
 # Check for Windows Subsystem for Linux (WSL)
 # The $WSL_DISTRO_NAME env var and WSLInterop file are reliable indicators.
 # As a fallback, we check the kernel release info in /proc/version.
-if [[ -n "$WSL_DISTRO_NAME" || -f /proc/sys/fs/binfmt_misc/WSLInterop ]] || grep -qE "(Microsoft|WSL)" /proc/version &> /dev/null; then
+if [[ -n "${WSL_DISTRO_NAME-}" || -f /proc/sys/fs/binfmt_misc/WSLInterop ]] || grep -qE "(Microsoft|WSL)" /proc/version &> /dev/null; then
     export PLATFORM="wsl"
 
 # Check for macOS (OS X)
