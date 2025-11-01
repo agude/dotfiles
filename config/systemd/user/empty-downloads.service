@@ -1,0 +1,13 @@
+[Unit]
+Description=Empty Downloads Directory at Login
+Documentation=man:systemd.unit(5)
+
+[Service]
+Type=oneshot
+# We use %h, which systemd expands to the user's home directory.
+# This ensures the service file is portable and doesn't hardcode a path.
+ExecStart=%h/bin/empty-downloads
+
+[Install]
+# This target is the standard for user services that should start at login.
+WantedBy=default.target

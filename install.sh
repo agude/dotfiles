@@ -16,6 +16,12 @@ set -u
 # Find the absolute path of the dotfiles directory, so the script can be run from anywhere.
 DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# Source the platform detection script to set the PLATFORM variable.
+PLATFORM_SCRIPT="${DOTFILES_DIR}/shared/sharedrc.d/000.set_platform.sh"
+if [[ -f "${PLATFORM_SCRIPT}" ]]; then
+    source "${PLATFORM_SCRIPT}"
+fi
+
 # A safer and more informative link function.
 # It removes any existing file, directory, or symlink at the target location
 # before creating the new symlink.
@@ -70,15 +76,14 @@ if [[ -f ${XDG_FILE} ]]; then
     source "${XDG_FILE}"
 fi
 
-mkdir -p "${XDG_CONFIG_HOME}"
-# This loop automatically links any directory in dotfiles/config into ~/.config.
+# Link generic config directories, skipping special cases handled later.
 for config_sub_directory in "$DOTFILES_DIR/config/"*; do
     program_directory=${config_sub_directory##*/}
-    mkdir -p "${XDG_CONFIG_HOME}/${program_directory}"
-    for full_file_path in "${config_sub_directory}/"*; do
-        file_name="${full_file_path##*/}"
-        link "${XDG_CONFIG_HOME}/${program_directory}/${file_name}" "config/${program_directory}/${file_name}"
-    done
+    # Skip directories that require special handling.
+    if [[ "$program_directory" == "systemd" || "$program_directory" == "launchd" ]]; then
+        continue
+    fi
+    link "${XDG_CONFIG_HOME}/${program_directory}" "config/${program_directory}"
 done
 
 echo "› Configuring XDG User Directories for the graphical session..."
@@ -118,6 +123,52 @@ fi
 if command -v nvim &> /dev/null; then
     echo "› Installing Neovim plugins..."
     nvim +PlugInstall +qall
+fi
+
+echo "› Setting up automated cleanup tasks..."
+if [[ "${PLATFORM}" == "linux" ]]; then
+    if command -v systemctl &> /dev/null; then
+        echo "  -> Setting up systemd user service for emptying Downloads..."
+        SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
+        SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
+        SOURCE_SERVICE_FILE="${DOTFILES_DIR}/config/systemd/user/empty-downloads.service"
+
+        # Fix bad state: if the target directory is a symlink, remove it.
+        if [[ -L "${SYSTEMD_USER_DIR}" ]]; then
+            rm -f "${SYSTEMD_USER_DIR}"
+        fi
+        mkdir -p "${SYSTEMD_USER_DIR}"
+
+        # Systemd requires a real file, not a symlink, for 'enable'.
+        echo "  -> Copying systemd service file (required by systemctl)..."
+        cp "${SOURCE_SERVICE_FILE}" "${SERVICE_FILE}"
+
+        systemctl --user daemon-reload
+        systemctl --user enable --now empty-downloads.service
+    else
+        echo "  -> Skipping systemd setup: systemctl command not found."
+    fi
+elif [[ "${PLATFORM}" == "mac" ]]; then
+    if command -v launchctl &> /dev/null; then
+        echo "  -> Setting up launchd agent for emptying Downloads..."
+        LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
+        PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
+
+        # Fix bad state: if the target directory is a symlink, remove it.
+        if [[ -L "${LAUNCHD_DIR}" ]]; then
+            rm -f "${LAUNCHD_DIR}"
+        fi
+        mkdir -p "${LAUNCHD_DIR}"
+
+        # Link the plist file into the real directory.
+        link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
+
+        # Unload the service first in case it's already running, then load it.
+        launchctl unload "${PLIST_FILE}" 2>/dev/null || true
+        launchctl load "${PLIST_FILE}"
+    else
+        echo "  -> Skipping launchd setup: launchctl command not found."
+    fi
 fi
 
 echo
