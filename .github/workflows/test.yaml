@@ -13,7 +13,7 @@ jobs:
         with:
           # Scan all shell-like scripts.
           scandir: './'
-          # Ignore the zsh directory by its name, as per the action's documentation.
+          # Ignore the zsh directory, as shellcheck does not fully support its syntax.
           ignore_paths: zsh
           # Only fail the build on actual errors, not warnings or style suggestions.
           #severity: error
@@ -29,13 +29,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install Neovim (Linux)
+    - name: Install Dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y neovim
+        sudo apt-get install -y neovim zsh
 
-    - name: Install Neovim (macOS)
+    - name: Install Dependencies (macOS)
       if: runner.os == 'macOS'
       run: brew install neovim
 
