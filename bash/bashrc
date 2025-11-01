@@ -4,19 +4,21 @@
 # for examples
 
 # set PATH so it includes user's private bin if it exists
-if [[ -d ${HOME}/bin ]] ; then
-    PATH=${HOME}/bin:${PATH}
+if [[ -d "${HOME}/bin" ]] ; then
+    PATH="${HOME}/bin:${PATH}"
 fi
 
 # Set up the platform
-PLATFORM_FILE=${HOME}/.bashrc.d/000.set_platform.bash
-if [[ -f ${PLATFORM_FILE} ]]; then
+PLATFORM_FILE="${HOME}/.bashrc.d/000.set_platform.bash"
+if [[ -f "${PLATFORM_FILE}" ]]; then
+    # shellcheck disable=SC1090
     source "${PLATFORM_FILE}"
 fi
 
 # Set up the XDG Base Directory Specification
-XDG_FILE=${HOME}/.bashrc.d/001.xdg_base_directory.bash
-if [[ -f ${XDG_FILE} ]]; then
+XDG_FILE="${HOME}/.bashrc.d/001.xdg_base_directory.bash"
+if [[ -f "${XDG_FILE}" ]]; then
+    # shellcheck disable=SC1090
     source "${XDG_FILE}"
 fi
 
@@ -75,12 +77,15 @@ fi
 
 # enable programmable completion features
 if [[ -f /etc/bash_completion ]] && ! shopt -oq posix; then
+    # shellcheck disable=SC1091
     source /etc/bash_completion
 fi
 if [[ -f /usr/local/etc/bash_completion ]]; then
+    # shellcheck disable=SC1091
     source /usr/local/etc/bash_completion
 fi
 if [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]]; then
+    # shellcheck disable=SC1091
     source /usr/local/etc/profile.d/bash_completion.sh
 fi
 
@@ -89,18 +94,20 @@ umask 077
 
 # Load configuration subfiles
 SHARED_DIR="${HOME}/.sharedrc.d"
-if [[ -d ${SHARED_DIR} ]]; then
+if [[ -d "${SHARED_DIR}" ]]; then
     for config in "${SHARED_DIR}/"*.sh; do
+        # shellcheck disable=SC1090
         [[ -f "$config" ]] && source "${config}"
     done
 fi
 BASH_DIR="${HOME}/.bashrc.d"
-if [[ -d ${BASH_DIR} ]]; then
+if [[ -d "${BASH_DIR}" ]]; then
     for config in "${BASH_DIR}/"*.bash; do
+        # shellcheck disable=SC1090
         [[ -f "$config" ]] && source "${config}"
     done
 fi
 unset -v config SHARED_DIR BASH_DIR
 
 # Unset variables to avoid polluting our shell's namespace
-unset -v config subfile_dir
+unset -v PLATFORM_FILE XDG_FILE

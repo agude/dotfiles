@@ -52,8 +52,12 @@ _configure_ls_alias() {
         [[ "$_ls_cmd" == "gls" || "$PLATFORM" != "mac" ]] && opts="--color=auto" || opts="-G"
     fi
     # Set the alias with the detected command and options.
+    # SC2139 is disabled because we *want* the variables to expand when the alias is defined.
+    # shellcheck disable=SC2139
     alias ls="$_ls_cmd $opts"
+    # shellcheck disable=SC2139
     alias lt="$_ls_cmd $opts -ltrh"
+    # shellcheck disable=SC2139
     alias la="$_ls_cmd $opts -A"
 }
 _configure_ls_alias
@@ -71,8 +75,12 @@ _configure_grep_alias() {
         fi
     fi
     # Set the aliases.
+    # SC2139 is disabled because we *want* the variables to expand when the alias is defined.
+    # shellcheck disable=SC2139
     alias grep="$_grep_cmd $opts"
+    # shellcheck disable=SC2139
     alias fgrep="$_grep_cmd -F $opts"
+    # shellcheck disable=SC2139
     alias egrep="$_grep_cmd -E $opts"
 }
 _configure_grep_alias

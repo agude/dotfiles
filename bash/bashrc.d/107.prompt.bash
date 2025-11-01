@@ -1,124 +1,83 @@
 # shellcheck shell=bash
-# Get the number of colors, and the formatting codes
-#
-# These use "bright" colors, for "normal" colors subtract 8
-#
-# The wrapping \[ \] tell bash to ignore the non-printing characters when
-# figuring out the size of the prompt
-if [[ -x $(command -v tput) ]]; then
-    COLORS=$(tput colors)
-    BOLD="\[$(tput bold)\]"
-    FORMAT_RESET="\[$(tput sgr0)\]"
-    BLACK="\[$(tput setaf 8)\]"
-    RED="\[$(tput setaf 9)\]"
-    GREEN="\[$(tput setaf 10)\]"
-    YELLOW="\[$(tput setaf 11)\]"
-    BLUE="\[$(tput setaf 12)\]"
-    MAGENTA="\[$(tput setaf 13)\]"
-    CYAN="\[$(tput setaf 14)\]"
-    WHITE="\[$(tput setaf 15)\]"
-fi
+# ------------------------------------------------------------------------------
+# Bash Prompt Configuration
+# ------------------------------------------------------------------------------
 
-# Set colors based on how many we have
-if [[ $COLORS -ge 256 ]]; then
-    COLOR_DIR="${BLUE}"
-    COLOR_ROOT="${RED}"
-    COLOR_USER="${GREEN}"
-    COLOR_SUDO="${YELLOW}"
-    COLOR_SSH="${MAGENTA}"
-    COLOR_GIT="${RED}"
-
-elif [[ $COLORS -ge 8 ]]; then
-    COLOR_DIR='\[\e[1;34m\]'  # Blue
-    COLOR_ROOT='\[\e[1;31m\]' # Red
-    COLOR_USER='\[\e[1;32m\]' # Green
-    COLOR_SUDO='\[\e[1;33m\]' # Yellow
-    COLOR_SSH='\[\e[1;35m\]'  # Magenta
-    COLOR_GIT='\[\e[1;31m\]'  # Red
-
-else # No color support
-    COLOR_DIR=
-    COLOR_ROOT=
-    COLOR_USER=
-    COLOR_SUDO=
-    COLOR_SSH=
-    COLOR_GIT=
-fi
-
-# Change the color of the user's name in the prompt based on shared prompt state
-case "$PROMPT_USER_STATE" in
-    root)   COLOR_USERNAME=${COLOR_ROOT} ;;
-    sudo)   COLOR_USERNAME=${COLOR_SUDO} ;;
-    remote) COLOR_USERNAME=${COLOR_SSH} ;;
-    *)      COLOR_USERNAME=${COLOR_USER} ;;
-esac
-
-# Define the hostname segment conditionally
-if [[ "$PROMPT_USER_STATE" == "remote" ]]; then
-    HOST_PROMPT_SEGMENT="${COLOR_SSH}@\h${FORMAT_RESET}"
+# --- Color Definitions ---
+# Use tput for terminal-independent color codes.
+if command -v tput >/dev/null && [[ $(tput colors) -ge 8 ]]; then
+    RESET=$(tput sgr0)
+    # BOLD=$(tput bold)
+    RED=$(tput setaf 1)
+    GREEN=$(tput setaf 2)
+    YELLOW=$(tput setaf 3)
+    BLUE=$(tput setaf 4)
+    MAGENTA=$(tput setaf 5)
+    # BLACK=$(tput setaf 0)
+    # CYAN=$(tput setaf 6)
+    # WHITE=$(tput setaf 7)
 else
-    HOST_PROMPT_SEGMENT=""
+    # Fallback to static codes if tput is not available or doesn't support colors.
+    RESET='\e[0m'
+    # BOLD='\e[1m'
+    RED='\e[0;31m'
+    GREEN='\e[0;32m'
+    YELLOW='\e[0;33m'
+    BLUE='\e[0;34m'
+    MAGENTA='\e[0;35m'
+    # BLACK='\e[0;30m'
+    # CYAN='\e[0;36m'
+    # WHITE='\e[0;37m'
 fi
 
-# Add git branch to the prompt
-parse_git_branch() {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
-}
+# --- Prompt Building ---
 
-# Set the prompt
-#
-# The part in " " expand when the variable is defined while the part in ' ' is
-# left as is and hence rerun every time $PS1 is called
-#
-# It now includes a check for the $VIRTUAL_ENV variable at the beginning.
-PS1="${COLOR_USERNAME}\u${FORMAT_RESET}${HOST_PROMPT_SEGMENT}:${COLOR_DIR}\w${FORMAT_RESET}${COLOR_GIT}"'$(parse_git_branch)'"${FORMAT_RESET}\$ ${FORMAT_RESET}"
-
-# If debian_chroot is set, display in prompt
-#if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
-#    debian_chroot=$(cat /etc/debian_chroot)
-#fi
-#PS1='${debian_chroot:+($debian_chroot)}'${PS1}
-
-# You can set various resources in xterm, rxvt, and some other terminals by
-# printing a string of the form:
-#
-#     \[\e]N;New Title\a\]
-#
-# Where the enclosing \[ \] tells bash to ignore it when calculating prompt
-# size and the \e]; and \a are literal Operating System Command (OSC) and BEL
-# sequences. The N is used by the terminal to control what resource is set,
-# where 0 is the "icon name and window title", 1 is the "icon name", and 2 is
-# the "window title". For more see man console_codes.
-#
-# A convenient way to print this to the terminal this is to put it in the $PS1
-# prompt.
-case "$TERM" in
-    xterm*|rxvt*)
-        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-        ;;
-    *)
-        ;;
+# Set user color based on shared prompt state
+case "$PROMPT_USER_STATE" in
+  root)   _user_color="$RED" ;;
+  sudo)   _user_color="$YELLOW" ;;
+  remote) _user_color="$MAGENTA" ;;
+  *)      _user_color="$GREEN" ;;
 esac
 
-# Report error codes after prompt
-export PROMPT_COMMAND=show_exit_code
-show_exit_code() {
-    # Must get the exit code first, otherwise we get the exitcode from the
-    # color setting code below
-    local exit=$?
-    if [ "$exit" -ne 0 ]; then
-        # Use tput to get colors dynamically within the function
-        local RED_COLOR=""
-        local RESET_COLOR=""
-        if [[ -x $(command -v tput) ]] && [[ $(tput colors) -ge 8 ]]; then
-            RED_COLOR="$(tput setaf 9)"
-            RESET_COLOR="$(tput sgr0)"
-        fi
-        echo -e "${RED_COLOR}exit: ${exit}${RESET_COLOR}"
+# Set hostname segment only if remote
+if [[ "$PROMPT_USER_STATE" == "remote" ]]; then
+  _hostname_segment="@\h"
+else
+  _hostname_segment=""
+fi
+
+# Set the prompt symbol based on user privilege
+_prompt_symbol='$'
+[[ $EUID -eq 0 ]] && _prompt_symbol='#'
+
+# --- PROMPT_COMMAND: Runs before each prompt is displayed ---
+# This function builds the PS1 variable dynamically.
+build_prompt() {
+    local exit_code=$?
+
+    # 1. Exit Code (only if non-zero)
+    if [[ $exit_code -ne 0 ]]; then
+        PS1="\[$RED\]exit: ${exit_code}\n\[$RESET\]"
+    else
+        PS1=""
     fi
+
+    # 2. User and Host
+    PS1+="\[$_user_color\]\u${_hostname_segment}\[$RESET\]"
+
+    # 3. Directory
+    PS1+="\[$BLUE\]:\w\[$RESET\]"
+
+    # 4. Git Branch (if in a git repo)
+    # The __git_ps1 function is provided by git's bash-completion script.
+    if command -v __git_ps1 >/dev/null; then
+        PS1+="\$(__git_ps1 ' \[$RED\](%s)\[$RESET\]')"
+    fi
+
+    # 5. Final prompt symbol
+    PS1+=" ${_prompt_symbol} "
 }
 
-# Unset the color and line part variables
-unset -v COLORS BOLD FORMAT_RESET BLACK RED GREEN YELLOW BLUE MAGENTA CYAN \
-         WHITE COLOR_DIR COLOR_ROOT COLOR_USER COLOR_SUDO COLOR_SSH \
-         HOST_PROMPT_SEGMENT
+# Register the function to be run before each prompt.
+PROMPT_COMMAND="build_prompt"

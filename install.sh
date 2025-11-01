@@ -20,6 +20,7 @@ DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Source the platform detection script to set the PLATFORM variable.
 PLATFORM_SCRIPT="${DOTFILES_DIR}/shared/sharedrc.d/000.set_platform.sh"
 if [[ -f "${PLATFORM_SCRIPT}" ]]; then
+    # shellcheck disable=SC1090
     source "${PLATFORM_SCRIPT}"
 fi
 
@@ -74,6 +75,7 @@ echo "› Setting up XDG configuration directories..."
 # Source the XDG file to ensure $XDG_CONFIG_HOME is available for the rest of the script.
 XDG_FILE="$DOTFILES_DIR/shared/sharedrc.d/001.xdg_base_directory.sh"
 if [[ -f ${XDG_FILE} ]]; then
+    # shellcheck disable=SC1090
     source "${XDG_FILE}"
 fi
 
@@ -168,8 +170,6 @@ elif [[ "${PLATFORM}" == "mac" ]]; then
         # Unload the service first in case it's already running, then load it.
         launchctl unload "${PLIST_FILE}" 2>/dev/null || true
         launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
-    else
-        echo "  -> Skipping launchd setup: launchctl command not found."
     fi
 fi
 

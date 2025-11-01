@@ -97,7 +97,7 @@ if [[ -x $(command -v pidgin) ]]; then
     pidgindata="$XDG_DATA_HOME"/purple
     mkdir -p "${pidgindata}"
 
-    ln -sf "${HOME}/".purple ${pidgindata}
+    ln -sf "${HOME}/.purple" "${pidgindata}"
 
     unset -v pidgindata
 fi
