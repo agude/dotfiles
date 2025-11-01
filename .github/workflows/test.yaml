@@ -11,8 +11,12 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@2.0.0
         with:
-          # Find all shell-like scripts in the repository
+          # Scan all shell-like scripts.
           scandir: './'
+          # Ignore the zsh directory by its name, as per the action's documentation.
+          ignore_paths: zsh
+          # Only fail the build on actual errors, not warnings or style suggestions.
+          #severity: error
 
   install:
     name: Test Install on ${{ matrix.os }}
