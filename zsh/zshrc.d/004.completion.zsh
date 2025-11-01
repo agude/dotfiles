@@ -3,6 +3,18 @@
 # Zsh Completion System Configuration
 # ------------------------------------------------------------------------------
 
+# Add Homebrew's completion directory to fpath if it exists.
+# This should be done before adding our custom directory to ensure
+# official completions are preferred.
+if command -v brew &>/dev/null; then
+  fpath=("$(brew --prefix)/share/zsh/site-functions" $fpath)
+fi
+
+# Create a directory for custom completions and add it to the function path.
+# This MUST be done BEFORE compinit is called.
+mkdir -p ~/.zfunc
+fpath=(~/.zfunc $fpath)
+
 # Load the completion system
 autoload -Uz compinit
 
