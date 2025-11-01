@@ -70,6 +70,20 @@ ssh-keyreport() {
     done
 }
 
+# Johnny.Decimal navigation function.
+# Calls the `jd` script and cds to the directory it returns.
+jd() {
+    local target_dir
+    # Call the script, capturing its output. The `|| true` prevents the shell
+    # from exiting if the script returns a non-zero exit code (e.g., user hits Esc in fzf).
+    target_dir=$(command jd "$@" || true)
+
+    # If the script returned a path, change to it.
+    if [[ -n "$target_dir" && -d "$target_dir" ]]; then
+        cd "$target_dir" || return 1
+    fi
+}
+
 # ------------------------------------------------------------------------------
 # Application Aliases
 # ------------------------------------------------------------------------------
