@@ -34,11 +34,8 @@ let g:VIM_CACHE_DIR = $XDG_CACHE_HOME . '/vim'
 let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
 
-" Plugin installer and manager
+" Plugin installer and manager (includes plugin configurations)
 runtime plug.vim
-
-" Configuration of plugins
-runtime plugins.vim
 
 " Reload vimrc when it is saved
 if has('autocmd')
