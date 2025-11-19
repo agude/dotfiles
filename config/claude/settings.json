@@ -11,7 +11,7 @@
   },
 
   "permissions": {
-    "allow": ["read", "glob", "grep", "bash", "Edit"],
+    "allow": ["read", "glob", "grep", "bash", "edit"],
     "ask": ["*"]
   },
 
