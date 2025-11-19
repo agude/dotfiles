@@ -6,8 +6,12 @@
     "position": "bottom"
   },
 
+  "git": {
+    "includeCoAuthor": false
+  },
+
   "permissions": {
-    "allow": ["read", "glob", "grep", "bash"],
+    "allow": ["read", "glob", "grep", "bash", "Edit"],
     "ask": ["*"]
   },
 
