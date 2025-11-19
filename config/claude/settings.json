@@ -1,3 +1,38 @@
 {
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+
+  "statusLine": {
+    "enabled": true,
+    "position": "bottom"
+  },
+
+  "permissions": {
+    "allow": ["read", "glob", "grep", "bash"],
+    "ask": ["*"]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "bash",
+        "hooks": [
+          {
+            "type": "filter",
+            "allow": [
+              "^git (status|log|diff|show|branch|tag|ls-files|ls-tree|describe|rev-parse|rev-list|reflog|shortlog|blame|annotate|whatchanged|cat-file|ls-remote|remote)( |$)",
+              "^git config --get",
+              "^git config --list",
+              "^git (add|rm|mv|stash)( |$)"
+            ],
+            "ask": [
+              "^git (commit|reset|checkout|switch|restore|rebase|merge|cherry-pick|revert|clean|tag -d|branch -d|branch -D)( |$)"
+            ],
+            "deny": [
+              "^git (push|pull|fetch|clone)( |$)"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }
