@@ -31,7 +31,12 @@
               "^(npm list|pip list|cargo --list|apt list|brew list)( |$)",
               "^(sort|uniq|cut|tr|nl|column)( |$)",
               "^awk [^>]+ $",
-              "^sed [^-][^i]"
+              "^sed [^-][^i]",
+              "^uv pip (list|show|check|tree)( |$)",
+              "^uv (--version|--help)( |$)",
+              "^hermit (list|search|status|version|env)( |$)",
+              "^bin/hermit --version( |$)",
+              "^ruff (check|--version|--help)( |$)"
             ],
             "ask": [
               "^git (commit|reset|checkout|switch|restore|rebase|merge|cherry-pick|revert|clean|tag -d|branch -d|branch -D)( |$)",
@@ -41,7 +46,11 @@
               "^(npm install|pip install|cargo build|make|apt install)( |$)",
               "^(kill|killall|pkill)( |$)",
               "^(pytest|npm test|cargo test|make test)( |$)",
-              "^(chmod|chown|chgrp)( |$)"
+              "^(chmod|chown|chgrp)( |$)",
+              "^uv (pip install|pip sync|pip compile|venv|run)( |$)",
+              "^hermit (install|upgrade|init)( |$)",
+              "^bin/hermit install( |$)",
+              "^ruff (check --fix|format)( |$)"
             ],
             "deny": [
               "^(sudo|su)( |$)",
@@ -53,7 +62,9 @@
               "^(mkfs|fdisk|parted|modprobe|insmod)( |$)",
               "(curl|wget).*(\\||sh|bash)",
               "^chmod.* -R.* 777",
-              "^git (push|pull|fetch|clone)( |$)"
+              "^git (push|pull|fetch|clone)( |$)",
+              "^uv (pip uninstall|cache clean)( |$)",
+              "^hermit (uninstall|clean)( |$)"
             ]
           }
         ]
