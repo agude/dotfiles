@@ -63,6 +63,8 @@
               "(curl|wget).*(\\||sh|bash)",
               "^chmod.* -R.* 777",
               "^git (push|pull|fetch|clone)( |$)",
+              "^git commit.*(--no-verify|-n)( |$)",
+              "^git push.*--no-verify( |$)",
               "^uv (pip uninstall|cache clean)( |$)",
               "^hermit (uninstall|clean)( |$)"
             ]
