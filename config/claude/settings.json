@@ -22,12 +22,37 @@
               "^git (status|log|diff|show|branch|tag|ls-files|ls-tree|describe|rev-parse|rev-list|reflog|shortlog|blame|annotate|whatchanged|cat-file|ls-remote|remote)( |$)",
               "^git config --get",
               "^git config --list",
-              "^git (add|rm|mv|stash)( |$)"
+              "^git (add|rm|mv|stash)( |$)",
+              "^(cat|less|more|head|tail|file|wc|stat|grep|rg|ag|ack|fzf|diff|cmp)( |$)",
+              "^(ls|tree|pwd|find|locate|which|whereis|du|df)( |$)",
+              "^(ps|top|htop|jobs|pgrep|uname|hostname|whoami|id|date|uptime|env)( |$)",
+              "^[a-zA-Z0-9_-]+ (--version|--help|-v|-h)( |$)",
+              "^(command -v|type|man)( |$)",
+              "^(npm list|pip list|cargo --list|apt list|brew list)( |$)",
+              "^(sort|uniq|cut|tr|nl|column)( |$)",
+              "^awk [^>]+ $",
+              "^sed [^-][^i]"
             ],
             "ask": [
-              "^git (commit|reset|checkout|switch|restore|rebase|merge|cherry-pick|revert|clean|tag -d|branch -d|branch -D)( |$)"
+              "^git (commit|reset|checkout|switch|restore|rebase|merge|cherry-pick|revert|clean|tag -d|branch -d|branch -D)( |$)",
+              "^(touch|mkdir|cp|ln|rename|mv)( |$)",
+              "^rm (?!.*-(r|R|f))",
+              "^(sed -i|vim|nano|emacs)( |$)",
+              "^(npm install|pip install|cargo build|make|apt install)( |$)",
+              "^(kill|killall|pkill)( |$)",
+              "^(pytest|npm test|cargo test|make test)( |$)",
+              "^(chmod|chown|chgrp)( |$)"
             ],
             "deny": [
+              "^(sudo|su)( |$)",
+              "^rm .*(-r|-R|--recursive).*(-f|-F|--force)",
+              "^rm .*(/{1,2}|/\\*)",
+              "^dd( |$)",
+              "^(shutdown|reboot|halt|poweroff)( |$)",
+              "^systemctl (start|stop|restart|enable|disable)( |$)",
+              "^(mkfs|fdisk|parted|modprobe|insmod)( |$)",
+              "(curl|wget).*(\\||sh|bash)",
+              "^chmod.* -R.* 777",
               "^git (push|pull|fetch|clone)( |$)"
             ]
           }
