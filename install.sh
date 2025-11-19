@@ -128,6 +128,16 @@ if command -v nvim &> /dev/null; then
     nvim +PlugInstall +qall
 fi
 
+echo "› Setting up Claude Code configuration..."
+# Claude Code uses ~/.claude and stores runtime files there.
+# We create a real directory and symlink only the files we manage.
+CLAUDE_DIR="${HOME}/.claude"
+mkdir -p "${CLAUDE_DIR}"
+
+# Symlink only the configuration files we control
+link "${CLAUDE_DIR}/settings.json" "config/claude/settings.json"
+link "${CLAUDE_DIR}/commands" "config/claude/commands"
+
 echo "› Setting up automated cleanup tasks..."
 if [[ "${PLATFORM}" == "linux" ]]; then
     if command -v systemctl &> /dev/null; then

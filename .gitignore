@@ -28,3 +28,6 @@ vim/black
 
 # My notes I scatter throughout directories
 *TODO*
+
+# Claude Code local settings (contains API keys and personal preferences)
+config/claude/settings.local.json
