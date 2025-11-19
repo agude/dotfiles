@@ -73,3 +73,17 @@ cscope.po.out
 Session.vim
 .netrwhist
 *~
+
+# Claude Code runtime files (never commit these)
+**/.claude/settings.local.json
+**/.claude/history.jsonl
+**/.claude/debug/
+**/.claude/session-env/
+**/.claude/file-history/
+**/.claude/shell-snapshots/
+**/.claude/plans/
+**/.claude/todos/
+**/.claude/projects/
+**/.claude/downloads/
+**/.claude/ide/
+**/.claude/statsig/
