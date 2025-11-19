@@ -71,11 +71,42 @@ groups related functionality:
 - `zsh/zshrc`: Main Zsh configuration, symlinked to `~/.zshrc`
 
 ### Vim Configuration
+
+**Main files:**
 - `vim/vimrc`: Main Vim configuration
 - `vim/plugins.vim`: Plugin-specific settings
 - `vim/plug.vim`: vim-plug plugin manager
 - `vim/ideavimrc`: IntelliJ IDEA Vim emulation config
 - Uses Space as leader key (`\<Space>`) and backslash as local leader
+
+**Directory structure:**
+- `vim/plugin/`: Auto-loaded plugin files containing global functions
+  - `visual_selection_search.vim`: Defines `VSetSearch()` for `*`/`#` in visual mode
+  - `preserve.vim`: Defines `Preserve()` to run commands while preserving window state
+  - `soft_wrap.vim`: Soft wrapping functionality
+- `vim/autoload/`: Auto-loaded functions (lazy-loaded on first use)
+  - `spaces.vim`: Functions for stripping trailing whitespace
+  - `pythoncomplete.vim`: Python completion helpers
+  - `undo_ftplugin.vim`: Undo filetype plugin settings
+- `vim/after/`: Files loaded after default runtime files
+  - `after/ftplugin/`: Filetype-specific settings (gitcommit, tex, cpp, etc.)
+  - `after/syntax/`: Syntax overrides
+- `vim/ftdetect/`: Filetype detection scripts (bash, markdown, vimwiki, etc.)
+- `vim/plugged/`: Plugin installation directory (managed by vim-plug)
+
+**XDG compliance:**
+All cache files use `g:VIM_CACHE_DIR` (`$XDG_CACHE_HOME/vim/`):
+- Backups: `$XDG_CACHE_HOME/vim/backup/`
+- Swap files: `$XDG_CACHE_HOME/vim/swap/`
+- Undo files: `$XDG_CACHE_HOME/vim/undo/`
+- Spell file: `~/.vim/spell/en.utf-8.add` (intentionally not in cache as it's user data)
+
+**Key features:**
+- Persistent undo with 10,000 levels
+- Ripgrep integration for `:grep` if available
+- Returns to last cursor position when reopening files
+- Very magic mode enabled by default for searches (`/\v`)
+- Custom mappings: `H`/`L` for line start/end, `Y` for yank to EOL, `U` for redo
 
 ### Git Configuration
 - `config/git/config`: Git configuration with aliases and sensible defaults
