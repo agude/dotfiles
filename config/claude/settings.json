@@ -1,6 +1,8 @@
 {
   "alwaysThinkingEnabled": true,
 
+  "includeCoAuthoredBy": false,
+
   "git": {
     "includeCoAuthor": false
   },
