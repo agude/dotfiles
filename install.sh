@@ -137,6 +137,7 @@ mkdir -p "${CLAUDE_DIR}"
 # Symlink only the configuration files we control
 link "${CLAUDE_DIR}/settings.json" "config/claude/settings.json"
 link "${CLAUDE_DIR}/commands" "config/claude/commands"
+link "${CLAUDE_DIR}/CLAUDE.md" "config/claude/CLAUDE.md"
 
 echo "› Setting up automated cleanup tasks..."
 if [[ "${PLATFORM}" == "linux" ]]; then
