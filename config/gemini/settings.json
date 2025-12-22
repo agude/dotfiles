@@ -1,0 +1,142 @@
+{
+  "general": {
+    "vimMode": false,
+    "checkpointing": {
+      "enabled": true
+    }
+  },
+  "ui": {
+    "hideTips": false,
+    "showLineNumbers": true,
+    "useFullWidth": true
+  },
+  "privacy": {
+    "usageStatisticsEnabled": false
+  },
+  "model": {
+    "maxSessionTurns": -1,
+    "compressionThreshold": 0.5
+  },
+  "context": {
+    "fileName": "GEMINI.md",
+    "fileFiltering": {
+      "respectGitIgnore": true,
+      "respectGeminiIgnore": true,
+      "enableRecursiveFileSearch": true,
+      "disableFuzzySearch": false
+    }
+  },
+  "tools": {
+    "sandbox": false,
+    "autoAccept": true,
+    "allowed": [
+      "run_shell_command(git add *)",
+      "run_shell_command(git annotate *)",
+      "run_shell_command(git blame *)",
+      "run_shell_command(git branch)",
+      "run_shell_command(git cat-file *)",
+      "run_shell_command(git config --get *)",
+      "run_shell_command(git config --list)",
+      "run_shell_command(git describe *)",
+      "run_shell_command(git diff *)",
+      "run_shell_command(git grep *)",
+      "run_shell_command(git log *)",
+      "run_shell_command(git ls-files *)",
+      "run_shell_command(git ls-remote *)",
+      "run_shell_command(git ls-tree *)",
+      "run_shell_command(git reflog *)",
+      "run_shell_command(git remote -v)",
+      "run_shell_command(git remote show *)",
+      "run_shell_command(git remote)",
+      "run_shell_command(git rev-list *)",
+      "run_shell_command(git rev-parse *)",
+      "run_shell_command(git secure-commit *)",
+      "run_shell_command(git shortlog *)",
+      "run_shell_command(git show *)",
+      "run_shell_command(git stash list)",
+      "run_shell_command(git stash show *)",
+      "run_shell_command(git stash *)",
+      "run_shell_command(git status)",
+      "run_shell_command(git submodule status)",
+      "run_shell_command(git tag)",
+      "run_shell_command(git whatchanged *)",
+      "run_shell_command(cat *)",
+      "run_shell_command(less *)",
+      "run_shell_command(more *)",
+      "run_shell_command(head *)",
+      "run_shell_command(tail *)",
+      "run_shell_command(file *)",
+      "run_shell_command(wc *)",
+      "run_shell_command(stat *)",
+      "run_shell_command(grep *)",
+      "run_shell_command(egrep *)",
+      "run_shell_command(fgrep *)",
+      "run_shell_command(rg *)",
+      "run_shell_command(ag *)",
+      "run_shell_command(ack *)",
+      "run_shell_command(diff *)",
+      "run_shell_command(cmp *)",
+      "run_shell_command(ls *)",
+      "run_shell_command(tree *)",
+      "run_shell_command(pwd)",
+      "run_shell_command(find *)",
+      "run_shell_command(which *)",
+      "run_shell_command(whereis *)",
+      "run_shell_command(du *)",
+      "run_shell_command(df *)",
+      "run_shell_command(ps *)",
+      "run_shell_command(top *)",
+      "run_shell_command(htop *)",
+      "run_shell_command(jobs)",
+      "run_shell_command(pgrep *)",
+      "run_shell_command(uname *)",
+      "run_shell_command(hostname)",
+      "run_shell_command(whoami)",
+      "run_shell_command(id *)",
+      "run_shell_command(date *)",
+      "run_shell_command(uptime)",
+      "run_shell_command(env)",
+      "run_shell_command(command -v *)",
+      "run_shell_command(type *)",
+      "run_shell_command(man *)",
+      "run_shell_command(npm list *)",
+      "run_shell_command(npm view *)",
+      "run_shell_command(npm outdated)",
+      "run_shell_command(pip list *)",
+      "run_shell_command(sort *)",
+      "run_shell_command(uniq *)",
+      "run_shell_command(cut *)",
+      "run_shell_command(tr *)",
+      "run_shell_command(nl *)",
+      "run_shell_command(column *)",
+      "run_shell_command(awk *)",
+      "run_shell_command(printf *)",
+      "run_shell_command(sed *)",
+      "read_file",
+      "search_files",
+      "search_file_content"
+    ],
+    "shell": {
+      "enableInteractiveShell": true,
+      "pager": "cat",
+      "showColor": false,
+      "inactivityTimeout": 300
+    },
+    "useRipgrep": true,
+    "enableToolOutputTruncation": true,
+    "truncateToolOutputThreshold": 4000000,
+    "truncateToolOutputLines": 1000
+  },
+  "useSmartEdit": true,
+  "useWriteTodos": true,
+  "security": {
+    "disableYoloMode": false,
+    "enablePermanentToolApproval": false,
+    "folderTrust": {
+      "enabled": false
+    }
+  },
+  "advanced": {
+    "excludedEnvVars": ["DEBUG", "DEBUG_MODE"]
+  }
+}

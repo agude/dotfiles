@@ -139,6 +139,15 @@ link "${CLAUDE_DIR}/settings.json" "config/claude/settings.json"
 link "${CLAUDE_DIR}/commands" "config/claude/commands"
 link "${CLAUDE_DIR}/CLAUDE.md" "config/claude/CLAUDE.md"
 
+echo "› Setting up Gemini CLI configuration..."
+# Gemini CLI uses ~/.gemini and stores runtime files there.
+# We create a real directory and symlink only the files we manage.
+GEMINI_DIR="${HOME}/.gemini"
+mkdir -p "${GEMINI_DIR}"
+
+# Symlink only the configuration files we control
+link "${GEMINI_DIR}/settings.json" "config/gemini/settings.json"
+
 echo "› Setting up automated cleanup tasks..."
 if [[ "${PLATFORM}" == "linux" ]]; then
     if command -v systemctl &> /dev/null; then

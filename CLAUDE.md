@@ -129,6 +129,23 @@ and hardcodes `~/.claude/`. When Anthropic adds XDG support, this can be
 refactored to use `$XDG_CONFIG_HOME`. API keys and personal preferences should
 go in `~/.claude/settings.local.json` (automatically git-ignored).
 
+### Gemini CLI Configuration
+- `config/gemini/settings.json`: User-level settings synced across machines
+- `~/.gemini/` is a real directory; only specific files are symlinked:
+  - `~/.gemini/settings.json` → `config/gemini/settings.json`
+- Runtime files (sessions, tmp, shell_history, etc.) stay in `~/.gemini/` and
+  are not tracked
+
+**Key settings:**
+- Auto-approves read-only operations (matching Claude Code's security model)
+- Uses `GEMINI.md` as context file (similar to Claude's `CLAUDE.md`)
+- Enabled tools: smart edit, todo tracking, ripgrep integration
+- Security: Destructive operations require explicit confirmation
+
+**Note:** Gemini CLI uses `~/.gemini/` for user settings (not fully XDG
+compliant). API keys and personal preferences should go in
+`~/.gemini/settings.local.json` or environment variables (see Gemini docs).
+
 ### Custom Scripts (bin/)
 Scripts are symlinked to `~/bin/` without file extensions:
 - `sync.py`: File synchronization utility
