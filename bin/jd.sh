@@ -74,11 +74,13 @@ if [[ $# -eq 1 ]]; then
     fi
 
     # Clean up paths for display and sort the results
-    cleaned_matches=()
-    while IFS= read -r line; do
-        cleaned_matches+=("$line")
-    done < <(printf "%s\n" "${matches[@]}" | sed 's|^\./||' | sort)
-    matches=("${cleaned_matches[@]}")
+    if [[ ${#matches[@]} -gt 0 ]]; then
+        cleaned_matches=()
+        while IFS= read -r line; do
+            cleaned_matches+=("$line")
+        done < <(printf "%s\n" "${matches[@]}" | sed 's|^\./||' | sort)
+        matches=("${cleaned_matches[@]}")
+    fi
 
     num_matches=${#matches[@]}
     target_dir=""
