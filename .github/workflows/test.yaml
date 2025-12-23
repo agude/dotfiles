@@ -66,7 +66,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Run the installation script
-      run: ./install.sh
+      run: |
+        export XDG_CONFIG_HOME="${HOME}/.config"
+        export XDG_CACHE_HOME="${HOME}/.cache"
+        ./install.sh
 
     - name: Verify critical symlinks exist
       run: |
@@ -133,13 +136,19 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Run the installation script
-      run: ./install.sh
+      run: |
+        export XDG_CONFIG_HOME="${HOME}/.config"
+        export XDG_CACHE_HOME="${HOME}/.cache"
+        ./install.sh
 
     - name: Validate shell script syntax
       run: |
+        # Use the checkout directory
+        DOTFILES_DIR="${GITHUB_WORKSPACE}"
+
         echo "Checking shell scripts in bin/ directory..."
         script_count=0
-        for script in ~/.dotfiles/bin/*.sh; do
+        for script in "$DOTFILES_DIR"/bin/*.sh; do
           if [[ -f "$script" ]]; then
             echo "  ✓ Checking $(basename "$script")..."
             bash -n "$script" || exit 1
@@ -150,9 +159,12 @@ jobs:
 
     - name: Validate Python script syntax
       run: |
+        # Use the checkout directory
+        DOTFILES_DIR="${GITHUB_WORKSPACE}"
+
         echo "Checking Python scripts in bin/ directory..."
         script_count=0
-        for script in ~/.dotfiles/bin/*.py; do
+        for script in "$DOTFILES_DIR"/bin/*.py; do
           if [[ -f "$script" ]]; then
             echo "  ✓ Checking $(basename "$script")..."
             python3 -m py_compile "$script" || exit 1
@@ -163,8 +175,11 @@ jobs:
 
     - name: Validate shell configuration files
       run: |
+        # Use the checkout directory, not ~/.dotfiles
+        DOTFILES_DIR="${GITHUB_WORKSPACE}"
+
         echo "Checking shared shell configuration files..."
-        for config in ~/.dotfiles/shared/sharedrc.d/*.sh; do
+        for config in "$DOTFILES_DIR"/shared/sharedrc.d/*.sh; do
           if [[ -f "$config" ]]; then
             echo "  ✓ Checking $(basename "$config")..."
             bash -n "$config" || exit 1
@@ -172,8 +187,8 @@ jobs:
         done
 
         echo "Checking Bash configuration files..."
-        bash -n ~/.dotfiles/bash/bashrc || exit 1
-        for config in ~/.dotfiles/bash/bashrc.d/*.bash; do
+        bash -n "$DOTFILES_DIR/bash/bashrc" || exit 1
+        for config in "$DOTFILES_DIR"/bash/bashrc.d/*.bash; do
           if [[ -f "$config" ]]; then
             echo "  ✓ Checking $(basename "$config")..."
             bash -n "$config" || exit 1
@@ -183,8 +198,8 @@ jobs:
         echo "Checking Zsh configuration files..."
         # Note: zsh -n requires zsh to be installed
         if command -v zsh &> /dev/null; then
-          zsh -n ~/.dotfiles/zsh/zshrc || exit 1
-          for config in ~/.dotfiles/zsh/zshrc.d/*.zsh; do
+          zsh -n "$DOTFILES_DIR/zsh/zshrc" || exit 1
+          for config in "$DOTFILES_DIR"/zsh/zshrc.d/*.zsh; do
             if [[ -f "$config" ]]; then
               echo "  ✓ Checking $(basename "$config")..."
               zsh -n "$config" || exit 1
@@ -218,7 +233,11 @@ jobs:
       run: brew install neovim
 
     - name: Run the installation script
-      run: ./install.sh
+      run: |
+        # Ensure XDG variables are set for vim cache directory creation
+        export XDG_CONFIG_HOME="${HOME}/.config"
+        export XDG_CACHE_HOME="${HOME}/.cache"
+        ./install.sh
 
     - name: Verify vim-plug was installed
       run: |
@@ -277,7 +296,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Run the installation script
-      run: ./install.sh
+      run: |
+        export XDG_CONFIG_HOME="${HOME}/.config"
+        export XDG_CACHE_HOME="${HOME}/.cache"
+        ./install.sh
 
     - name: Verify Git configuration
       run: |
