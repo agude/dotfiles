@@ -53,3 +53,321 @@ jobs:
 
     - name: Test zshrc
       run: zsh -c "source ~/.zshrc"
+
+  verify-symlinks:
+    name: Verify Symlinks on ${{ matrix.os }}
+    needs: install
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run the installation script
+      run: ./install.sh
+
+    - name: Verify critical symlinks exist
+      run: |
+        # Generic function to check if a symlink exists and points to dotfiles
+        check_symlink() {
+          local link="$1"
+          local description="$2"
+
+          if [[ ! -L "$link" ]]; then
+            echo "❌ $link is not a symlink ($description)"
+            return 1
+          fi
+
+          # Just verify it points to something in dotfiles, not exact path
+          local target=$(readlink "$link")
+          if [[ ! "$target" =~ dotfiles ]]; then
+            echo "⚠️  $link -> $target (doesn't point to dotfiles)"
+          else
+            echo "✓ $link -> $target"
+          fi
+        }
+
+        echo "Verifying shell configuration symlinks..."
+        check_symlink ~/.bashrc "main bash config"
+        check_symlink ~/.zshrc "main zsh config"
+
+        echo ""
+        echo "Verifying Vim configuration symlinks..."
+        check_symlink ~/.vimrc "vim config"
+        check_symlink ~/.vim "vim directory"
+        check_symlink ~/.config/nvim "neovim config"
+
+        echo ""
+        echo "Verifying XDG config directory exists..."
+        [[ -d ~/.config ]] || { echo "❌ ~/.config missing"; exit 1; }
+        echo "✓ ~/.config exists"
+
+        echo ""
+        echo "Verifying bin directory has scripts..."
+        if [[ -d ~/bin ]]; then
+          script_count=$(find ~/bin -type l 2>/dev/null | wc -l | tr -d ' ')
+          if [[ $script_count -gt 0 ]]; then
+            echo "✓ ~/bin has $script_count symlinked scripts"
+          else
+            echo "⚠️  ~/bin exists but has no symlinks"
+          fi
+        else
+          echo "❌ ~/bin directory missing"
+          exit 1
+        fi
+
+        echo ""
+        echo "✓ Critical symlinks verified"
+
+  verify-scripts:
+    name: Verify Script Syntax on ${{ matrix.os }}
+    needs: install
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run the installation script
+      run: ./install.sh
+
+    - name: Validate shell script syntax
+      run: |
+        echo "Checking shell scripts in bin/ directory..."
+        script_count=0
+        for script in ~/.dotfiles/bin/*.sh; do
+          if [[ -f "$script" ]]; then
+            echo "  ✓ Checking $(basename "$script")..."
+            bash -n "$script" || exit 1
+            script_count=$((script_count + 1))
+          fi
+        done
+        echo "✓ Validated $script_count shell scripts"
+
+    - name: Validate Python script syntax
+      run: |
+        echo "Checking Python scripts in bin/ directory..."
+        script_count=0
+        for script in ~/.dotfiles/bin/*.py; do
+          if [[ -f "$script" ]]; then
+            echo "  ✓ Checking $(basename "$script")..."
+            python3 -m py_compile "$script" || exit 1
+            script_count=$((script_count + 1))
+          fi
+        done
+        echo "✓ Validated $script_count Python scripts"
+
+    - name: Validate shell configuration files
+      run: |
+        echo "Checking shared shell configuration files..."
+        for config in ~/.dotfiles/shared/sharedrc.d/*.sh; do
+          if [[ -f "$config" ]]; then
+            echo "  ✓ Checking $(basename "$config")..."
+            bash -n "$config" || exit 1
+          fi
+        done
+
+        echo "Checking Bash configuration files..."
+        bash -n ~/.dotfiles/bash/bashrc || exit 1
+        for config in ~/.dotfiles/bash/bashrc.d/*.bash; do
+          if [[ -f "$config" ]]; then
+            echo "  ✓ Checking $(basename "$config")..."
+            bash -n "$config" || exit 1
+          fi
+        done
+
+        echo "Checking Zsh configuration files..."
+        # Note: zsh -n requires zsh to be installed
+        if command -v zsh &> /dev/null; then
+          zsh -n ~/.dotfiles/zsh/zshrc || exit 1
+          for config in ~/.dotfiles/zsh/zshrc.d/*.zsh; do
+            if [[ -f "$config" ]]; then
+              echo "  ✓ Checking $(basename "$config")..."
+              zsh -n "$config" || exit 1
+            fi
+          done
+        else
+          echo "⚠️  Zsh not installed, skipping zsh syntax checks"
+        fi
+
+        echo "✓ All shell configuration files validated"
+
+  verify-vim:
+    name: Verify Vim Setup on ${{ matrix.os }}
+    needs: install
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y neovim
+
+    - name: Install Dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: brew install neovim
+
+    - name: Run the installation script
+      run: ./install.sh
+
+    - name: Verify vim-plug was installed
+      run: |
+        if [[ ! -f ~/.vim/autoload/plug.vim ]]; then
+          echo "❌ vim-plug not installed"
+          exit 1
+        fi
+        echo "✓ vim-plug is installed"
+
+    - name: Verify Vim plugins directory exists
+      run: |
+        if [[ ! -d ~/.vim/plugged ]]; then
+          echo "❌ Plugin directory doesn't exist"
+          exit 1
+        fi
+        echo "✓ Plugin directory exists"
+
+    - name: Verify Vim plugins installed
+      run: |
+        plugin_count=$(find ~/.vim/plugged -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+
+        echo "Found $plugin_count installed plugins:"
+        ls -1 ~/.vim/plugged | sed 's/^/  - /'
+
+        # Generic check: just verify some plugins were installed
+        if [[ $plugin_count -lt 5 ]]; then
+          echo "❌ Very few plugins installed ($plugin_count), installation may have failed"
+          exit 1
+        fi
+
+        echo "✓ Plugin installation successful ($plugin_count plugins)"
+
+    - name: Verify Vim cache directories created
+      run: |
+        # Check XDG cache directory structure
+        if [[ -z "$XDG_CACHE_HOME" ]]; then
+          XDG_CACHE_HOME="$HOME/.cache"
+        fi
+
+        echo "Checking Vim cache directories..."
+        [[ -d "$XDG_CACHE_HOME/vim/backup" ]] || { echo "❌ backup dir missing"; exit 1; }
+        [[ -d "$XDG_CACHE_HOME/vim/swap" ]] || { echo "❌ swap dir missing"; exit 1; }
+        [[ -d "$XDG_CACHE_HOME/vim/undo" ]] || { echo "❌ undo dir missing"; exit 1; }
+
+        echo "✓ All Vim cache directories exist"
+
+  verify-configs:
+    name: Verify Configurations on ${{ matrix.os }}
+    needs: install
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run the installation script
+      run: ./install.sh
+
+    - name: Verify Git configuration
+      run: |
+        echo "Testing git configuration accessibility..."
+        git config --list > /dev/null || { echo "❌ Cannot read git config"; exit 1; }
+
+        echo "Checking that git aliases are defined..."
+        alias_count=$(git config --get-regexp '^alias\.' | wc -l | tr -d ' ')
+        if [[ $alias_count -lt 3 ]]; then
+          echo "❌ Expected several git aliases, found only $alias_count"
+          exit 1
+        fi
+        echo "✓ Found $alias_count git aliases"
+
+        echo "Checking git merge strategy..."
+        merge_ff=$(git config --get merge.ff || echo "not-set")
+        if [[ "$merge_ff" == "only" ]]; then
+          echo "✓ merge.ff = $merge_ff"
+        else
+          echo "⚠️  merge.ff = $merge_ff (expected 'only')"
+        fi
+
+        echo "✓ Git configuration verified"
+
+    - name: Verify Claude Code configuration
+      run: |
+        echo "Checking Claude Code settings..."
+
+        if [[ -f ~/.claude/settings.json ]]; then
+          # Validate JSON syntax
+          python3 -c "import json; json.load(open('$HOME/.claude/settings.json'))" || {
+            echo "❌ settings.json is not valid JSON"
+            exit 1
+          }
+          echo "  ✓ settings.json is valid JSON"
+        else
+          echo "⚠️  Claude settings.json not found (optional)"
+        fi
+
+        if [[ -d ~/.claude/commands ]]; then
+          # At minimum, README.md should exist
+          [[ -f ~/.claude/commands/README.md ]] || {
+            echo "❌ commands/README.md missing"
+            exit 1
+          }
+          echo "  ✓ commands directory exists with README.md"
+        fi
+
+        if [[ -f ~/.claude/CLAUDE.md ]]; then
+          echo "  ✓ CLAUDE.md is linked"
+        fi
+
+        echo "✓ Claude Code configuration verified"
+
+    - name: Verify Gemini CLI configuration
+      run: |
+        echo "Checking Gemini CLI settings..."
+
+        if [[ -f ~/.gemini/settings.json ]]; then
+          # Validate JSON syntax
+          python3 -c "import json; json.load(open('$HOME/.gemini/settings.json'))" || {
+            echo "❌ settings.json is not valid JSON"
+            exit 1
+          }
+          echo "  ✓ settings.json is valid JSON"
+        else
+          echo "⚠️  Gemini settings.json not found (optional)"
+        fi
+
+        echo "✓ Gemini CLI configuration verified"
+
+    - name: Verify XDG directory structure
+      run: |
+        # Check that XDG_CONFIG_HOME exists
+        if [[ -z "$XDG_CONFIG_HOME" ]]; then
+          XDG_CONFIG_HOME="$HOME/.config"
+        fi
+
+        echo "Checking XDG directory structure..."
+        [[ -d "$XDG_CONFIG_HOME" ]] || {
+          echo "❌ XDG_CONFIG_HOME directory not created"
+          exit 1
+        }
+
+        # Check that some configs were linked into XDG_CONFIG_HOME
+        config_count=$(find "$XDG_CONFIG_HOME" -maxdepth 1 -type l 2>/dev/null | wc -l | tr -d ' ')
+        if [[ $config_count -gt 0 ]]; then
+          echo "✓ Found $config_count config symlinks in XDG_CONFIG_HOME"
+        else
+          echo "⚠️  No config symlinks found in XDG_CONFIG_HOME"
+        fi
+
+        echo "✓ XDG directory structure verified"
