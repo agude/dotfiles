@@ -1,9 +1,5 @@
 {
-  "alwaysThinkingEnabled": true,
   "includeCoAuthoredBy": false,
-  "git": {
-    "includeCoAuthor": false
-  },
   "permissions": {
     "allow": [
       "Bash(git add:*)",
@@ -151,6 +147,12 @@
       "Bash(hermit uninstall:*)",
       "Bash(hermit clean:*)"
     ],
-    "ask": ["*"]
+    "ask": [
+      "*"
+    ]
+  },
+  "alwaysThinkingEnabled": true,
+  "git": {
+    "includeCoAuthor": false
   }
 }
