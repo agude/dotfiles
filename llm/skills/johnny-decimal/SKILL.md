@@ -93,14 +93,32 @@ These scripts help with common operations:
 
 | Script | Purpose |
 |--------|---------|
-| `jd-list <ID>` | List contents of an area, category, or ID |
+| `jd-list [ID]` | List contents of an area, category, or ID |
 | `jd-validate <filename>` | Check if filename follows conventions |
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
-| `jd-note <ID> <text>` | Add a timestamped note to an ID's notes file |
+| `jd-note <ID> [text]` | Add a timestamped note to an ID's notes file |
 | `jd-read <ID>` | Display notes for an ID |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
+
+## Agent Usage (--porcelain)
+
+All scripts support a `--porcelain` flag for machine-readable output:
+
+```bash
+jd-list 21 --porcelain      # Full paths, no colors
+jd-mkdir 21 "Name" --porcelain  # Outputs created path
+jd-move file.pdf 21.10 --porcelain  # Outputs destination path
+jd-read 21.10 --porcelain   # Outputs note file path
+```
+
+When using these scripts as an agent:
+- **Always use `--porcelain`** for reliable parsing
+- Paths are absolute and suitable for further operations
+- Errors go to stderr with exit code 1
+- `jd-note` requires text argument (no editor in agent mode)
+- `jd-read --edit` is not available in agent mode
 
 ## Safety Rules
 

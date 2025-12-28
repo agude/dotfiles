@@ -56,6 +56,86 @@ allowed-tools: []         # Optional: pre-approved tools (experimental)
 3. Add optional `scripts/`, `references/`, or `assets/` as needed
 4. Validate: `skills-ref validate ./skill-name/`
 
+## Script Design Pattern: Human vs Agent Mode
+
+When writing scripts that both humans and agents will use, follow this pattern:
+
+### Detection
+
+```bash
+# In your shared library (e.g., lib.sh):
+PORCELAIN="false"
+
+parse_common_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --porcelain) PORCELAIN="true"; shift ;;
+            *) REMAINING_ARGS+=("$1"); shift ;;
+        esac
+    done
+    init_colors  # Only set colors if not porcelain
+}
+
+is_interactive() {
+    [[ -t 1 ]] && [[ -t 0 ]] && [[ "$PORCELAIN" != "true" ]]
+}
+
+init_colors() {
+    if [[ -t 1 ]] && [[ "$PORCELAIN" != "true" ]]; then
+        COLOR_SUCCESS=$'\033[0;32m'
+        COLOR_ERROR=$'\033[0;31m'
+        COLOR_RESET=$'\033[0m'
+    fi
+}
+```
+
+### Behavior Differences
+
+| Feature | Human Mode | Agent Mode (--porcelain) |
+|---------|------------|--------------------------|
+| **Output format** | Short, colored | Full paths, plain |
+| **Paths** | Basenames | Absolute paths |
+| **Interactive** | Opens $EDITOR | Requires all args |
+| **Errors** | Colored to stderr | Plain to stderr |
+
+### Example Script
+
+```bash
+#!/usr/bin/env bash
+source "${SCRIPT_DIR}/lib.sh"
+parse_common_args "$@"
+set -- "${REMAINING_ARGS[@]}"
+
+# Interactive feature (human only)
+if [[ -z "$text" ]] && is_interactive; then
+    text=$(get_from_editor)
+elif [[ -z "$text" ]]; then
+    error "Text required in non-interactive mode"
+    exit 1
+fi
+
+# Output (format depends on mode)
+if [[ "$PORCELAIN" == "true" ]]; then
+    echo "$full_path"
+else
+    success "Created: $(basename "$full_path")"
+fi
+```
+
+### Document in SKILL.md
+
+Add an "Agent Usage" section explaining `--porcelain` behavior:
+
+```markdown
+## Agent Usage (--porcelain)
+
+All scripts support `--porcelain` for machine-readable output:
+- Full paths instead of basenames
+- No colors or decorations
+- Errors to stderr with exit code 1
+- No interactive features (editor, prompts)
+```
+
 ## Installation
 
 Skills in this directory are automatically available after running:

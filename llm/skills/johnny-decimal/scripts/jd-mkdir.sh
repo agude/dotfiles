@@ -6,6 +6,7 @@
 # Usage:
 #   jd-mkdir 21 "Chase Bank"           # Auto-assigns next ID (e.g., 21.15)
 #   jd-mkdir 21 "Chase Bank" --id 15   # Explicit ID: 21.15
+#   jd-mkdir 21 "Name" --porcelain     # Output full path (for agents)
 
 set -euo pipefail
 
@@ -13,6 +14,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=jd-lib.sh
 source "${SCRIPT_DIR}/jd-lib.sh"
+
+# Parse common args (--porcelain)
+jd_parse_common_args "$@"
+set -- "${JD_REMAINING_ARGS[@]}"
 
 # --- Parse arguments ---
 explicit_id=""
@@ -31,7 +36,7 @@ while [[ $# -gt 0 ]]; do
             elif [[ -z "$name" ]]; then
                 name="$1"
             else
-                echo "Error: Unexpected argument '$1'" >&2
+                jd_error "Unexpected argument '$1'"
                 exit 1
             fi
             shift
@@ -49,7 +54,7 @@ fi
 
 # Validate category format (XX)
 if [[ ! "$category" =~ ^[0-9][0-9]$ ]]; then
-    echo "Error: Invalid category format '${category}'. Expected XX (e.g., 21)" >&2
+    jd_error "Invalid category format '${category}'. Expected XX (e.g., 21)"
     exit 1
 fi
 
@@ -60,7 +65,7 @@ category_dir=$(find_category_dir "$category") || exit 1
 if [[ -n "$explicit_id" ]]; then
     # Validate explicit ID is a number
     if [[ ! "$explicit_id" =~ ^[0-9]+$ ]]; then
-        echo "Error: --id must be a number, got '${explicit_id}'" >&2
+        jd_error "--id must be a number, got '${explicit_id}'"
         exit 1
     fi
     id="${category}.${explicit_id}"
@@ -74,7 +79,7 @@ new_folder="${category_dir}/${id} ${name}"
 
 # Check if it already exists
 if [[ -e "$new_folder" ]]; then
-    echo "Error: Folder already exists: ${new_folder}" >&2
+    jd_error "Folder already exists: ${new_folder}"
     exit 1
 fi
 
@@ -82,4 +87,8 @@ fi
 mkdir -p "$new_folder"
 chmod 700 "$new_folder"
 
-echo "Created: ${new_folder}"
+if [[ "$JD_PORCELAIN" == "true" ]]; then
+    echo "$new_folder"
+else
+    jd_success "Created: ${id} ${name}"
+fi

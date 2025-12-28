@@ -7,6 +7,7 @@
 #   jd-move document.pdf 21.10
 #   jd-move document.pdf 21.10 new_name.pdf
 #   jd-move --force document.pdf 21.10   # Allow overwrite
+#   jd-move document.pdf 21.10 --porcelain  # Output full path (for agents)
 
 set -euo pipefail
 
@@ -15,13 +16,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=jd-lib.sh
 source "${SCRIPT_DIR}/jd-lib.sh"
 
+# Parse common args (--porcelain)
+jd_parse_common_args "$@"
+set -- "${JD_REMAINING_ARGS[@]}"
+
 # --- Parse arguments ---
 
 force=false
-if [[ "${1:-}" == "--force" ]]; then
-    force=true
-    shift
-fi
+args=()
+for arg in "$@"; do
+    case "$arg" in
+        --force|-f)
+            force=true
+            ;;
+        *)
+            args+=("$arg")
+            ;;
+    esac
+done
+set -- "${args[@]}"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
     echo "Usage: jd-move [--force] <file> <ID> [new_name]" >&2
@@ -39,20 +52,20 @@ new_name="${3:-$(basename "$source_file")}"
 
 # Check source file exists
 if [[ ! -f "$source_file" ]]; then
-    echo "Error: Source file not found: ${source_file}" >&2
+    jd_error "Source file not found: ${source_file}"
     exit 1
 fi
 
 # Validate ID format
 if [[ ! "$target_id" =~ ^[0-9][0-9]\.[0-9]+$ ]]; then
-    echo "Error: Invalid ID format '${target_id}'. Expected XX.YY (e.g., 21.10)" >&2
+    jd_error "Invalid ID format '${target_id}'. Expected XX.YY (e.g., 21.10)"
     exit 1
 fi
 
 # Validate filename (if jd-validate exists)
 if [[ -x "${SCRIPT_DIR}/jd-validate.sh" ]]; then
     if ! "${SCRIPT_DIR}/jd-validate.sh" "$new_name" >/dev/null 2>&1; then
-        echo "Warning: Filename may not follow conventions" >&2
+        jd_warn "Filename may not follow conventions"
         "${SCRIPT_DIR}/jd-validate.sh" "$new_name" >&2 || true
     fi
 fi
@@ -66,9 +79,9 @@ target_path="${target_dir}/${new_name}"
 # Check for existing file
 if [[ -e "$target_path" ]]; then
     if [[ "$force" == true ]]; then
-        echo "Warning: Overwriting existing file: ${target_path}" >&2
+        jd_warn "Overwriting existing file: ${new_name}"
     else
-        echo "Error: Target file already exists: ${target_path}" >&2
+        jd_error "Target file already exists: ${target_path}"
         echo "Use --force to overwrite" >&2
         exit 1
     fi
@@ -77,4 +90,9 @@ fi
 # --- Perform the move ---
 
 mv "$source_file" "$target_path"
-echo "Moved: ${source_file} -> ${target_path}"
+
+if [[ "$JD_PORCELAIN" == "true" ]]; then
+    echo "$target_path"
+else
+    jd_success "Moved: $(basename "$source_file") -> ${target_id}"
+fi
