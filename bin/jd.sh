@@ -59,16 +59,26 @@ elif [[ $num_matches -eq 1 ]]; then
     target_dir="${matches[0]}"
 else
     # Ambiguous: multiple matches. Use `select` to have the user choose.
-    echo "Ambiguous query. Found ${num_matches} matches:" >&2
+    # Build display names (just basename) for cleaner output
+    display_names=()
+    for path in "${matches[@]}"; do
+        display_names+=("$(basename "$path")")
+    done
+
+    echo "Found ${num_matches} matches:" >&2
     PS3="Please enter a number (or Ctrl+C to cancel): "
-    select choice in "${matches[@]}"; do
+    saved_columns="${COLUMNS:-}"
+    COLUMNS=1
+    select choice in "${display_names[@]}"; do
         if [[ -n "$choice" ]]; then
-            target_dir="$choice"
+            # Use REPLY (1-indexed) to get the full path
+            target_dir="${matches[$((REPLY-1))]}"
             break
         else
             echo "Invalid selection. Try again." >&2
         fi
     done < /dev/tty
+    COLUMNS="$saved_columns"
 fi
 
 # Print absolute path for the shell function to use.
