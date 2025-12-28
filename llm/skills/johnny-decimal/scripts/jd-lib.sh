@@ -18,10 +18,21 @@
 export JD_ROOT="${XDG_DOCUMENTS_DIR:-${HOME}/Documents}"
 export JDEX_PATH="${JD_ROOT}/00-09 System/00 System/00.00 JDex for System"
 
+# Validate that JD_ROOT exists and is a directory
+# Call this early in scripts after sourcing the library
+jd_validate_root() {
+    if [[ ! -d "$JD_ROOT" ]]; then
+        echo "Error: JD_ROOT does not exist: ${JD_ROOT}" >&2
+        echo "Set XDG_DOCUMENTS_DIR or create the directory." >&2
+        return 1
+    fi
+}
+
 # --- Human vs Agent Mode ---
 
 # Set to "true" by jd_parse_common_args if --porcelain is passed
-JD_PORCELAIN="false"
+# Exported so subshells and child scripts can check the mode
+export JD_PORCELAIN="false"
 
 # Colors (set if TTY and not porcelain mode)
 # Exported so subshells and scripts can use them
@@ -346,52 +357,37 @@ jd_browse_to_id() {
 #   "foo"            → String search (maxdepth 3, validated)
 jd_search() {
     local query="$1"
-    local -a matches=()
 
-    # Validation pattern for JD-formatted directories
-    local -a validation_args=(
-        '('
-        -name '[0-9][0-9]-*' -o
-        -name '[0-9][0-9].*' -o
-        -name '[0-9][0-9] *'
-        ')'
-    )
+    # Run find in a subshell to avoid changing caller's directory
+    # All output is relative paths, cleaned up and sorted
+    (
+        cd "$JD_ROOT" || exit 1
 
-    # Must run from JD_ROOT for relative paths
-    cd "$JD_ROOT" || return 1
+        # Determine search type based on query format
+        if [[ "$query" =~ ^[0-9]{2}- ]]; then
+            # Area search (e.g., "10-" or "10-19")
+            find . -maxdepth 1 -type d -iname "${query}*" -print 2>/dev/null
 
-    # Determine search type based on query format
-    if [[ "$query" =~ ^[0-9]{2}- ]]; then
-        # Area search (e.g., "10-" or "10-19")
-        while IFS= read -r line; do
-            matches+=("$line")
-        done < <(find . -maxdepth 1 -type d -iname "${query}*" -print 2>/dev/null)
+        elif [[ "$query" =~ ^[0-9]{2}\s*$ ]]; then
+            # Category search (e.g., "12" or "12 ")
+            local trimmed_query="${query%% }"
+            find . -maxdepth 2 -type d -iname "${trimmed_query} *" -print 2>/dev/null
 
-    elif [[ "$query" =~ ^[0-9]{2}\s*$ ]]; then
-        # Category search (e.g., "12" or "12 ")
-        local trimmed_query="${query%% }"
-        while IFS= read -r line; do
-            matches+=("$line")
-        done < <(find . -maxdepth 2 -type d -iname "${trimmed_query} *" -print 2>/dev/null)
+        elif [[ "$query" =~ ^[0-9]{2}\. ]]; then
+            # ID search (e.g., "12.3" or "12.34")
+            find . -maxdepth 3 -type d -iname "${query}*" \
+                \( -name '[0-9][0-9]-*' -o -name '[0-9][0-9].*' -o -name '[0-9][0-9] *' \) \
+                -print 2>/dev/null
 
-    elif [[ "$query" =~ ^[0-9]{2}\. ]]; then
-        # ID search (e.g., "12.3" or "12.34")
-        while IFS= read -r line; do
-            matches+=("$line")
-        done < <(find . -maxdepth 3 -type d -iname "${query}*" "${validation_args[@]}" -print 2>/dev/null)
+        else
+            # Fallback to string search (e.g., "alex")
+            find . -maxdepth 3 -type d -iname "*${query}*" \
+                \( -name '[0-9][0-9]-*' -o -name '[0-9][0-9].*' -o -name '[0-9][0-9] *' \) \
+                -print 2>/dev/null
+        fi
+    ) | sed 's|^\./||' | sort | grep -v '^$'
 
-    else
-        # Fallback to string search (e.g., "alex")
-        while IFS= read -r line; do
-            matches+=("$line")
-        done < <(find . -maxdepth 3 -type d -iname "*${query}*" "${validation_args[@]}" -print 2>/dev/null)
-    fi
-
-    # Clean up paths (remove ./) and sort
-    if [[ ${#matches[@]} -gt 0 ]]; then
-        printf "%s\n" "${matches[@]}" | sed 's|^\./||' | sort
-        return 0
-    fi
-
-    return 1
+    # Return based on whether we found anything
+    # The pipeline's exit status is from grep, which fails if no matches
+    return "${PIPESTATUS[0]}"
 }
