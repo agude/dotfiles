@@ -18,7 +18,7 @@ set -euo pipefail
 # --- Load shared library ---
 # Try multiple locations for portability
 if [[ -f "${HOME}/.dotfiles/llm/skills/johnny-decimal/scripts/jd-lib.sh" ]]; then
-    # shellcheck source=../llm/skills/johnny-decimal/scripts/jd-lib.sh
+    # shellcheck source=/dev/null
     source "${HOME}/.dotfiles/llm/skills/johnny-decimal/scripts/jd-lib.sh"
 else
     echo "Error: jd-lib.sh not found" >&2

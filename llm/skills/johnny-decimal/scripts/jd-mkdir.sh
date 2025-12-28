@@ -12,7 +12,7 @@ set -euo pipefail
 
 # --- Load shared library ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=jd-lib.sh
+# shellcheck source=/dev/null
 source "${SCRIPT_DIR}/jd-lib.sh"
 
 # Parse common args (--porcelain)
