@@ -78,9 +78,9 @@ if [[ "$EDIT_MODE" == "true" ]]; then
         } > "$note_file"
     fi
 
-    # Open in editor
+    # Open in editor (redirect to TTY for proper terminal interaction)
     editor="${EDITOR:-${VISUAL:-vi}}"
-    "$editor" "$note_file"
+    "$editor" "$note_file" < /dev/tty > /dev/tty
     exit 0
 fi
 

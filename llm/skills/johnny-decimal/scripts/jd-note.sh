@@ -39,9 +39,13 @@ get_note_from_editor() {
         echo ""
     } > "$tmpfile"
 
-    # Open editor
+    # Open editor (redirect to TTY since we're in a command substitution)
     local editor="${EDITOR:-${VISUAL:-vi}}"
-    "$editor" "$tmpfile"
+    "$editor" "$tmpfile" < /dev/tty > /dev/tty || {
+        jd_error "Editor '${editor}' failed to launch"
+        rm -f "$tmpfile"
+        return 1
+    }
 
     # Extract content (skip header/comment lines, trim whitespace)
     local content

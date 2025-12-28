@@ -98,27 +98,39 @@ These scripts help with common operations:
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
 | `jd-note <ID> [text]` | Add a timestamped note to an ID's notes file |
-| `jd-read <ID>` | Display notes for an ID |
+| `jd-read <ID> [--edit]` | Display notes for an ID, or edit them interactively |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
+
+### Interactive Features
+
+When run by a human (not an agent), these commands open `$EDITOR`:
+
+- `jd-note <ID>` (without text) - Opens editor to write a note
+- `jd-read <ID> --edit` - Opens the note file for editing
+
+Both properly handle TTY redirection for compatibility with any editor.
 
 ## Agent Usage (--porcelain)
 
 All scripts support a `--porcelain` flag for machine-readable output:
 
 ```bash
-jd-list 21 --porcelain      # Full paths, no colors
-jd-mkdir 21 "Name" --porcelain  # Outputs created path
-jd-move file.pdf 21.10 --porcelain  # Outputs destination path
-jd-read 21.10 --porcelain   # Outputs note file path
+jd-list 21 --porcelain                # Full paths, no colors
+jd-mkdir 21 "Name" --porcelain        # Outputs created path
+jd-move file.pdf 21.10 --porcelain    # Outputs destination path
+jd-note 21.10 "text" --porcelain      # Adds note (text required)
+jd-read 21.10 --porcelain             # Outputs note file path
+jd-validate file.pdf --porcelain      # Machine-readable validation
 ```
 
 When using these scripts as an agent:
 - **Always use `--porcelain`** for reliable parsing
 - Paths are absolute and suitable for further operations
 - Errors go to stderr with exit code 1
-- `jd-note` requires text argument (no editor in agent mode)
-- `jd-read --edit` is not available in agent mode
+- `jd-note` **requires text argument** in agent mode (no editor)
+- `jd-read --edit` is **not available** in agent mode (requires TTY)
+- All scripts auto-detect agent mode when stdout/stdin are not TTYs
 
 ## Safety Rules
 
