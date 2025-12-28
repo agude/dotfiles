@@ -98,6 +98,7 @@ These scripts help with common operations:
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
 | `jd-note <ID> <text>` | Add a timestamped note to an ID's notes file |
+| `jd-read <ID>` | Display notes for an ID |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
