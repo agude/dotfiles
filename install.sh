@@ -142,6 +142,10 @@ link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 # Symlink shared Agent Skills (works for Claude Code + Goose)
 link "${CLAUDE_DIR}/skills" "llm/skills"
 
+# Expose skill scripts to user via ~/bin subdirectories
+# (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
+link "${HOME}/bin/johnny-decimal" "llm/skills/johnny-decimal/scripts"
+
 # Gemini CLI uses ~/.gemini and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
 GEMINI_DIR="${HOME}/.gemini"
