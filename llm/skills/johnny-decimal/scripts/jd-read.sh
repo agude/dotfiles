@@ -23,6 +23,9 @@ source "${SCRIPT_DIR}/jd-lib.sh"
 jd_parse_common_args "$@"
 set -- "${JD_REMAINING_ARGS[@]}"
 
+# Validate JD_ROOT exists
+jd_validate_root || exit 1
+
 # Parse local args (--edit)
 EDIT_MODE="false"
 args=()

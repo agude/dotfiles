@@ -28,6 +28,9 @@ fi
 # Initialize colors for display
 jd_init_colors
 
+# Validate JD_ROOT exists
+jd_validate_root || exit 1
+
 # --- Main Logic ---
 
 # Case 1: No arguments. Print usage and exit.
