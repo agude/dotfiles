@@ -8,7 +8,7 @@
 # Usage:
 #   jd-note 31.14 "The patio is poured over brick, over more brick"
 #   jd-note 21.10 "Updated autopay settings"
-#   jd-note                    # Select ID interactively, then open $EDITOR
+#   jd-note                    # Browse: Area → Category → ID, then open $EDITOR
 #   jd-note 31.14              # Opens $EDITOR (interactive mode only)
 #   jd-note 31.14 --porcelain  # Agent mode (requires text argument)
 
@@ -24,42 +24,6 @@ jd_parse_common_args "$@"
 set -- "${JD_REMAINING_ARGS[@]}"
 
 # --- Functions ---
-
-# Find all JD IDs and let user select one interactively
-# Returns the selected ID via stdout
-select_id_interactively() {
-    local display_items=()
-
-    # Find all subcategory directories (XX.YY format)
-    while IFS= read -r dir; do
-        local basename_dir
-        basename_dir=$(basename "$dir")
-        # Extract the ID (XX.YY) from the directory name
-        if [[ "$basename_dir" =~ ^([0-9][0-9]\.[0-9]+)\ (.*)$ ]]; then
-            local id="${BASH_REMATCH[1]}"
-            local name="${BASH_REMATCH[2]}"
-            display_items+=("${id} ${name}")
-        fi
-    done < <(find "$JD_ROOT" -maxdepth 3 -type d 2>/dev/null | grep -E '/[0-9][0-9]\.[0-9]+ ' | sort)
-
-    if [[ ${#display_items[@]} -eq 0 ]]; then
-        jd_error "No JD subcategories found in ${JD_ROOT}"
-        return 1
-    fi
-
-    echo "Select a location for your note:" >&2
-    PS3="Enter number (or Ctrl+C to cancel): "
-    select choice in "${display_items[@]}"; do
-        if [[ -n "$choice" ]]; then
-            # Extract the ID from the selection
-            local selected_id="${choice%% *}"
-            echo "$selected_id"
-            return 0
-        else
-            echo "Invalid selection. Try again." >&2
-        fi
-    done < /dev/tty
-}
 
 # Open editor for note entry, return the text via stdout
 get_note_from_editor() {
@@ -102,10 +66,10 @@ get_note_from_editor() {
 # No arguments: interactive ID selection (if TTY available)
 if [[ $# -lt 1 ]]; then
     if jd_is_interactive; then
-        id=$(select_id_interactively) || exit 1
+        id=$(jd_browse_to_id) || exit 1
     else
         echo "Usage: jd-note <ID> [note text]" >&2
-        echo "  jd-note                # Select ID interactively" >&2
+        echo "  jd-note                # Browse to ID interactively" >&2
         echo "  jd-note 31.14          # Opens \$EDITOR (interactive)" >&2
         echo "  jd-note 31.14 \"text\"   # Add note directly" >&2
         exit 1

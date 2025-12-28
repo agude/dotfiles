@@ -216,3 +216,182 @@ next_available_id() {
     local next_num=$((max_num + 1))
     echo "${category}.${next_num}"
 }
+
+# --- Interactive Selection Functions ---
+
+# Generic interactive selection from a list
+# Usage: jd_select_from_list "prompt" "${items[@]}"
+# Returns: The selected item (exactly as provided)
+# Note: Caller must verify interactive mode; this function uses /dev/tty directly
+jd_select_from_list() {
+    local prompt="$1"
+    shift
+    local -a items=("$@")
+
+    if [[ ${#items[@]} -eq 0 ]]; then
+        jd_error "No items to select from"
+        return 1
+    fi
+
+    echo "$prompt" >&2
+    PS3="Enter number (or Ctrl+C to cancel): "
+    local choice
+    # Force single-column display for cleaner alignment
+    local saved_columns="${COLUMNS:-}"
+    COLUMNS=1
+    select choice in "${items[@]}"; do
+        if [[ -n "$choice" ]]; then
+            COLUMNS="$saved_columns"
+            echo "$choice"
+            return 0
+        else
+            echo "Invalid selection. Try again." >&2
+        fi
+    done < /dev/tty
+    COLUMNS="$saved_columns"
+}
+
+# Browse hierarchically to select a JD ID
+# Returns: ID (e.g., "21.10")
+# Note: Caller must verify interactive mode; this function uses /dev/tty directly
+# Note: No colors in select items - ANSI codes break regex extraction
+jd_browse_to_id() {
+    # Level 1: Select area
+    local -a areas=()
+    while IFS= read -r dir; do
+        areas+=("$(basename "$dir")")
+    done < <(find "$JD_ROOT" -maxdepth 1 -type d -name '[0-9][0-9]-[0-9][0-9] *' 2>/dev/null | sort)
+
+    if [[ ${#areas[@]} -eq 0 ]]; then
+        jd_error "No areas found in ${JD_ROOT}"
+        return 1
+    fi
+
+    local area_choice
+    area_choice=$(jd_select_from_list "Select an area:" "${areas[@]}") || return 1
+
+    # Extract area prefix (first two digits)
+    local area_prefix
+    if [[ "$area_choice" =~ ^([0-9][0-9])- ]]; then
+        area_prefix="${BASH_REMATCH[1]}"
+    else
+        jd_error "Could not parse area selection"
+        return 1
+    fi
+
+    # Level 2: Select category
+    local area_dir
+    area_dir=$(find "$JD_ROOT" -maxdepth 1 -type d -name "${area_prefix}-[0-9][0-9] *" 2>/dev/null | head -1)
+
+    local -a categories=()
+    while IFS= read -r dir; do
+        categories+=("$(basename "$dir")")
+    done < <(find "$area_dir" -maxdepth 1 -type d -name '[0-9][0-9] *' 2>/dev/null | sort)
+
+    if [[ ${#categories[@]} -eq 0 ]]; then
+        jd_error "No categories found in area ${area_prefix}"
+        return 1
+    fi
+
+    local cat_choice
+    cat_choice=$(jd_select_from_list "Select a category:" "${categories[@]}") || return 1
+
+    # Extract category number (first two digits)
+    local category
+    if [[ "$cat_choice" =~ ^([0-9][0-9]) ]]; then
+        category="${BASH_REMATCH[1]}"
+    else
+        jd_error "Could not parse category selection"
+        return 1
+    fi
+
+    # Level 3: Select ID
+    local category_dir
+    category_dir=$(find_category_dir "$category") || return 1
+
+    local -a ids=()
+    while IFS= read -r dir; do
+        ids+=("$(basename "$dir")")
+    done < <(find "$category_dir" -maxdepth 1 -type d -name "${category}.[0-9]* *" 2>/dev/null | sort)
+
+    if [[ ${#ids[@]} -eq 0 ]]; then
+        jd_error "No IDs found in category ${category}"
+        return 1
+    fi
+
+    local id_choice
+    id_choice=$(jd_select_from_list "Select an ID:" "${ids[@]}") || return 1
+
+    # Extract the ID (XX.YY)
+    if [[ "$id_choice" =~ ^([0-9][0-9]\.[0-9]+) ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return 0
+    fi
+
+    jd_error "Could not parse ID selection"
+    return 1
+}
+
+# --- Search Functions ---
+
+# Search for JD directories matching a query
+# Usage: jd_search "query"
+# Outputs: Matching paths (relative to JD_ROOT), one per line, sorted
+# Exit codes: 0 = matches found, 1 = no matches
+#
+# Query types (auto-detected):
+#   "10-" or "10-19" → Area search (maxdepth 1)
+#   "12" or "12 "    → Category search (maxdepth 2)
+#   "12.3" or "12.34"→ ID search (maxdepth 3, validated)
+#   "foo"            → String search (maxdepth 3, validated)
+jd_search() {
+    local query="$1"
+    local -a matches=()
+
+    # Validation pattern for JD-formatted directories
+    local -a validation_args=(
+        '('
+        -name '[0-9][0-9]-*' -o
+        -name '[0-9][0-9].*' -o
+        -name '[0-9][0-9] *'
+        ')'
+    )
+
+    # Must run from JD_ROOT for relative paths
+    cd "$JD_ROOT" || return 1
+
+    # Determine search type based on query format
+    if [[ "$query" =~ ^[0-9]{2}- ]]; then
+        # Area search (e.g., "10-" or "10-19")
+        while IFS= read -r line; do
+            matches+=("$line")
+        done < <(find . -maxdepth 1 -type d -iname "${query}*" -print 2>/dev/null)
+
+    elif [[ "$query" =~ ^[0-9]{2}\s*$ ]]; then
+        # Category search (e.g., "12" or "12 ")
+        local trimmed_query="${query%% }"
+        while IFS= read -r line; do
+            matches+=("$line")
+        done < <(find . -maxdepth 2 -type d -iname "${trimmed_query} *" -print 2>/dev/null)
+
+    elif [[ "$query" =~ ^[0-9]{2}\. ]]; then
+        # ID search (e.g., "12.3" or "12.34")
+        while IFS= read -r line; do
+            matches+=("$line")
+        done < <(find . -maxdepth 3 -type d -iname "${query}*" "${validation_args[@]}" -print 2>/dev/null)
+
+    else
+        # Fallback to string search (e.g., "alex")
+        while IFS= read -r line; do
+            matches+=("$line")
+        done < <(find . -maxdepth 3 -type d -iname "*${query}*" "${validation_args[@]}" -print 2>/dev/null)
+    fi
+
+    # Clean up paths (remove ./) and sort
+    if [[ ${#matches[@]} -gt 0 ]]; then
+        printf "%s\n" "${matches[@]}" | sed 's|^\./||' | sort
+        return 0
+    fi
+
+    return 1
+}

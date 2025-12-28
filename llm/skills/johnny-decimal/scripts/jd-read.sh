@@ -6,7 +6,9 @@
 # Notes are stored in the JDex as individual markdown files per ID.
 #
 # Usage:
+#   jd-read               # Browse: Area → Category → ID, then display notes
 #   jd-read 31.14         # Display notes for ID 31.14
+#   jd-read --edit        # Browse to ID, then open in $EDITOR
 #   jd-read 31.14 --edit  # Open notes in $EDITOR (interactive only)
 #   jd-read 31.14 --porcelain  # Full path output (for agents)
 
@@ -38,14 +40,26 @@ set -- "${args[@]}"
 
 # --- Main ---
 
-if [[ $# -ne 1 ]]; then
+# No arguments: interactive browse (if TTY available)
+if [[ $# -eq 0 ]]; then
+    if jd_is_interactive; then
+        id=$(jd_browse_to_id) || exit 1
+    else
+        echo "Usage: jd-read <ID> [--edit]" >&2
+        echo "  jd-read               # Browse to ID interactively" >&2
+        echo "  jd-read 31.14         # Display notes" >&2
+        echo "  jd-read 31.14 --edit  # Open in \$EDITOR" >&2
+        exit 1
+    fi
+elif [[ $# -eq 1 ]]; then
+    id="$1"
+else
     echo "Usage: jd-read <ID> [--edit]" >&2
+    echo "  jd-read               # Browse to ID interactively" >&2
     echo "  jd-read 31.14         # Display notes" >&2
     echo "  jd-read 31.14 --edit  # Open in \$EDITOR" >&2
     exit 1
 fi
-
-id="$1"
 
 # Validate ID format
 if [[ ! "$id" =~ ^[0-9][0-9]\.[0-9]+$ ]]; then

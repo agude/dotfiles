@@ -97,8 +97,8 @@ These scripts help with common operations:
 | `jd-validate <filename>` | Check if filename follows conventions |
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
-| `jd-note [ID] [text]` | Add a timestamped note (ID picker if none given) |
-| `jd-read <ID> [--edit]` | Display notes for an ID, or edit them interactively |
+| `jd-note [ID] [text]` | Add a timestamped note (browse if no ID given) |
+| `jd-read [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
@@ -106,8 +106,10 @@ Also available: `jd <query>` for navigation (in `~/bin/`).
 
 When run by a human (not an agent), these commands have interactive modes:
 
-- `jd-note` (no args) - Shows numbered menu to select an ID, then opens editor
+- `jd-note` (no args) - Hierarchical browse (Area → Category → ID), then opens editor
 - `jd-note <ID>` (without text) - Opens editor to write a note
+- `jd-read` (no args) - Hierarchical browse (Area → Category → ID), then displays notes
+- `jd-read --edit` (no args) - Hierarchical browse, then opens editor
 - `jd-read <ID> --edit` - Opens the note file for editing
 
 All properly handle TTY redirection for compatibility with any editor.
