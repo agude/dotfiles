@@ -20,14 +20,21 @@ source "${SCRIPT_DIR}/jd-lib.sh"
 jd_parse_common_args "$@"
 set -- "${JD_REMAINING_ARGS[@]}"
 
+# Validate JD_ROOT exists
+jd_validate_root || exit 1
+
 # --- Parse arguments ---
 
 force=false
+dry_run=false
 args=()
 for arg in "$@"; do
     case "$arg" in
         --force|-f)
             force=true
+            ;;
+        --dry-run|-n)
+            dry_run=true
             ;;
         *)
             args+=("$arg")
@@ -37,22 +44,24 @@ done
 set -- "${args[@]}"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
-    echo "Usage: jd-move [--force] <file> <ID> [new_name]" >&2
-    echo "  jd-move document.pdf 21.10" >&2
-    echo "  jd-move document.pdf 21.10 renamed.pdf" >&2
-    echo "  jd-move --force document.pdf 21.10  # Allow overwrite" >&2
+    echo "Usage: jd-move [--force] [--dry-run] <source> <ID> [new_name]" >&2
+    echo "  jd-move document.pdf 21.10              # Move file" >&2
+    echo "  jd-move my_folder 21.10                 # Move directory" >&2
+    echo "  jd-move document.pdf 21.10 renamed.pdf  # Rename during move" >&2
+    echo "  jd-move --force document.pdf 21.10      # Allow overwrite" >&2
+    echo "  jd-move --dry-run document.pdf 21.10    # Preview without moving" >&2
     exit 1
 fi
 
-source_file="$1"
+source_path="$1"
 target_id="$2"
-new_name="${3:-$(basename "$source_file")}"
+new_name="${3:-$(basename "$source_path")}"
 
 # --- Validate inputs ---
 
-# Check source file exists
-if [[ ! -f "$source_file" ]]; then
-    jd_error "Source file not found: ${source_file}"
+# Check source exists (file or directory)
+if [[ ! -e "$source_path" ]]; then
+    jd_error "Source not found: ${source_path}"
     exit 1
 fi
 
@@ -89,10 +98,22 @@ fi
 
 # --- Perform the move ---
 
-mv "$source_file" "$target_path"
+# Dry-run: just show what would happen
+if [[ "$dry_run" == true ]]; then
+    if [[ "$JD_PORCELAIN" == "true" ]]; then
+        echo "$target_path"
+    else
+        echo "Would move: $(basename "$source_path") -> ${target_id}"
+        echo "  From: ${source_path}"
+        echo "  To:   ${target_path}"
+    fi
+    exit 0
+fi
+
+mv "$source_path" "$target_path"
 
 if [[ "$JD_PORCELAIN" == "true" ]]; then
     echo "$target_path"
 else
-    jd_success "Moved: $(basename "$source_file") -> ${target_id}"
+    jd_success "Moved: $(basename "$source_path") -> ${target_id}"
 fi
