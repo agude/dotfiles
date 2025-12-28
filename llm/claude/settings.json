@@ -151,6 +151,7 @@
       "*"
     ]
   },
+  "model": "sonnet",
   "alwaysThinkingEnabled": true,
   "git": {
     "includeCoAuthor": false

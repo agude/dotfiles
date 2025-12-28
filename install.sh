@@ -128,25 +128,27 @@ if command -v nvim &> /dev/null; then
     nvim +PlugInstall +qall
 fi
 
-echo "› Setting up Claude Code configuration..."
+echo "› Setting up LLM tool configurations..."
 # Claude Code uses ~/.claude and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
 CLAUDE_DIR="${HOME}/.claude"
 mkdir -p "${CLAUDE_DIR}"
 
 # Symlink only the configuration files we control
-link "${CLAUDE_DIR}/settings.json" "config/claude/settings.json"
-link "${CLAUDE_DIR}/commands" "config/claude/commands"
-link "${CLAUDE_DIR}/CLAUDE.md" "config/claude/CLAUDE.md"
+link "${CLAUDE_DIR}/settings.json" "llm/claude/settings.json"
+link "${CLAUDE_DIR}/commands" "llm/claude/commands"
+link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 
-echo "› Setting up Gemini CLI configuration..."
+# Symlink shared Agent Skills (works for Claude Code + Goose)
+link "${CLAUDE_DIR}/skills" "llm/skills"
+
 # Gemini CLI uses ~/.gemini and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
 GEMINI_DIR="${HOME}/.gemini"
 mkdir -p "${GEMINI_DIR}"
 
 # Symlink only the configuration files we control
-link "${GEMINI_DIR}/settings.json" "config/gemini/settings.json"
+link "${GEMINI_DIR}/settings.json" "llm/gemini/settings.json"
 
 echo "› Setting up automated cleanup tasks..."
 if [[ "${PLATFORM}" == "linux" ]]; then

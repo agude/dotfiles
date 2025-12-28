@@ -24,7 +24,8 @@ This script:
 - Links custom scripts from `bin/` to `~/bin/`
 - Installs Vim/Neovim plugins using vim-plug
 - Links both Bash and Zsh configurations
-- Links Claude Code settings and custom commands to `~/.claude/`
+- Links LLM tool configurations (Claude Code, Gemini CLI) to `~/.claude/` and `~/.gemini/`
+- Links shared Agent Skills to `~/.claude/skills/`
 
 ## Architecture
 
@@ -115,12 +116,19 @@ All cache files use `g:VIM_CACHE_DIR` (`$XDG_CACHE_HOME/vim/`):
 - Merge strategy: fast-forward only (`merge.ff = only`)
 - Pull strategy: rebase by default
 
-### Claude Code Configuration
-- `config/claude/settings.json`: User-level settings synced across machines
-- `config/claude/commands/`: Custom slash commands (`.md` files)
+### LLM Tool Configurations
+
+All LLM tool configurations are organized under the `llm/` directory:
+
+#### Claude Code Configuration
+- `llm/claude/settings.json`: User-level settings synced across machines
+- `llm/claude/commands/`: Custom slash commands (`.md` files)
+- `llm/claude/CLAUDE.md`: Project-level context file
 - `~/.claude/` is a real directory; only specific files are symlinked:
-  - `~/.claude/settings.json` → `config/claude/settings.json`
-  - `~/.claude/commands/` → `config/claude/commands/`
+  - `~/.claude/settings.json` → `llm/claude/settings.json`
+  - `~/.claude/commands/` → `llm/claude/commands/`
+  - `~/.claude/CLAUDE.md` → `llm/claude/CLAUDE.md`
+  - `~/.claude/skills/` → `llm/skills/` (shared Agent Skills)
 - Runtime files (history, debug, session-env, etc.) stay in `~/.claude/` and
   are not tracked
 
@@ -129,10 +137,10 @@ and hardcodes `~/.claude/`. When Anthropic adds XDG support, this can be
 refactored to use `$XDG_CONFIG_HOME`. API keys and personal preferences should
 go in `~/.claude/settings.local.json` (automatically git-ignored).
 
-### Gemini CLI Configuration
-- `config/gemini/settings.json`: User-level settings synced across machines
+#### Gemini CLI Configuration
+- `llm/gemini/settings.json`: User-level settings synced across machines
 - `~/.gemini/` is a real directory; only specific files are symlinked:
-  - `~/.gemini/settings.json` → `config/gemini/settings.json`
+  - `~/.gemini/settings.json` → `llm/gemini/settings.json`
 - Runtime files (sessions, tmp, shell_history, etc.) stay in `~/.gemini/` and
   are not tracked
 
@@ -145,6 +153,14 @@ go in `~/.claude/settings.local.json` (automatically git-ignored).
 **Note:** Gemini CLI uses `~/.gemini/` for user settings (not fully XDG
 compliant). API keys and personal preferences should go in
 `~/.gemini/settings.local.json` or environment variables (see Gemini docs).
+
+#### Agent Skills
+- `llm/skills/`: Shared [Agent Skills](https://agentskills.io) available across
+  multiple LLM tools
+- Symlinked to `~/.claude/skills/` for use by Claude Code and Goose
+- Each skill is a folder containing `SKILL.md` with optional `scripts/`,
+  `references/`, and `assets/` directories
+- See `llm/skills/README.md` for details on creating and using skills
 
 ### Custom Scripts (bin/)
 Scripts are symlinked to `~/bin/` without file extensions:
@@ -173,11 +189,42 @@ Scripts are symlinked to `~/bin/` without file extensions:
 Plugins are managed with vim-plug. The plugin installation location is
 `vim/plugged/`.
 
+### Adding Agent Skills
+
+Agent Skills are passive knowledge that LLM agents draw on automatically (unlike
+slash commands which are explicitly invoked).
+
+1. Create a new skill directory in `llm/skills/`:
+   ```bash
+   mkdir llm/skills/my-skill
+   ```
+
+2. Create `SKILL.md` with required frontmatter:
+   ```yaml
+   ---
+   name: my-skill
+   description: Clear description of what this skill does and when to use it
+   ---
+
+   # My Skill
+
+   [Markdown instructions for the agent - keep under 500 lines]
+   ```
+
+3. Optionally add supporting resources:
+   - `scripts/`: Executable code (Python, Bash, JavaScript)
+   - `references/`: Supporting docs loaded on demand
+   - `assets/`: Templates, images, data files
+
+4. Skills are automatically available after re-running `./install.sh`
+
+See `llm/skills/README.md` for the complete specification.
+
 ### Adding Claude Code Custom Commands
 
-1. Create a `.md` file in `config/claude/commands/`:
+1. Create a `.md` file in `llm/claude/commands/`:
    ```bash
-   touch config/claude/commands/mycommand.md
+   touch llm/claude/commands/mycommand.md
    ```
 
 2. Add frontmatter and prompt content:
@@ -194,7 +241,7 @@ Plugins are managed with vim-plug. The plugin installation location is
 3. Commands are automatically available after the next shell restart or
    re-running `./install.sh`
 
-See `config/claude/commands/README.md` for detailed syntax and examples.
+See `llm/claude/commands/README.md` for detailed syntax and examples.
 
 ### Local Overrides
 
