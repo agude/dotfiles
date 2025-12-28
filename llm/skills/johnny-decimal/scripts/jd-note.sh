@@ -23,6 +23,9 @@ source "${SCRIPT_DIR}/jd-lib.sh"
 jd_parse_common_args "$@"
 set -- "${JD_REMAINING_ARGS[@]}"
 
+# Validate JD_ROOT exists
+jd_validate_root || exit 1
+
 # --- Functions ---
 
 # Open editor for note entry, return the text via stdout
@@ -32,11 +35,11 @@ get_note_from_editor() {
     local tmpfile
     tmpfile=$(mktemp "${TMPDIR:-/tmp}/jd-note.XXXXXX.md")
 
-    # Pre-populate with a helpful template
+    # Pre-populate with a helpful template (4 lines: header, blank, comment, blank)
     {
         echo "# Note for ${id} ${id_name}"
         echo ""
-        echo "<!-- Write your note below. Lines starting with # or <!-- are ignored. -->"
+        echo "<!-- Write your note below. Delete this comment when done. -->"
         echo ""
     } > "$tmpfile"
 
@@ -48,9 +51,12 @@ get_note_from_editor() {
         return 1
     }
 
-    # Extract content (skip header/comment lines, trim whitespace)
+    # Extract content:
+    # - Skip the first 4 lines (template header)
+    # - Remove HTML comments (but keep markdown headers!)
+    # - Trim leading/trailing blank lines
     local content
-    content=$(grep -v '^#' "$tmpfile" | grep -v '^<!--' | sed '/^[[:space:]]*$/d')
+    content=$(tail -n +5 "$tmpfile" | grep -v '^<!--.*-->$' | sed '/./,$!d' | sed ':a;/^[[:space:]]*$/{ $d; N; ba; }')
 
     rm -f "$tmpfile"
 
@@ -127,7 +133,11 @@ if [[ ! -f "$note_file" ]]; then
         echo "$note_text"
         echo ""
     } > "$note_file"
-    jd_success "Created new notes file: ${id}.md"
+    if [[ "$JD_PORCELAIN" == "true" ]]; then
+        echo "$note_file"
+    else
+        jd_success "Created new notes file: ${id}.md"
+    fi
 else
     # File exists - check if today's date header is already there
     if grep -q "^## ${today}$" "$note_file"; then
@@ -136,7 +146,6 @@ else
             echo "$note_text"
             echo ""
         } >> "$note_file"
-        jd_success "Added note to ${id}.md"
     else
         # No header for today - add new date section
         {
@@ -145,6 +154,10 @@ else
             echo "$note_text"
             echo ""
         } >> "$note_file"
+    fi
+    if [[ "$JD_PORCELAIN" == "true" ]]; then
+        echo "$note_file"
+    else
         jd_success "Added note to ${id}.md"
     fi
 fi
