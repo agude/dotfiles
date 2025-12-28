@@ -97,19 +97,20 @@ These scripts help with common operations:
 | `jd-validate <filename>` | Check if filename follows conventions |
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
-| `jd-note <ID> [text]` | Add a timestamped note to an ID's notes file |
+| `jd-note [ID] [text]` | Add a timestamped note (ID picker if none given) |
 | `jd-read <ID> [--edit]` | Display notes for an ID, or edit them interactively |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
 ### Interactive Features
 
-When run by a human (not an agent), these commands open `$EDITOR`:
+When run by a human (not an agent), these commands have interactive modes:
 
+- `jd-note` (no args) - Shows numbered menu to select an ID, then opens editor
 - `jd-note <ID>` (without text) - Opens editor to write a note
 - `jd-read <ID> --edit` - Opens the note file for editing
 
-Both properly handle TTY redirection for compatibility with any editor.
+All properly handle TTY redirection for compatibility with any editor.
 
 ## Agent Usage (--porcelain)
 
