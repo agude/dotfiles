@@ -12,7 +12,8 @@
 set -euo pipefail
 
 # --- Load shared library ---
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve symlink to find actual script location
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/jd-lib.sh"
 

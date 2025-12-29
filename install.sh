@@ -142,9 +142,16 @@ link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 # Symlink shared Agent Skills (works for Claude Code + Goose)
 link "${CLAUDE_DIR}/skills" "llm/skills"
 
-# Expose skill scripts to user via ~/bin subdirectories
+# Expose Johnny Decimal scripts without .sh extension
 # (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
-link "${HOME}/bin/johnny-decimal" "llm/skills/johnny-decimal/scripts"
+mkdir -p "${HOME}/bin/johnny-decimal"
+for script in "$DOTFILES_DIR/llm/skills/johnny-decimal/scripts/"*.sh; do
+    script_basename=$(basename "$script")
+    # Skip the library file - it's not meant to be run directly
+    [[ "$script_basename" == "jd-lib.sh" ]] && continue
+    script_name="${script_basename%.sh}"
+    link "${HOME}/bin/johnny-decimal/${script_name}" "llm/skills/johnny-decimal/scripts/${script_basename}"
+done
 
 # Gemini CLI uses ~/.gemini and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
