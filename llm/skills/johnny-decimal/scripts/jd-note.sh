@@ -36,11 +36,11 @@ get_note_from_editor() {
     local tmpfile
     tmpfile=$(mktemp "${TMPDIR:-/tmp}/jd-note.XXXXXX.md")
 
-    # Pre-populate with a helpful template (4 lines: header, blank, comment, blank)
+    # Pre-populate with a helpful template (header and comment lines will be auto-removed)
     {
         echo "# Note for ${id} ${id_name}"
         echo ""
-        echo "<!-- Write your note below. Delete this comment when done. -->"
+        echo "<!-- Write your note below (this template will be automatically removed). -->"
         echo ""
     } > "$tmpfile"
 
@@ -53,11 +53,11 @@ get_note_from_editor() {
     }
 
     # Extract content:
-    # - Skip the first 4 lines (template header)
+    # - Remove template header line (# Note for ...)
     # - Remove HTML comments (but keep markdown headers!)
     # - Trim leading/trailing blank lines
     local content
-    content=$(tail -n +5 "$tmpfile" | grep -v '^<!--.*-->$' | sed '/./,$!d' | sed ':a;/^[[:space:]]*$/{ $d; N; ba; }')
+    content=$(grep -v '^# Note for ' "$tmpfile" | grep -v '^<!--.*-->$' | sed '/./,$!d' | sed ':a;/^[[:space:]]*$/{ $d; N; ba; }')
 
     rm -f "$tmpfile"
 
@@ -142,14 +142,16 @@ if [[ ! -f "$note_file" ]]; then
 else
     # File exists - check if today's date header is already there
     if grep -q "^## ${today}$" "$note_file"; then
-        # Today's header exists - append note under it
+        # Today's header exists - append note under it (with blank line separator)
         {
+            echo ""
             echo "$note_text"
             echo ""
         } >> "$note_file"
     else
         # No header for today - add new date section
         {
+            echo ""
             echo "## ${today}"
             echo ""
             echo "$note_text"
