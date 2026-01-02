@@ -94,6 +94,7 @@ These scripts help with common operations:
 | Script | Purpose |
 |--------|---------|
 | `jd-list [ID]` | List contents of an area, category, or ID |
+| `jd-tree [-L depth] [ID]` | Show directory structure using tree |
 | `jd-validate <filename>` | Check if filename follows conventions |
 | `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
 | `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
@@ -120,6 +121,7 @@ All scripts support a `--porcelain` flag for machine-readable output:
 
 ```bash
 jd-list 21 --porcelain                # Full paths, no colors
+jd-tree -L3 --porcelain               # Full structure, no colors
 jd-mkdir 21 "Name" --porcelain        # Outputs created path
 jd-move file.pdf 21.10 --porcelain    # Outputs destination path
 jd-note 21.10 "text" --porcelain      # Adds note (text required)
