@@ -126,6 +126,25 @@ task.py done      # Current in_progress task
 task.py done 1    # Specific task
 ```
 
+### Add Note
+
+```bash
+task.py note 1 "Discovered we need to handle edge case X"
+task.py note 1.2 "This was harder than expected because Y"
+```
+
+Attach learnings, context, or decisions to a task. Notes are timestamped and
+preserved for future sessions.
+
+### View All Notes
+
+```bash
+task.py notes
+```
+
+Returns all notes chronologically across all tasks - a project journal showing
+what you learned over time. Useful when resuming after days away.
+
 ## Dependencies
 
 Tasks can depend on other tasks. Dependencies are soft-blocking:
@@ -157,6 +176,7 @@ Output:
 
 ## In Progress
 - **1** Implement feature
+  > Discovered we need auth middleware first
   - **1.1** Write tests
 
 ## Pending
@@ -199,11 +219,14 @@ Output:
 ## Typical Workflow
 
 1. **Starting a session**: Run `task.py next` to see what to work on
-2. **Beginning work**: Run `task.py start <id>` on the task
-3. **Breaking down work**: Add subtasks with `--parent`
-4. **Completing**: Run `task.py done` when finished
-5. **Repeat**: Run `task.py next` for the next task
+2. **Resuming after time away**: Run `task.py notes` to review learnings
+3. **Beginning work**: Run `task.py start <id>` on the task
+4. **Breaking down work**: Add subtasks with `--parent`
+5. **Capturing learnings**: Run `task.py note <id> "text"` when you discover something
+6. **Completing**: Run `task.py done` when finished
+7. **Repeat**: Run `task.py next` for the next task
 
-## Schema Reference
+## References
 
-See `references/json-schema.md` for the complete tasks.json schema.
+- `references/project-breakdown.md` - How to decompose projects into atomic tasks
+- `references/json-schema.md` - The tasks.json data format

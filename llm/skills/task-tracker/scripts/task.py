@@ -446,6 +446,61 @@ def cmd_done(args: argparse.Namespace) -> None:
     output_success({"task": task, "id": display_id})
 
 
+def cmd_note(args: argparse.Namespace) -> None:
+    """Add a note to a task."""
+    path, data = require_tasks_file()
+
+    task = resolve_id(data, args.id)
+    if not task:
+        output_error(f"Task not found: {args.id}")
+
+    if "notes" not in task:
+        task["notes"] = []
+
+    note = {
+        "text": args.text,
+        "created_at": now_iso(),
+    }
+    task["notes"].append(note)
+    task["updated_at"] = now_iso()
+    save_tasks(path, data)
+
+    output_success({
+        "task_id": get_task_display_id(data, task),
+        "note": note,
+        "note_count": len(task["notes"]),
+    })
+
+
+def cmd_notes(args: argparse.Namespace) -> None:
+    """List all notes chronologically."""
+    path, data = require_tasks_file()
+
+    all_notes = []
+
+    for task in data["tasks"]:
+        task_id = str(task["number"])
+        for note in task.get("notes", []):
+            all_notes.append({
+                "task_id": task_id,
+                "task_title": task["title"],
+                **note,
+            })
+        for subtask in task.get("subtasks", []):
+            subtask_id = f"{task['number']}.{subtask['number']}"
+            for note in subtask.get("notes", []):
+                all_notes.append({
+                    "task_id": subtask_id,
+                    "task_title": subtask["title"],
+                    **note,
+                })
+
+    # Sort by created_at
+    all_notes.sort(key=lambda n: n["created_at"])
+
+    output_success({"notes": all_notes, "count": len(all_notes)})
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Task tracker for LLM context preservation",
@@ -502,6 +557,14 @@ def main():
         "id", nargs="?", help="Task ID (default: current in_progress)"
     )
 
+    # note
+    note_parser = subparsers.add_parser("note", help="Add a note to a task")
+    note_parser.add_argument("id", help="Task ID")
+    note_parser.add_argument("text", help="Note text")
+
+    # notes
+    subparsers.add_parser("notes", help="List all notes chronologically")
+
     args = parser.parse_args()
 
     commands = {
@@ -514,6 +577,8 @@ def main():
         "next": cmd_next,
         "start": cmd_start,
         "done": cmd_done,
+        "note": cmd_note,
+        "notes": cmd_notes,
     }
 
     commands[args.command](args)

@@ -55,6 +55,14 @@ def format_deps(task: dict, all_tasks: list) -> str:
     return ""
 
 
+def render_notes(notes: list, prefix: str = "") -> list[str]:
+    """Render notes for a task."""
+    lines = []
+    for note in notes:
+        lines.append(f"{prefix}  > {note['text']}")
+    return lines
+
+
 def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
     """Render a single task to markdown lines."""
     lines = []
@@ -70,6 +78,10 @@ def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
     else:
         lines.append(f"{prefix}- **{num}** {title}{deps}")
 
+    # Render task notes
+    if task.get("notes"):
+        lines.extend(render_notes(task["notes"], prefix))
+
     # Render subtasks indented
     for subtask in task.get("subtasks", []):
         sub_num = f"{num}.{subtask['number']}"
@@ -82,6 +94,10 @@ def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
             lines.append(f"{prefix}  - [~] **{sub_num}** ~~{sub_title}~~{sub_deps}")
         else:
             lines.append(f"{prefix}  - **{sub_num}** {sub_title}{sub_deps}")
+
+        # Render subtask notes
+        if subtask.get("notes"):
+            lines.extend(render_notes(subtask["notes"], prefix + "  "))
 
     return lines
 

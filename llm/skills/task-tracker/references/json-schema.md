@@ -44,9 +44,24 @@ Complete schema for `.claude/tasks.json`.
 | description | string | no | Longer context or details |
 | status | enum | yes | One of: pending, in_progress, complete, wont_do |
 | dependencies | array | no | IDs of tasks that must complete first |
+| notes | array | no | List of note objects (learnings, context) |
 | created_at | ISO8601 | yes | Task creation timestamp |
 | updated_at | ISO8601 | yes | Last modification timestamp |
 | subtasks | array | no | List of subtask objects (top-level tasks only) |
+
+## Note Object
+
+```json
+{
+  "text": "Discovered we need to handle edge case X",
+  "created_at": "2026-01-07T10:30:00+00:00"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| text | string | yes | The note content |
+| created_at | ISO8601 | yes | When the note was added |
 
 ## Subtask Object
 
@@ -90,6 +105,9 @@ Commands accept multiple ID formats:
       "description": "Add login/logout functionality",
       "status": "in_progress",
       "dependencies": [],
+      "notes": [
+        {"text": "Need to support OAuth in addition to password", "created_at": "2026-01-06T10:30:00+00:00"}
+      ],
       "created_at": "2026-01-06T10:00:00+00:00",
       "updated_at": "2026-01-06T11:00:00+00:00",
       "subtasks": [
