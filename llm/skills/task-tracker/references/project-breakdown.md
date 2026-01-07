@@ -42,6 +42,50 @@ If you went for coffee after completing a task, could someone else:
 
 If yes, the task is well-scoped.
 
+## Planning Fields
+
+When creating tasks, capture planning context to help future sessions:
+
+### Approach
+
+How you plan to implement. Be specific enough that you (or another agent) can
+follow the plan later without re-researching:
+
+```bash
+# Bad - too vague
+--approach "Add caching"
+
+# Good - actionable
+--approach "Use Redis for session cache, 1hr TTL, invalidate on logout"
+```
+
+### Acceptance Criteria
+
+What conditions must be true when the task is done. Think "how will I verify
+this works?" before starting:
+
+```bash
+--criteria "Login returns JWT" "Invalid creds return 401" "Token expires in 24h"
+```
+
+### Relevant Files
+
+Which files are involved. Saves time finding them again:
+
+```bash
+--files src/routes/auth.ts src/middleware/jwt.ts tests/auth.test.ts
+```
+
+### Example: Full Task with Planning
+
+```bash
+task.py add "Implement session caching" \
+  --description "Speed up authenticated requests by caching sessions" \
+  --approach "Use Redis with 1hr TTL, key by session ID, invalidate on logout" \
+  --criteria "Cache hit rate > 80%" "Auth latency < 50ms" "Sessions invalidate on logout" \
+  --files src/middleware/auth.ts src/services/redis.ts
+```
+
 ## Common Patterns
 
 ### Feature Implementation

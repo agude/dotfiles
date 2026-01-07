@@ -63,6 +63,21 @@ def render_notes(notes: list, prefix: str = "") -> list[str]:
     return lines
 
 
+def render_planning_fields(task: dict, prefix: str = "") -> list[str]:
+    """Render approach, acceptance_criteria, and relevant_files."""
+    lines = []
+    if task.get("approach"):
+        lines.append(f"{prefix}  _Approach: {task['approach']}_")
+    if task.get("acceptance_criteria"):
+        lines.append(f"{prefix}  _Done when:_")
+        for criterion in task["acceptance_criteria"]:
+            lines.append(f"{prefix}    - {criterion}")
+    if task.get("relevant_files"):
+        files = ", ".join(f"`{f}`" for f in task["relevant_files"])
+        lines.append(f"{prefix}  _Files: {files}_")
+    return lines
+
+
 def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
     """Render a single task to markdown lines."""
     lines = []
@@ -77,6 +92,9 @@ def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
         lines.append(f"{prefix}- [~] **{num}** ~~{title}~~{deps}")
     else:
         lines.append(f"{prefix}- **{num}** {title}{deps}")
+
+    # Render planning fields (approach, criteria, files)
+    lines.extend(render_planning_fields(task, prefix))
 
     # Render task notes
     if task.get("notes"):
@@ -94,6 +112,9 @@ def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
             lines.append(f"{prefix}  - [~] **{sub_num}** ~~{sub_title}~~{sub_deps}")
         else:
             lines.append(f"{prefix}  - **{sub_num}** {sub_title}{sub_deps}")
+
+        # Render subtask planning fields
+        lines.extend(render_planning_fields(subtask, prefix + "  "))
 
         # Render subtask notes
         if subtask.get("notes"):

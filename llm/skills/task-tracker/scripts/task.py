@@ -223,6 +223,12 @@ def cmd_add(args: argparse.Namespace) -> None:
 
     if args.description:
         task["description"] = args.description
+    if args.approach:
+        task["approach"] = args.approach
+    if args.criteria:
+        task["acceptance_criteria"] = args.criteria
+    if args.files:
+        task["relevant_files"] = args.files
     if args.deps:
         # Resolve dependency IDs
         dep_ids = []
@@ -289,6 +295,12 @@ def cmd_update(args: argparse.Namespace) -> None:
         task["title"] = args.title
     if args.description:
         task["description"] = args.description
+    if args.approach:
+        task["approach"] = args.approach
+    if args.criteria is not None:
+        task["acceptance_criteria"] = args.criteria
+    if args.files is not None:
+        task["relevant_files"] = args.files
     if args.status:
         if args.status not in VALID_STATUSES:
             output_error(
@@ -516,6 +528,9 @@ def main():
     add_parser.add_argument("title", help="Task title")
     add_parser.add_argument("--parent", "-p", help="Parent task ID (for subtasks)")
     add_parser.add_argument("--description", "-d", help="Task description")
+    add_parser.add_argument("--approach", "-a", help="Implementation approach")
+    add_parser.add_argument("--criteria", "-c", nargs="*", help="Acceptance criteria")
+    add_parser.add_argument("--files", "-f", nargs="*", help="Relevant file paths")
     add_parser.add_argument("--deps", nargs="*", help="Dependency task IDs")
 
     # remove
@@ -527,6 +542,13 @@ def main():
     update_parser.add_argument("id", help="Task ID")
     update_parser.add_argument("--title", "-t", help="New title")
     update_parser.add_argument("--description", "-d", help="New description")
+    update_parser.add_argument("--approach", "-a", help="Implementation approach")
+    update_parser.add_argument(
+        "--criteria", "-c", nargs="*", help="Acceptance criteria (replaces existing)"
+    )
+    update_parser.add_argument(
+        "--files", "-f", nargs="*", help="Relevant file paths (replaces existing)"
+    )
     update_parser.add_argument(
         "--status", "-s", choices=VALID_STATUSES, help="New status"
     )

@@ -30,6 +30,9 @@ Complete schema for `.claude/tasks.json`.
   "description": "Optional longer description",
   "status": "in_progress",
   "dependencies": ["b4e3c2d8"],
+  "approach": "Use existing auth middleware, add JWT validation",
+  "acceptance_criteria": ["Login endpoint returns JWT", "Protected routes reject invalid tokens"],
+  "relevant_files": ["src/middleware/auth.ts", "src/routes/login.ts"],
   "created_at": "2026-01-06T10:30:00+00:00",
   "updated_at": "2026-01-06T11:45:00+00:00",
   "subtasks": [ ... ]
@@ -44,6 +47,9 @@ Complete schema for `.claude/tasks.json`.
 | description | string | no | Longer context or details |
 | status | enum | yes | One of: pending, in_progress, complete, wont_do |
 | dependencies | array | no | IDs of tasks that must complete first |
+| approach | string | no | Planned implementation approach |
+| acceptance_criteria | array | no | List of conditions that define "done" |
+| relevant_files | array | no | File paths relevant to this task |
 | notes | array | no | List of note objects (learnings, context) |
 | created_at | ISO8601 | yes | Task creation timestamp |
 | updated_at | ISO8601 | yes | Last modification timestamp |
@@ -105,6 +111,17 @@ Commands accept multiple ID formats:
       "description": "Add login/logout functionality",
       "status": "in_progress",
       "dependencies": [],
+      "approach": "Use bcrypt for password hashing, JWT for session tokens",
+      "acceptance_criteria": [
+        "Users can log in with email/password",
+        "Invalid credentials return 401",
+        "JWT token expires after 24 hours"
+      ],
+      "relevant_files": [
+        "src/routes/auth.ts",
+        "src/middleware/authenticate.ts",
+        "src/models/user.ts"
+      ],
       "notes": [
         {"text": "Need to support OAuth in addition to password", "created_at": "2026-01-06T10:30:00+00:00"}
       ],
@@ -124,6 +141,8 @@ Commands accept multiple ID formats:
           "number": 2,
           "title": "Add session management",
           "status": "pending",
+          "approach": "Store JWT in httpOnly cookie",
+          "acceptance_criteria": ["Cookie set on login", "Cookie cleared on logout"],
           "created_at": "2026-01-06T10:05:00+00:00",
           "updated_at": "2026-01-06T10:05:00+00:00"
         }
@@ -135,6 +154,7 @@ Commands accept multiple ID formats:
       "title": "Deploy to staging",
       "status": "pending",
       "dependencies": ["a3f2b1c9"],
+      "acceptance_criteria": ["App running on staging URL", "Health check passes"],
       "created_at": "2026-01-06T10:10:00+00:00",
       "updated_at": "2026-01-06T10:10:00+00:00",
       "subtasks": []

@@ -45,6 +45,18 @@ Task 2: Deploy
 | `complete` | Done |
 | `wont_do` | Cancelled/skipped |
 
+### Planning Fields
+
+Optional fields for AI agent context preservation:
+
+| Field | Purpose |
+|-------|---------|
+| `approach` | How to implement (the plan) |
+| `acceptance_criteria` | What "done" means (list) |
+| `relevant_files` | Where to look (list of paths) |
+
+These help an agent resume work across sessions without re-discovering context.
+
 ## Commands
 
 All output is JSON. Scripts are in `scripts/` directory.
@@ -64,7 +76,13 @@ task.py add "Task title"
 task.py add "Subtask title" --parent 1
 task.py add "Task with deps" --deps 1 2
 task.py add "With description" --description "Detailed info"
+task.py add "With approach" --approach "Use existing auth middleware"
+task.py add "With criteria" --criteria "Tests pass" "Docs updated"
+task.py add "With files" --files src/auth.ts src/middleware.ts
 ```
+
+Planning fields (`--approach`, `--criteria`, `--files`) help preserve context for
+future sessions - the agent knows the plan, what "done" means, and where to look.
 
 ### Remove Task
 
@@ -81,6 +99,9 @@ task.py update 1 --title "New title"
 task.py update 1 --status complete
 task.py update 1 --deps 2 3
 task.py update 1 --description "New description"
+task.py update 1 --approach "Changed to use Redis instead"
+task.py update 1 --criteria "Cache hits > 90%" "Latency < 100ms"
+task.py update 1 --files src/cache.ts src/redis.ts
 ```
 
 ### List Tasks
