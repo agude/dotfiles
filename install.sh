@@ -136,7 +136,20 @@ mkdir -p "${CLAUDE_DIR}"
 
 # Symlink only the configuration files we control
 link "${CLAUDE_DIR}/settings.json" "llm/claude/settings.json"
-link "${CLAUDE_DIR}/commands" "llm/claude/commands"
+# Symlink custom commands individually (excludes README.md)
+# Using individual symlinks allows external commands to coexist.
+COMMANDS_DIR="${CLAUDE_DIR}/commands"
+# Remove if it's currently a symlink (old installation method)
+[[ -L "$COMMANDS_DIR" ]] && rm "$COMMANDS_DIR"
+mkdir -p "$COMMANDS_DIR"
+for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
+    [ -f "$cmd_file" ] || continue
+    cmd_name=$(basename "$cmd_file")
+    # Skip README files
+    [[ "$cmd_name" == "README.md" ]] && continue
+    link "${COMMANDS_DIR}/${cmd_name}" "llm/claude/commands/${cmd_name}"
+done
+
 link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 
 # Symlink shared Agent Skills individually (allows external skills to coexist)
