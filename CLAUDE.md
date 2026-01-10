@@ -128,7 +128,9 @@ All LLM tool configurations are organized under the `llm/` directory:
   - `~/.claude/settings.json` → `llm/claude/settings.json`
   - `~/.claude/commands/` → `llm/claude/commands/`
   - `~/.claude/CLAUDE.md` → `llm/claude/CLAUDE.md`
-  - `~/.claude/skills/` → `llm/skills/` (shared Agent Skills)
+  - `~/.claude/skills/` is a real directory; each skill is symlinked individually
+    (e.g., `~/.claude/skills/johnny-decimal/` → `llm/skills/johnny-decimal/`)
+  - This allows external skills (work-specific, machine-local) to coexist
 - Runtime files (history, debug, session-env, etc.) stay in `~/.claude/` and
   are not tracked
 

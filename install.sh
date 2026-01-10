@@ -139,8 +139,18 @@ link "${CLAUDE_DIR}/settings.json" "llm/claude/settings.json"
 link "${CLAUDE_DIR}/commands" "llm/claude/commands"
 link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 
-# Symlink shared Agent Skills (works for Claude Code + Goose)
-link "${CLAUDE_DIR}/skills" "llm/skills"
+# Symlink shared Agent Skills individually (allows external skills to coexist)
+# Using individual symlinks instead of a directory symlink lets you add
+# work-specific or machine-local skills alongside the dotfiles-managed ones.
+SKILLS_DIR="${CLAUDE_DIR}/skills"
+# Remove if it's currently a symlink (old installation method)
+[[ -L "$SKILLS_DIR" ]] && rm "$SKILLS_DIR"
+mkdir -p "$SKILLS_DIR"
+for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
+    [ -d "$skill_dir" ] || continue
+    skill_name=$(basename "$skill_dir")
+    link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+done
 
 # Expose Johnny Decimal scripts without .sh extension
 # (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
