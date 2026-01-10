@@ -40,6 +40,20 @@ link() {
     ln -s "$DOTFILES_DIR/$source" "$target"
 }
 
+# Create a real directory, removing any existing symlink first.
+# This is important when transitioning from "symlink the whole directory"
+# to "symlink individual files inside a real directory". Without this guard,
+# mkdir -p silently succeeds on symlinks, and subsequent file creation
+# ends up in the symlink target (often back in this repo).
+ensure_real_dir() {
+    local dir="$1"
+    if [[ -L "$dir" ]]; then
+        echo "  -> Removing symlink to create real directory: $dir"
+        rm "$dir"
+    fi
+    mkdir -p "$dir"
+}
+
 # --- Main Installation ---
 
 echo "› Linking shell configurations..."
@@ -62,7 +76,7 @@ link "${HOME}/.terminfo" "terminfo"
 link "${HOME}/.editorconfig" "editorconfig/editorconfig"
 
 echo "› Setting up executable scripts in ~/bin..."
-mkdir -p "${HOME}/bin"
+ensure_real_dir "${HOME}/bin"
 # Loop through each file in the dotfiles/bin directory.
 for full_path in "$DOTFILES_DIR/bin/"*; do
     script_file=${full_path##*/}
@@ -132,16 +146,14 @@ echo "› Setting up LLM tool configurations..."
 # Claude Code uses ~/.claude and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
 CLAUDE_DIR="${HOME}/.claude"
-mkdir -p "${CLAUDE_DIR}"
+ensure_real_dir "${CLAUDE_DIR}"
 
 # Symlink only the configuration files we control
 link "${CLAUDE_DIR}/settings.json" "llm/claude/settings.json"
 # Symlink custom commands individually (excludes README.md)
 # Using individual symlinks allows external commands to coexist.
 COMMANDS_DIR="${CLAUDE_DIR}/commands"
-# Remove if it's currently a symlink (old installation method)
-[[ -L "$COMMANDS_DIR" ]] && rm "$COMMANDS_DIR"
-mkdir -p "$COMMANDS_DIR"
+ensure_real_dir "$COMMANDS_DIR"
 for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
     [ -f "$cmd_file" ] || continue
     cmd_name=$(basename "$cmd_file")
@@ -156,9 +168,7 @@ link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
 # Using individual symlinks instead of a directory symlink lets you add
 # work-specific or machine-local skills alongside the dotfiles-managed ones.
 SKILLS_DIR="${CLAUDE_DIR}/skills"
-# Remove if it's currently a symlink (old installation method)
-[[ -L "$SKILLS_DIR" ]] && rm "$SKILLS_DIR"
-mkdir -p "$SKILLS_DIR"
+ensure_real_dir "$SKILLS_DIR"
 for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
     [ -d "$skill_dir" ] || continue
     skill_name=$(basename "$skill_dir")
@@ -167,7 +177,7 @@ done
 
 # Expose Johnny Decimal scripts without .sh extension
 # (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
-mkdir -p "${HOME}/bin/johnny-decimal"
+ensure_real_dir "${HOME}/bin/johnny-decimal"
 for script in "$DOTFILES_DIR/llm/skills/johnny-decimal/scripts/"*.sh; do
     script_basename=$(basename "$script")
     # Skip the library file - it's not meant to be run directly
@@ -179,7 +189,7 @@ done
 # Gemini CLI uses ~/.gemini and stores runtime files there.
 # We create a real directory and symlink only the files we manage.
 GEMINI_DIR="${HOME}/.gemini"
-mkdir -p "${GEMINI_DIR}"
+ensure_real_dir "${GEMINI_DIR}"
 
 # Symlink only the configuration files we control
 link "${GEMINI_DIR}/settings.json" "llm/gemini/settings.json"
@@ -192,11 +202,7 @@ if [[ "${PLATFORM}" == "linux" ]]; then
         SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
         SOURCE_SERVICE_FILE="${DOTFILES_DIR}/config/systemd/user/empty-downloads.service"
 
-        # Fix bad state: if the target directory is a symlink, remove it.
-        if [[ -L "${SYSTEMD_USER_DIR}" ]]; then
-            rm -f "${SYSTEMD_USER_DIR}"
-        fi
-        mkdir -p "${SYSTEMD_USER_DIR}"
+        ensure_real_dir "${SYSTEMD_USER_DIR}"
 
         # Systemd requires a real file, not a symlink, for 'enable'.
         echo "  -> Copying systemd service file (required by systemctl)..."
@@ -214,11 +220,7 @@ elif [[ "${PLATFORM}" == "mac" ]]; then
         LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
         PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
 
-        # Fix bad state: if the target directory is a symlink, remove it.
-        if [[ -L "${LAUNCHD_DIR}" ]]; then
-            rm -f "${LAUNCHD_DIR}"
-        fi
-        mkdir -p "${LAUNCHD_DIR}"
+        ensure_real_dir "${LAUNCHD_DIR}"
 
         # Link the plist file into the real directory.
         link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
