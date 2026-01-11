@@ -151,7 +151,7 @@
       "*"
     ]
   },
-  "model": "sonnet",
+  "model": "opus",
   "alwaysThinkingEnabled": true,
   "git": {
     "includeCoAuthor": false
