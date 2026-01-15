@@ -91,43 +91,47 @@ task.py add "Implement session caching" \
 ### Feature Implementation
 
 ```
-1. Implement user login
-   1.1 Add login API endpoint
-   1.2 Create login form component
-   1.3 Wire form to API
-   1.4 Add error handling
-   1.5 Write tests
+01-implement-user-login/
+  00-index.md           # Parent: Implement user login
+  01-add-login-api.md   # Add login API endpoint
+  02-create-form.md     # Create login form component
+  03-wire-form.md       # Wire form to API
+  04-error-handling.md  # Add error handling
+  05-write-tests.md     # Write tests
 ```
 
 ### Bug Fix
 
 ```
-1. Fix checkout race condition
-   1.1 Reproduce and document the bug
-   1.2 Write failing test
-   1.3 Implement fix
-   1.4 Verify test passes
+01-fix-checkout-race/
+  00-index.md           # Parent: Fix checkout race condition
+  01-reproduce-bug.md   # Reproduce and document the bug
+  02-write-test.md      # Write failing test
+  03-implement-fix.md   # Implement fix
+  04-verify-test.md     # Verify test passes
 ```
 
 ### Refactoring
 
 ```
-1. Extract payment processing module
-   1.1 Identify all payment-related code
-   1.2 Create new module structure
-   1.3 Move functions (no behavior change)
-   1.4 Update imports
-   1.5 Verify tests still pass
+01-extract-payments/
+  00-index.md           # Parent: Extract payment processing module
+  01-identify-code.md   # Identify all payment-related code
+  02-create-module.md   # Create new module structure
+  03-move-functions.md  # Move functions (no behavior change)
+  04-update-imports.md  # Update imports
+  05-verify-tests.md    # Verify tests still pass
 ```
 
 ### Research/Spike
 
 ```
-1. Evaluate caching strategies
-   1.1 Document current performance baseline
-   1.2 Prototype Redis approach
-   1.3 Prototype in-memory approach
-   1.4 Compare and recommend
+01-evaluate-caching/
+  00-index.md           # Parent: Evaluate caching strategies
+  01-baseline.md        # Document current performance baseline
+  02-redis-proto.md     # Prototype Redis approach
+  03-memory-proto.md    # Prototype in-memory approach
+  04-recommend.md       # Compare and recommend
 ```
 
 ## Task Sizing Heuristics
@@ -155,14 +159,15 @@ task.py add "Implement session caching" \
 
 Use dependencies to encode order:
 
-```
-1. Create database schema
-2. Implement data access layer     (depends on 1)
-3. Build API endpoints             (depends on 2)
-4. Create UI components            (depends on 3)
+```bash
+task.py add "Create database schema"
+task.py add "Implement data access layer" --deps 01-create-database-schema
+task.py add "Build API endpoints" --deps 02-implement-data-access-layer
+task.py add "Create UI components" --deps 03-build-api-endpoints
 ```
 
-But prefer independent tasks when possible - they can be worked in parallel and reduce blocking.
+But prefer independent tasks when possible - they can be worked in parallel and
+reduce blocking.
 
 ## When Starting a New Project
 
@@ -175,86 +180,72 @@ But prefer independent tasks when possible - they can be worked in parallel and 
 
 Tasks will change. That's fine.
 
-- **Task too big?** Split it mid-work, mark original as parent
-- **Task unnecessary?** Mark as wont_do with a note
+- **Task too big?** Add subtasks with `--parent`
+- **Task unnecessary?** `task.py update <id> --status wont_do`
 - **New work discovered?** Add tasks, set dependencies
-- **Order wrong?** Update dependencies
+- **Order wrong?** Update dependencies or use `task.py move`
 
 The task list is a living document, not a contract.
 
 ## Example: Building a Newsletter Feature
 
-Two parallel workstreams with dependencies between them:
+```bash
+# Plan the backend
+task.py add "Newsletter signup backend"
+task.py add "Create subscribers table migration" --parent 01-newsletter-signup-backend
+task.py add "Add Subscriber model and validation" --parent 01-newsletter-signup-backend
+task.py add "Build POST /api/subscribe endpoint" --parent 01-newsletter-signup-backend
+task.py add "Add email verification flow" --parent 01-newsletter-signup-backend
+task.py add "Write API tests" --parent 01-newsletter-signup-backend
 
+# Plan the frontend (depends on API being ready)
+task.py add "Newsletter signup frontend" --deps 01-newsletter-signup-backend/03-build-post-apisubscribe-endpoint
+task.py add "Create EmailInput component" --parent 02-newsletter-signup-frontend
+task.py add "Build SignupForm with validation" --parent 02-newsletter-signup-frontend
+task.py add "Wire form to API endpoint" --parent 02-newsletter-signup-frontend
+task.py add "Add success/error states" --parent 02-newsletter-signup-frontend
+task.py add "Write component tests" --parent 02-newsletter-signup-frontend
 ```
-Task 1: Newsletter signup backend
-  1.1 Create subscribers table migration
-  1.2 Add Subscriber model and validation
-  1.3 Build POST /api/subscribe endpoint
-  1.4 Add email verification flow
-  1.5 Write API tests
 
-Task 2: Newsletter signup frontend        (depends on 1.3)
-  2.1 Create EmailInput component
-  2.2 Build SignupForm with validation
-  2.3 Wire form to API endpoint
-  2.4 Add success/error states
-  2.5 Write component tests
+Result:
+```
+.claude/tasks/
+  01-newsletter-signup-backend/
+    00-index.md
+    01-create-subscribers-table-migration.md
+    02-add-subscriber-model-and-validation.md
+    03-build-post-apisubscribe-endpoint.md
+    04-add-email-verification-flow.md
+    05-write-api-tests.md
+  02-newsletter-signup-frontend/
+    00-index.md
+    01-create-emailinput-component.md
+    02-build-signupform-with-validation.md
+    03-wire-form-to-api-endpoint.md
+    04-add-successerror-states.md
+    05-write-component-tests.md
 ```
 
 ### Session Walkthrough
 
 ```bash
-# Plan the work
-task.py add "Newsletter signup backend"
-task.py add "Create subscribers table migration" --parent 1
-task.py add "Add Subscriber model and validation" --parent 1
-task.py add "Build POST /api/subscribe endpoint" --parent 1
-task.py add "Add email verification flow" --parent 1
-task.py add "Write API tests" --parent 1
-
-task.py add "Newsletter signup frontend" --deps 1.3
-task.py add "Create EmailInput component" --parent 2
-task.py add "Build SignupForm with validation" --parent 2
-task.py add "Wire form to API endpoint" --parent 2
-task.py add "Add success/error states" --parent 2
-task.py add "Write component tests" --parent 2
-
-# Check the plan
-task.py list
-```
-
-Output:
-```
-Task 1: Newsletter signup backend [pending]
-  1.1 Create subscribers table migration [pending]
-  1.2 Add Subscriber model and validation [pending]
-  1.3 Build POST /api/subscribe endpoint [pending]
-  1.4 Add email verification flow [pending]
-  1.5 Write API tests [pending]
-Task 2: Newsletter signup frontend [pending] (depends on: 1.3)
-  2.1 Create EmailInput component [pending]
-  2.2 Build SignupForm with validation [pending]
-  ...
-```
-
-```bash
-# Start working - depth-first on task 1
-task.py next                    # Returns 1.1
-task.py start 1.1
+# Start working - depth-first on backend
+task.py next                              # Returns 01-newsletter-signup-backend/01-create-subscribers-table-migration
+task.py start 01-newsletter-signup-backend
+task.py start 01-newsletter-signup-backend/01-create-subscribers-table-migration
 # ... do the work ...
 task.py done
-task.py next                    # Returns 1.2
+task.py next                              # Returns 01-.../02-add-subscriber-model
 
-# After completing 1.3, task 2 becomes unblocked
-task.py done 1.3
-task.py next                    # Still returns 1.4 (depth-first)
+# After completing the API endpoint, frontend is unblocked
+task.py done 01-newsletter-signup-backend/03-build-post-apisubscribe-endpoint
+# Frontend still blocked until backend parent is done
 
-# Complete backend, frontend now available
-task.py done 1.4
-task.py done 1.5
-task.py done 1                  # Mark parent complete
-task.py next                    # Returns 2.1 (frontend unblocked)
+# Complete backend
+task.py done 01-newsletter-signup-backend/04-add-email-verification-flow
+task.py done 01-newsletter-signup-backend/05-write-api-tests
+task.py done 01-newsletter-signup-backend
+task.py next                              # Returns 02-newsletter-signup-frontend/01-...
 ```
 
 ### Why This Structure Works

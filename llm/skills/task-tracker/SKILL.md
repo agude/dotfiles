@@ -1,39 +1,85 @@
 ---
 name: task-tracker
-description: Track tasks and subtasks in .claude/tasks.json for context preservation. Use when planning multi-step work, tracking progress, or resuming interrupted sessions.
+description: Track tasks and subtasks in .claude/tasks/ for context preservation. Use when planning multi-step work, tracking progress, or resuming interrupted sessions.
 ---
 
 # Task Tracker
 
-Persist task state across LLM sessions using `.claude/tasks.json`. Helps your
-agents plan and remember what they're working on, and track progress through
+Persist task state across LLM sessions using markdown files in `.claude/tasks/`.
+Helps agents plan and remember what they're working on, and track progress through
 multi-step work.
 
 ## Quick Start
 
 ```bash
 # Initialize in current project
-./scripts/task.py init
+task.py init
 
 # Add tasks
-./scripts/task.py add "Implement user authentication"
-./scripts/task.py add "Write login tests" --parent 1
+task.py add "Implement user authentication"
+task.py add "Write login tests" --parent 01-implement-user-authentication
 
 # Work through tasks
-./scripts/task.py start 1
-./scripts/task.py done
-./scripts/task.py next
+task.py start 01-implement-user-authentication
+task.py done
+task.py next
 ```
 
-## Task Structure
+## Directory Structure
 
-Two-level hierarchy: tasks and subtasks.
+Tasks are stored as markdown files. The filesystem hierarchy represents task hierarchy:
 
 ```
-Task 1: Implement feature
-  └─ Subtask 1.1: Write tests
-  └─ Subtask 1.2: Update docs
-Task 2: Deploy
+.claude/tasks/
+  01-auth-login/
+    00-index.md                    # Parent task metadata
+    01-create-login-form.md        # Subtask (leaf)
+    02-session-management/
+      00-index.md                  # Nested parent
+      01-implement-jwt.md          # Leaf
+      02-add-refresh-tokens.md     # Leaf
+  02-deploy-staging.md             # Top-level leaf task
+```
+
+**Key rules:**
+- Leaf tasks (no children) → `.md` files
+- Parent tasks (have children) → directories with `00-index.md`
+- Adding a subtask to a leaf automatically promotes it to a directory
+- Removing the last child automatically demotes back to a file
+
+## Task File Format
+
+Each task is a markdown file with YAML frontmatter:
+
+```markdown
+---
+status: pending
+created: 2026-01-06T10:30:00+00:00
+updated: 2026-01-06T11:45:00+00:00
+deps:
+  - 01-auth-login
+approach: Use bcrypt for passwords, JWT for sessions
+criteria:
+  - Login endpoint returns JWT
+  - Invalid creds return 401
+files:
+  - src/routes/auth.ts
+  - src/middleware/jwt.ts
+---
+
+# Implement session management
+
+Optional longer description here.
+
+## Notes
+
+### 2026-01-06T10:30:00+00:00
+
+Discovered we need to handle token refresh.
+
+### 2026-01-07T14:00:00+00:00
+
+Redis cluster mode requires different client config.
 ```
 
 ### Statuses
@@ -42,6 +88,7 @@ Task 2: Deploy
 |--------|---------|
 | `pending` | Not started |
 | `in_progress` | Currently working on |
+| `blocked` | Waiting on external factor |
 | `complete` | Done |
 | `wont_do` | Cancelled/skipped |
 
@@ -52,8 +99,8 @@ Optional fields for AI agent context preservation:
 | Field | Purpose |
 |-------|---------|
 | `approach` | How to implement (the plan) |
-| `acceptance_criteria` | What "done" means (list) |
-| `relevant_files` | Where to look (list of paths) |
+| `criteria` | What "done" means (list) |
+| `files` | Where to look (list of paths) |
 
 These help an agent resume work across sessions without re-discovering context.
 
@@ -67,41 +114,40 @@ All output is JSON. Scripts are in `scripts/` directory.
 task.py init
 ```
 
-Creates `.claude/tasks.json` in current directory.
+Creates `.claude/tasks/` directory.
 
 ### Add Task
 
 ```bash
 task.py add "Task title"
-task.py add "Subtask title" --parent 1
-task.py add "Task with deps" --deps 1 2
+task.py add "Subtask title" --parent 01-parent-task
+task.py add "Task with deps" --deps 01-auth-login 02-database
 task.py add "With description" --description "Detailed info"
 task.py add "With approach" --approach "Use existing auth middleware"
 task.py add "With criteria" --criteria "Tests pass" "Docs updated"
 task.py add "With files" --files src/auth.ts src/middleware.ts
 ```
 
-Planning fields (`--approach`, `--criteria`, `--files`) help preserve context for
-future sessions - the agent knows the plan, what "done" means, and where to look.
+Adding a subtask to a leaf task automatically promotes it to a directory.
 
 ### Remove Task
 
 ```bash
-task.py remove 1      # By number
-task.py remove 1.2    # Subtask
-task.py remove a3f2   # Partial UUID
+task.py remove 01-auth-login              # Remove task
+task.py remove 01-auth-login/02-session   # Remove subtask
 ```
+
+Removing the last child of a parent automatically demotes it back to a file.
 
 ### Update Task
 
 ```bash
-task.py update 1 --title "New title"
-task.py update 1 --status complete
-task.py update 1 --deps 2 3
-task.py update 1 --description "New description"
-task.py update 1 --approach "Changed to use Redis instead"
-task.py update 1 --criteria "Cache hits > 90%" "Latency < 100ms"
-task.py update 1 --files src/cache.ts src/redis.ts
+task.py update 01-auth-login --title "New title"
+task.py update 01-auth-login --status complete
+task.py update 01-auth-login --deps 02-database
+task.py update 01-auth-login --approach "Changed to use Redis"
+task.py update 01-auth-login --criteria "Cache hits > 90%"
+task.py update 01-auth-login --files src/cache.ts
 ```
 
 ### List Tasks
@@ -115,8 +161,8 @@ task.py list --status in_progress
 ### Show Task
 
 ```bash
-task.py show 1
-task.py show 1.2
+task.py show 01-auth-login
+task.py show 01-auth-login/02-session
 ```
 
 Returns task details including dependency status.
@@ -134,24 +180,31 @@ Returns the next task to work on using depth-first logic:
 ### Start Task
 
 ```bash
-task.py start 1
-task.py start 1.2
+task.py start 01-auth-login
 ```
 
-Sets status to `in_progress`. Warns (but allows) if dependencies incomplete.
+Sets status to `in_progress` and records start time. Warns (but allows) if
+dependencies incomplete.
 
 ### Complete Task
 
 ```bash
-task.py done      # Current in_progress task
-task.py done 1    # Specific task
+task.py done                  # Current in_progress task
+task.py done 01-auth-login    # Specific task
+```
+
+### Block/Unblock Task
+
+```bash
+task.py block 01-auth-login --reason "Waiting on API spec"
+task.py unblock 01-auth-login
 ```
 
 ### Add Note
 
 ```bash
-task.py note 1 "Discovered we need to handle edge case X"
-task.py note 1.2 "This was harder than expected because Y"
+task.py note 01-auth-login "Discovered edge case X"
+task.py note 01-auth-login/02-session "Harder than expected"
 ```
 
 Attach learnings, context, or decisions to a task. Notes are timestamped and
@@ -164,31 +217,35 @@ task.py notes
 ```
 
 Returns all notes chronologically across all tasks - a project journal showing
-what you learned over time. Useful when resuming after days away.
+what you learned over time.
+
+### Move Task
+
+```bash
+task.py move 01-auth-login/03-feature --parent 02-backend
+task.py move 02-backend/01-api                             # Move to top level
+```
+
+Moves a task to a new location and updates any dependency references.
 
 ## Dependencies
 
-Tasks can depend on other tasks. Dependencies are soft-blocking:
-
-- `next` skips tasks with incomplete dependencies
-- `start` warns but allows starting with incomplete deps
+Tasks can depend on other tasks by path:
 
 ```bash
-# Task 2 depends on Task 1
-task.py add "Deploy" --deps 1
+task.py add "Deploy" --deps 01-auth-login 02-database-setup
 ```
 
-## File Location
-
-The script walks up directories to find `.claude/tasks.json` (like git finds
-`.git`). This makes it work from any subdirectory of your project.
+Dependencies are soft-blocking:
+- `next` skips tasks with incomplete dependencies
+- `start` warns but allows starting with incomplete deps
 
 ## Rendering for Humans
 
 Use `task-render.py` to generate readable markdown:
 
 ```bash
-./scripts/task-render.py
+task-render.py
 ```
 
 Output:
@@ -196,15 +253,16 @@ Output:
 # Tasks
 
 ## In Progress
-- **1** Implement feature
+- **01-auth-login** Implement feature
+  _Approach: Use JWT tokens_
   > Discovered we need auth middleware first
-  - **1.1** Write tests
+  - **01-auth-login/01-create-form** Create login form
 
 ## Pending
-- **2** Deploy _(depends on: 1)_
+- **02-deploy-staging** Deploy _(depends on: 01-auth-login)_
 
 ## Completed
-- [x] **1.2** Update docs
+- [x] **01-auth-login/02-session** Add session management
 ```
 
 ## JSON Output Format
@@ -223,7 +281,7 @@ Output:
 ```json
 {
   "ok": false,
-  "error": "Task not found: 1.3"
+  "error": "Task not found: 01-missing"
 }
 ```
 
@@ -249,5 +307,5 @@ Output:
 
 ## References
 
+- `references/markdown-format.md` - The task file format specification
 - `references/project-breakdown.md` - How to decompose projects into atomic tasks
-- `references/json-schema.md` - The tasks.json data format

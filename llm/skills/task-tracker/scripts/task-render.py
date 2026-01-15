@@ -1,172 +1,105 @@
 #!/usr/bin/env python3
 """
-Render tasks.json to human-readable markdown.
+Render tasks to human-readable markdown.
 
-Reads .claude/tasks.json (walking up directories to find it) and
-outputs a formatted markdown representation grouped by status.
+Reads .claude/tasks/ directory and outputs formatted markdown
+grouped by status.
 """
 
-import json
+from __future__ import annotations
+
 import sys
+from collections import defaultdict
 from pathlib import Path
 
-TASKS_FILE = ".claude/tasks.json"
+from task_fs import (
+    find_tasks_root,
+    walk_tasks,
+    Task,
+)
 
 
-def find_tasks_file() -> Path | None:
-    """Walk up directories to find .claude/tasks.json."""
-    current = Path.cwd()
-    while current != current.parent:
-        candidate = current / TASKS_FILE
-        if candidate.exists():
-            return candidate
-        current = current.parent
-    candidate = current / TASKS_FILE
-    if candidate.exists():
-        return candidate
-    return None
-
-
-def load_tasks(path: Path) -> dict:
-    """Load tasks from JSON file."""
-    with open(path, "r") as f:
-        return json.load(f)
-
-
-def format_deps(task: dict, all_tasks: list) -> str:
+def format_deps(task: Task) -> str:
     """Format dependency list for display."""
-    deps = task.get("dependencies", [])
-    if not deps:
+    if not task.deps:
         return ""
-
-    dep_nums = []
-    for dep_id in deps:
-        for t in all_tasks:
-            if t["id"] == dep_id:
-                dep_nums.append(str(t["number"]))
-                break
-            for st in t.get("subtasks", []):
-                if st["id"] == dep_id:
-                    dep_nums.append(f"{t['number']}.{st['number']}")
-                    break
-
-    if dep_nums:
-        return f" _(depends on: {', '.join(dep_nums)})_"
-    return ""
+    return f" _(depends on: {', '.join(task.deps)})_"
 
 
-def render_notes(notes: list, prefix: str = "") -> list[str]:
-    """Render notes for a task."""
-    lines = []
-    for note in notes:
-        lines.append(f"{prefix}  > {note['text']}")
-    return lines
-
-
-def render_planning_fields(task: dict, prefix: str = "") -> list[str]:
-    """Render approach, acceptance_criteria, and relevant_files."""
-    lines = []
-    if task.get("approach"):
-        lines.append(f"{prefix}  _Approach: {task['approach']}_")
-    if task.get("acceptance_criteria"):
-        lines.append(f"{prefix}  _Done when:_")
-        for criterion in task["acceptance_criteria"]:
-            lines.append(f"{prefix}    - {criterion}")
-    if task.get("relevant_files"):
-        files = ", ".join(f"`{f}`" for f in task["relevant_files"])
-        lines.append(f"{prefix}  _Files: {files}_")
-    return lines
-
-
-def render_task(task: dict, all_tasks: list, prefix: str = "") -> list[str]:
+def render_task_line(task_id: str, task: Task, indent: int = 0) -> list[str]:
     """Render a single task to markdown lines."""
     lines = []
-    num = task["number"]
-    title = task["title"]
-    status = task["status"]
-    deps = format_deps(task, all_tasks)
+    prefix = "  " * indent
+    deps = format_deps(task)
 
-    if status == "complete":
-        lines.append(f"{prefix}- [x] **{num}** {title}{deps}")
-    elif status == "wont_do":
-        lines.append(f"{prefix}- [~] **{num}** ~~{title}~~{deps}")
+    # Task line with checkbox based on status
+    if task.status == "complete":
+        lines.append(f"{prefix}- [x] **{task_id}** {task.title}{deps}")
+    elif task.status == "wont_do":
+        lines.append(f"{prefix}- [~] **{task_id}** ~~{task.title}~~{deps}")
+    elif task.status == "blocked":
+        reason = f" ({task.blocked_reason})" if task.blocked_reason else ""
+        lines.append(f"{prefix}- [ ] **{task_id}** {task.title} [BLOCKED]{reason}{deps}")
     else:
-        lines.append(f"{prefix}- **{num}** {title}{deps}")
+        lines.append(f"{prefix}- **{task_id}** {task.title}{deps}")
 
-    # Render planning fields (approach, criteria, files)
-    lines.extend(render_planning_fields(task, prefix))
+    # Planning fields
+    if task.approach:
+        lines.append(f"{prefix}  _Approach: {task.approach}_")
+    if task.criteria:
+        lines.append(f"{prefix}  _Done when:_")
+        for criterion in task.criteria:
+            lines.append(f"{prefix}    - {criterion}")
+    if task.files:
+        files = ", ".join(f"`{f}`" for f in task.files)
+        lines.append(f"{prefix}  _Files: {files}_")
 
-    # Render task notes
-    if task.get("notes"):
-        lines.extend(render_notes(task["notes"], prefix))
-
-    # Render subtasks indented
-    for subtask in task.get("subtasks", []):
-        sub_num = f"{num}.{subtask['number']}"
-        sub_title = subtask["title"]
-        sub_deps = format_deps(subtask, all_tasks)
-
-        if subtask["status"] == "complete":
-            lines.append(f"{prefix}  - [x] **{sub_num}** {sub_title}{sub_deps}")
-        elif subtask["status"] == "wont_do":
-            lines.append(f"{prefix}  - [~] **{sub_num}** ~~{sub_title}~~{sub_deps}")
-        else:
-            lines.append(f"{prefix}  - **{sub_num}** {sub_title}{sub_deps}")
-
-        # Render subtask planning fields
-        lines.extend(render_planning_fields(subtask, prefix + "  "))
-
-        # Render subtask notes
-        if subtask.get("notes"):
-            lines.extend(render_notes(subtask["notes"], prefix + "  "))
+    # Notes
+    for note in task.notes:
+        lines.append(f"{prefix}  > {note.text}")
 
     return lines
 
 
 def main():
-    path = find_tasks_file()
-    if not path:
-        print(f"No {TASKS_FILE} found.", file=sys.stderr)
+    root = find_tasks_root()
+    if not root:
+        print("No .claude/tasks/ found.", file=sys.stderr)
         sys.exit(1)
 
-    data = load_tasks(path)
-    tasks = data.get("tasks", [])
+    # Collect all tasks
+    all_tasks: list[tuple[str, Task]] = list(walk_tasks(root))
 
-    if not tasks:
+    if not all_tasks:
         print("# Tasks\n\n_No tasks._")
         return
 
     # Group by status
-    in_progress = [t for t in tasks if t["status"] == "in_progress"]
-    pending = [t for t in tasks if t["status"] == "pending"]
-    complete = [t for t in tasks if t["status"] == "complete"]
-    wont_do = [t for t in tasks if t["status"] == "wont_do"]
+    by_status: dict[str, list[tuple[str, Task]]] = defaultdict(list)
+    for task_id, task in all_tasks:
+        by_status[task.status].append((task_id, task))
 
     lines = ["# Tasks", ""]
 
-    if in_progress:
-        lines.append("## In Progress")
-        for task in in_progress:
-            lines.extend(render_task(task, tasks))
-        lines.append("")
+    # Render in priority order
+    status_order = ["in_progress", "pending", "blocked", "complete", "wont_do"]
+    status_titles = {
+        "in_progress": "In Progress",
+        "pending": "Pending",
+        "blocked": "Blocked",
+        "complete": "Completed",
+        "wont_do": "Won't Do",
+    }
 
-    if pending:
-        lines.append("## Pending")
-        for task in pending:
-            lines.extend(render_task(task, tasks))
-        lines.append("")
-
-    if complete:
-        lines.append("## Completed")
-        for task in complete:
-            lines.extend(render_task(task, tasks))
-        lines.append("")
-
-    if wont_do:
-        lines.append("## Won't Do")
-        for task in wont_do:
-            lines.extend(render_task(task, tasks))
-        lines.append("")
+    for status in status_order:
+        tasks = by_status.get(status, [])
+        if tasks:
+            lines.append(f"## {status_titles[status]}")
+            for task_id, task in tasks:
+                # Calculate indent based on path depth
+                depth = task_id.count("/")
+                lines.extend(render_task_line(task_id, task, indent=depth))
+            lines.append("")
 
     print("\n".join(lines).rstrip())
 
