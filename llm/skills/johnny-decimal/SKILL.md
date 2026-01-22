@@ -8,6 +8,8 @@ description: >
 
 # Johnny Decimal File Organization
 
+**Skill base directory:** `{baseDir}`
+
 This skill helps you work with the Johnny Decimal (JD) file system located at
 `~/Documents` (or `$XDG_DOCUMENTS_DIR`).
 
@@ -89,17 +91,17 @@ Use `jd-note` to add timestamped entries to these files.
 
 ## Available Scripts
 
-These scripts help with common operations:
+Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
 
 | Script | Purpose |
 |--------|---------|
-| `jd-list [ID]` | List contents of an area, category, or ID |
-| `jd-tree [-L depth] [ID]` | Show directory structure using tree |
-| `jd-validate <filename>` | Check if filename follows conventions |
-| `jd-mkdir <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `jd-move <file> <ID>` | Move a file to a JD location (with validation) |
-| `jd-note [ID] [text]` | Add a timestamped note (browse if no ID given) |
-| `jd-read [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
+| `{baseDir}/scripts/jd-list.sh [ID]` | List contents of an area, category, or ID |
+| `{baseDir}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
+| `{baseDir}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
+| `{baseDir}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
+| `{baseDir}/scripts/jd-move.sh <file> <ID>` | Move a file to a JD location (with validation) |
+| `{baseDir}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
+| `{baseDir}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
@@ -120,13 +122,13 @@ All properly handle TTY redirection for compatibility with any editor.
 All scripts support a `--porcelain` flag for machine-readable output:
 
 ```bash
-jd-list 21 --porcelain                # Full paths, no colors
-jd-tree -L3 --porcelain               # Full structure, no colors
-jd-mkdir 21 "Name" --porcelain        # Outputs created path
-jd-move file.pdf 21.10 --porcelain    # Outputs destination path
-jd-note 21.10 "text" --porcelain      # Adds note (text required)
-jd-read 21.10 --porcelain             # Outputs note file path
-jd-validate file.pdf --porcelain      # Machine-readable validation
+{baseDir}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
+{baseDir}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
+{baseDir}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
+{baseDir}/scripts/jd-move.sh file.pdf 21.10 --porcelain    # Outputs destination path
+{baseDir}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
+{baseDir}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
+{baseDir}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation
 ```
 
 When using these scripts as an agent:
@@ -149,4 +151,10 @@ When using these scripts as an agent:
 If you need current structure details not covered here, read:
 1. `overview.md` in the JDex for full category breakdown
 2. `flowchart.md` in the JDex for filing decisions
-3. Use `jd-list` to see what exists in a location
+3. Use `{baseDir}/scripts/jd-list.sh` to see what exists in a location
+
+## References
+
+For more detailed guidance, use the Read tool to load:
+- `{baseDir}/references/FILING-GUIDE.md` - Detailed filing decisions and examples
+- `{baseDir}/references/NAMING.md` - File and folder naming conventions
