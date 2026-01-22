@@ -117,8 +117,8 @@
       "Glob",
       "Grep",
       "Read",
-      "Skills(johnny-decimal)",
-      "Skills(task-tracker)",
+      "Skill(johnny-decimal)",
+      "Skill(task-tracker)",
       "Write"
     ],
     "deny": [
