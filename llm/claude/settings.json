@@ -118,6 +118,7 @@
       "Glob",
       "Grep",
       "Read",
+      "Search",
       "Skill(johnny-decimal)",
       "Skill(task-tracker)",
       "Write"
