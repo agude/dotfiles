@@ -114,6 +114,7 @@
       "Bash(which:*)",
       "Bash(whoami)",
       "Edit",
+      "Explore",
       "Glob",
       "Grep",
       "Read",
