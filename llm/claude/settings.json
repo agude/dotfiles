@@ -58,6 +58,7 @@
       "Bash(git tag)",
       "Bash(git whatchanged:*)",
       "Bash(grep:*)",
+      "Bash(gsutil ls:*)",
       "Bash(head:*)",
       "Bash(hermit env:*)",
       "Bash(hermit list:*)",
