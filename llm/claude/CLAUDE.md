@@ -13,3 +13,6 @@ Changes:
 - Specific change 2.
 ```
 **Rule:** Use imperative mood ("Refactor" not "Refactored").
+
+When I say "Amend" or similar, I mean "squash the current changes into the
+previous commit, and rewrite the message".
