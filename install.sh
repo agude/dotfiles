@@ -73,7 +73,6 @@ echo "› Linking core configuration files..."
 link "${HOME}/.Xmodmap" "xmodmap/Xmodmap"
 link "${HOME}/.astylerc" "astyle/astylerc"
 link "${HOME}/.terminfo" "terminfo"
-link "${HOME}/.editorconfig" "editorconfig/editorconfig"
 
 echo "› Setting up executable scripts in ~/bin..."
 ensure_real_dir "${HOME}/bin"
