@@ -80,4 +80,5 @@ build_prompt() {
 }
 
 # Register the function to be run before each prompt.
-PROMPT_COMMAND="build_prompt"
+# Preserve any existing PROMPT_COMMAND (e.g., history -a from 002.history.bash)
+PROMPT_COMMAND="build_prompt${PROMPT_COMMAND:+; $PROMPT_COMMAND}"
