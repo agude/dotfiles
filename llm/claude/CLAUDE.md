@@ -12,6 +12,9 @@ Changes:
 - Specific change 1.
 - Specific change 2.
 ```
+
+Drop the "Changes" list for small commits.
+
 **Rule:** Use imperative mood ("Refactor" not "Refactored").
 
 When I say "Amend" or similar, I mean "squash the current changes into the
