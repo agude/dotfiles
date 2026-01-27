@@ -8,15 +8,15 @@ if [[ -d "${HOME}/bin" ]] ; then
     PATH="${HOME}/bin:${PATH}"
 fi
 
-# Set up the platform
-PLATFORM_FILE="${HOME}/.bashrc.d/000.set_platform.bash"
+# Set up platform and XDG early (before interactive check) so these
+# variables are available for non-interactive shells like rsync/scp.
+PLATFORM_FILE="${HOME}/.sharedrc.d/000.set_platform.sh"
 if [[ -f "${PLATFORM_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${PLATFORM_FILE}"
 fi
 
-# Set up the XDG Base Directory Specification
-XDG_FILE="${HOME}/.bashrc.d/001.xdg_base_directory.bash"
+XDG_FILE="${HOME}/.sharedrc.d/001.xdg_base_directory.sh"
 if [[ -f "${XDG_FILE}" ]]; then
     # shellcheck disable=SC1090
     source "${XDG_FILE}"
