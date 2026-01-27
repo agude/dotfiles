@@ -8,6 +8,8 @@
 # Source (User Dirs): https://specifications.freedesktop.org/xdg-user-dirs/latest/
 
 # Temporarily disable 'exit on unset variable' to safely check for existence.
+# Save current state to restore at end of file.
+_xdg_old_set_u=""; [[ $- == *u* ]] && _xdg_old_set_u="-u"
 set +u
 
 # XDG Base Directories
@@ -111,3 +113,7 @@ export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
 # Ruff (Linter and Formatter)
 export RUFF_CONFIG_DIR="${XDG_CONFIG_HOME}/ruff"
 export RUFF_CACHE_DIR="${XDG_CACHE_HOME}/ruff"
+
+# Restore 'set -u' if it was enabled before this file was sourced.
+[[ -n "$_xdg_old_set_u" ]] && set -u
+unset -v _xdg_old_set_u
