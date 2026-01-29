@@ -65,12 +65,6 @@ export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter"
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter"
 mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
 
-# libice (X11)
-if [[ "${PLATFORM}" != "mac" && "${PLATFORM}" != "wsl" ]]; then
-    export ICEAUTHORITY="${XDG_CACHE_HOME}/X11/iceauthority"
-    mkdir -p "${ICEAUTHORITY}"
-fi
-
 # Gimp
 export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
 mkdir -p "${GIMP2_DIRECTORY}"
