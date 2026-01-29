@@ -146,6 +146,19 @@ When using these scripts as an agent:
 - Always **confirm destructive operations** with the user
 - When uncertain about filing location, **ask** rather than guess
 
+## Filing Inbox Documents
+
+Files in the inbox (`00.01`) are typically scanned documents named by scan date
+(e.g., `20260127.pdf`). When filing them:
+
+1. **Read the file** to determine what it is
+2. **Decide where it goes** using the flowchart and overview
+3. **`ls` the target directory** to learn its naming conventions
+4. **Rename the file** to match the existing pattern — see `{baseDir}/references/NAMING.md`
+5. **Move the file** using `jd-move` or `mv`
+
+The scan-date filename is never the final name. Always rename.
+
 ## When to Explore
 
 If you need current structure details not covered here, read:

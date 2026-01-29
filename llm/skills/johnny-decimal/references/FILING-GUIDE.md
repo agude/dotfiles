@@ -24,3 +24,12 @@ For detailed filing decisions, consult the flowchart in the JDex:
 - **Standalone appliances** → `93 Manuals and Documentation`
 - **Photos as memories** → `Pictures` folder (outside JD)
 - **Photos for projects** → `63 Creative Works`
+
+## Naming: Look Before You Name
+
+Before renaming a file for its destination:
+
+1. **`ls` the target directory** to see how existing files are named
+2. **Match the existing pattern** — each category has its own conventions (see `NAMING.md`)
+3. **Keep names short** when the directory path provides context (e.g., `user_manual.pdf` inside a product-named folder, not `product_name_user_manual.pdf`)
+4. **Inbox filenames are scan dates** — names like `20260127.pdf` are not meaningful; always examine file contents and rename to match the target directory's conventions

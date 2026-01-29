@@ -82,11 +82,31 @@ statements/
 
 ### Tax Documents
 ```
-account_YYYY_form-type.pdf
+YYYY-formtype-source.pdf
 ```
 Examples:
-- `bankname_2023_1099-INT.pdf`
-- `brokerage_2023_1099-DIV.pdf`
+- `2024-1095c-block.pdf`
+- `2024-w2-agude_block.pdf`
+- `2024-1099int-agude_alliant.pdf`
+- `2024-1099r-alex_trad_ira.pdf`
+
+### Vehicle Maintenance and Registration
+```
+YYYYMMDD-description.pdf
+```
+Examples:
+- `20260127-hj_smog_check.pdf`
+- `20250911-spark_plugs_and_ignition_coil.pdf`
+- `20241221-dmv_honda_odyssey_registration.pdf`
+- `20220829-concord_honda_invoice.pdf`
+
+### Manuals (93 Manuals and Documentation)
+Each product gets a `snake_case` subfolder. Files inside use short descriptive names:
+```
+93.10 Household Appliances/
+└── coway_ap-1512/
+    └── user_manual.pdf
+```
 
 ### Per-Person Subfolders
 Within personal records, use area-based suffixes:
