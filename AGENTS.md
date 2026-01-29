@@ -87,7 +87,6 @@ groups related functionality:
   - `soft_wrap.vim`: Soft wrapping functionality
 - `vim/autoload/`: Auto-loaded functions (lazy-loaded on first use)
   - `spaces.vim`: Functions for stripping trailing whitespace
-  - `pythoncomplete.vim`: Python completion helpers
   - `undo_ftplugin.vim`: Undo filetype plugin settings
 - `vim/after/`: Files loaded after default runtime files
   - `after/ftplugin/`: Filetype-specific settings (gitcommit, tex, cpp, etc.)

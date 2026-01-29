@@ -127,8 +127,8 @@ Plug 'chikamichi/mediawiki.vim'
 Plug 'tpope/vim-fugitive'
 
 " Map various Fugitive commands to <Leader>g
-nnoremap <silent> <Leader>gd :Gvdiff<CR>
-nnoremap <silent> <Leader>gb :Gblame<CR>
+nnoremap <silent> <Leader>gd :Gdiffsplit<CR>
+nnoremap <silent> <Leader>gb :Git blame<CR>
 
 " Better Diffing using git 1.8
 if !has("patch-8.1.0360")
