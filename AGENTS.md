@@ -167,12 +167,12 @@ compliant). API keys and personal preferences should go in
 
 ### Custom Scripts (bin/)
 Scripts are symlinked to `~/bin/` without file extensions:
-- `sync.py`: File synchronization utility
-- `crush.py`: File compression tool
-- `makepy.sh`: Python script template generator
+- `crush.py`: PNG compression tool (parallel pngout wrapper)
 - `apt-full.sh`: Apt update/upgrade wrapper
-- `rmspace.sh`: Whitespace removal utility
+- `empty-downloads.sh`: Safely empties the Downloads directory
+- `rmspace.sh`: Renames files replacing spaces with underscores
 - `tnice.sh`: Process priority wrapper
+- `jd.sh`: Johnny.Decimal directory navigation helper
 
 ## Modifying Configurations
 
