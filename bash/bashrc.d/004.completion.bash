@@ -33,6 +33,6 @@ mkdir -p "${HOME}/.bash_completion.d"
 if [[ -d "${HOME}/.bash_completion.d" ]]; then
     for comp_file in "${HOME}"/.bash_completion.d/*; do
         # shellcheck disable=SC1090
-        . "$comp_file"
+        [[ -f "$comp_file" ]] && . "$comp_file"
     done
 fi

@@ -52,7 +52,7 @@ shopt -s extglob &>/dev/null
 unset -v MAILCHECK
 
 # turn off flow control keys
-if [[ -x $(command -v stty) ]]; then
+if command -v stty &>/dev/null; then
     stty -ixon
 fi
 

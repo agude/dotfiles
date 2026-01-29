@@ -4,9 +4,9 @@ CARGO_XDG_BIN="${XDG_DATA_HOME:-${HOME}/.local/share}/cargo/bin"
 CARGO_LEGACY_BIN="${HOME}/.cargo/bin"
 
 # Prefer XDG location, fall back to legacy
-if [[ -d ${CARGO_XDG_BIN} ]]; then
+if [[ -d "${CARGO_XDG_BIN}" ]]; then
     export PATH="${CARGO_XDG_BIN}:${PATH}"
-elif [[ -d ${CARGO_LEGACY_BIN} ]]; then
+elif [[ -d "${CARGO_LEGACY_BIN}" ]]; then
     export PATH="${CARGO_LEGACY_BIN}:${PATH}"
 fi
 

@@ -12,8 +12,8 @@ fi
 
 # Create a directory for custom completions and add it to the function path.
 # This MUST be done BEFORE compinit is called.
-mkdir -p ~/.zfunc
-fpath=(~/.zfunc $fpath)
+mkdir -p "${HOME}/.zfunc"
+fpath=("${HOME}/.zfunc" $fpath)
 
 # Load the completion system
 autoload -Uz compinit
