@@ -1,69 +1,51 @@
 #!/usr/bin/env python3
 
-"""Calls pngout on the files specified on the command line.
+"""Compress PNG files in parallel using pngout.
 
-This script runs pngout on the specified files, spawning 1.5*CPU number of
-concurrent processes if it finds multiprocessing. It overwrites files with the
-compressed versions without asking.
+Runs pngout on the specified files, spawning 1.5×CPU concurrent workers.
+Overwrites files in place without prompting.
 
 Usage:
-    crush [FILES]
+    crush FILE ...
 
 Exit Codes:
-    0: Exit successful.
-    2: pngout executable not found on the user's path.
+    0: All files compressed successfully.
+    1: One or more files failed to compress.
+    2: pngout executable not found.
 """
 
-from distutils.spawn import find_executable
-from math import floor
-from subprocess import call
 import argparse
+import shutil
+import subprocess
+import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from math import floor
+from os import cpu_count
+
+
+def compress(path: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["pngout", "-y", path])
 
 
 if __name__ == "__main__":
-    # Parse the list of files
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "files",
-        nargs="+",
-        help="one or more files to process with pngcrush",
-    )
+    parser = argparse.ArgumentParser(description="Compress PNG files with pngout.")
+    parser.add_argument("files", nargs="+", help="one or more PNG files to compress")
     args = parser.parse_args()
 
-    # Try to find pngout
-    if find_executable("pngout") is None:
-        print("Can not find pngout.")
-        exit(2)
+    if shutil.which("pngout") is None:
+        print("Error: cannot find pngout.", file=sys.stderr)
+        sys.exit(2)
 
-    # Get the number of jobs to run
-    NJOBS = 1
-    try:
-        import multiprocessing as mp
-    except ImportError:
-        NJOBS = 1
-    else:  # Only runs when try succeeds
-        floor_j = int(floor(mp.cpu_count() * 1.5))
-        NJOBS = max(floor_j, 1)
+    max_workers = max(floor((cpu_count() or 1) * 1.5), 1)
+    failures = 0
 
-    # List to store the commands to run over before passing to multiprocessing
-    commands = []
-    for f in args.files:
-        command = (
-            #"nice", "-n", "19",  # Limit processor prio
-            #"ionice", "-c", "2", "-n", "7",  # Limit IO prio
-            "pngout", "-y", f  # Run the compression, overwrite if asked
-        )
-        commands.append(command)
+    with ProcessPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(compress, f): f for f in args.files}
+        for future in as_completed(futures):
+            path = futures[future]
+            rc = future.result().returncode
+            if rc != 0:
+                print(f"pngout failed on {path} (exit {rc})", file=sys.stderr)
+                failures += 1
 
-    # Run jobs in parallel
-    if NJOBS > 1:
-        pool = mp.Pool(processes=NJOBS)
-        pool.map(call, commands)  # No return values so we don't care about them
-        pool.close()  # No more tasks to add
-        pool.join()  # Wait for jobs to finish
-    else:
-        for com in commands:
-            call(com)
-
-    # Exit ok
-    exit(0)
+    sys.exit(1 if failures else 0)
