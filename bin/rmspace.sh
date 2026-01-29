@@ -1,21 +1,34 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+#
+# Rename files, replacing spaces with underscores and collapsing _-_ to -.
+# Usage: rmspace FILE ...
 
-# Exit if any errors or if any needed variables are unset
 set -e
 set -u
 
-# Replace every file, but only if it doesn't already conform to our naming
-# scheme, and if it would not overwrite an already existent file
-for file in *; do
-    # s/  */_/g replaces spaces with _
-    # s/_-_/-/g replaces _-_ with -
-    new_name=$(echo "${file}" | sed -e 's/  */_/g' -e 's/_-_/-/g')
-    # Only move if it doesn't already exist, and isn't already the right name
-    if [[ ! -f ${new_name} && "${file}" != "${new_name}" ]]; then
-        mv "${file}" "${new_name}"
-    fi
-done
+if [[ $# -eq 0 ]]; then
+    echo "Usage: rmspace FILE ..." >&2
+    exit 1
+fi
 
-# Return exit code
-exit $?
+for file in "$@"; do
+    dir=$(dirname -- "$file")
+    base=$(basename -- "$file")
+
+    new_base="${base// /_}"
+    new_base="${new_base//_-_/-}"
+
+    if [[ "${base}" == "${new_base}" ]]; then
+        continue
+    fi
+
+    new_path="${dir}/${new_base}"
+
+    if [[ -e "${new_path}" ]]; then
+        echo "skip: '${new_path}' already exists" >&2
+        continue
+    fi
+
+    mv -- "${file}" "${new_path}"
+done
