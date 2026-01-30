@@ -141,9 +141,11 @@ if has('nvim')
     Plug 'hrsh7th/cmp-path'
     Plug 'hrsh7th/cmp-cmdline'
 
-    " LSP
-    Plug 'neovim/nvim-lspconfig'
-    Plug 'hrsh7th/cmp-nvim-lsp'
+    " LSP (requires Neovim >= 0.11)
+    if has('nvim-0.11')
+        Plug 'neovim/nvim-lspconfig'
+        Plug 'hrsh7th/cmp-nvim-lsp'
+    endif
 
     " Asynchronous linting
     Plug 'dense-analysis/ale'
@@ -160,13 +162,16 @@ call plug#end()
 
 if has('nvim')
 lua <<EOF
-    -- Advertise nvim-cmp capabilities to every LSP server
-    vim.lsp.config('*', {
-        capabilities = require('cmp_nvim_lsp').default_capabilities(),
-    })
+    -- vim.lsp.config / vim.lsp.enable require Neovim >= 0.11
+    if vim.fn.has('nvim-0.11') == 1 then
+        -- Advertise nvim-cmp capabilities to every LSP server
+        vim.lsp.config('*', {
+            capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        })
 
-    -- Enable LSP servers (only activates if the binary is in PATH)
-    vim.lsp.enable({ 'pyright', 'rust_analyzer' })
+        -- Enable LSP servers (only activates if the binary is in PATH)
+        vim.lsp.enable({ 'pyright', 'rust_analyzer' })
+    end
 
     local cmp = require('cmp')
 
