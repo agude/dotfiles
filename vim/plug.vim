@@ -135,13 +135,11 @@ nnoremap <silent> <Leader>gb :Git blame<CR>
 "=============================================================================
 
 if has('nvim')
-    " Deoplete completion
-    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-    " Jedi autocomplete for Python
-    Plug 'zchee/deoplete-jedi'
-
-    " Start deoplete by default
-    let g:deoplete#enable_at_startup = 1
+    " Completion engine
+    Plug 'hrsh7th/nvim-cmp'
+    Plug 'hrsh7th/cmp-buffer'
+    Plug 'hrsh7th/cmp-path'
+    Plug 'hrsh7th/cmp-cmdline'
 
     " Asynchronous linting
     Plug 'dense-analysis/ale'
@@ -151,3 +149,46 @@ if has('nvim')
 endif
 
 call plug#end()
+
+"=============================================================================
+" nvim-cmp configuration (must be after plug#end)
+"=============================================================================
+
+if has('nvim')
+lua <<EOF
+    local cmp = require('cmp')
+
+    -- Insert-mode completion: buffer words + file paths
+    cmp.setup({
+        sources = cmp.config.sources({
+            { name = 'path' },
+            { name = 'buffer', keyword_length = 3 },
+        }),
+        mapping = cmp.mapping.preset.insert({
+            ['<C-Space>'] = cmp.mapping.complete(),
+            ['<C-e>']     = cmp.mapping.abort(),
+            ['<CR>']      = cmp.mapping.confirm({ select = false }),
+            ['<C-n>']     = cmp.mapping.select_next_item(),
+            ['<C-p>']     = cmp.mapping.select_prev_item(),
+        }),
+    })
+
+    -- Search (/ and ?) completion: buffer words
+    cmp.setup.cmdline({ '/', '?' }, {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+            { name = 'buffer' },
+        },
+    })
+
+    -- Command-line (:) completion: paths + cmdline
+    cmp.setup.cmdline(':', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+            { name = 'path' },
+        }, {
+            { name = 'cmdline' },
+        }),
+    })
+EOF
+endif
