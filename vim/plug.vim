@@ -130,16 +130,6 @@ Plug 'tpope/vim-fugitive'
 nnoremap <silent> <Leader>gd :Gdiffsplit<CR>
 nnoremap <silent> <Leader>gb :Git blame<CR>
 
-" Better Diffing using git 1.8
-if !has("patch-8.1.0360")
-    Plug 'chrisbra/vim-diff-enhanced'
-
-    " Use Patience Diff if we don't have xdiff built in
-    if &diff
-        let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
-    endif
-endif
-
 "=============================================================================
 " Neovim-only Plugins
 "=============================================================================
