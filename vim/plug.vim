@@ -150,6 +150,12 @@ if has('nvim')
     " Asynchronous linting
     Plug 'dense-analysis/ale'
 
+    " When native LSP is available, disable ALE's LSP features to avoid
+    " conflicts (ALE still handles linting and fixing)
+    if has('nvim') && luaeval('type(vim.lsp.enable) == "function"')
+        let g:ale_disable_lsp = 1
+    endif
+
     " Toggle ALE
     nnoremap <silent> <Leader>l :ALEToggle<CR>
 endif
