@@ -141,6 +141,10 @@ if has('nvim')
     Plug 'hrsh7th/cmp-path'
     Plug 'hrsh7th/cmp-cmdline'
 
+    " LSP
+    Plug 'neovim/nvim-lspconfig'
+    Plug 'hrsh7th/cmp-nvim-lsp'
+
     " Asynchronous linting
     Plug 'dense-analysis/ale'
 
@@ -156,11 +160,20 @@ call plug#end()
 
 if has('nvim')
 lua <<EOF
+    -- Advertise nvim-cmp capabilities to every LSP server
+    vim.lsp.config('*', {
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+    })
+
+    -- Enable LSP servers (only activates if the binary is in PATH)
+    vim.lsp.enable({ 'pyright', 'rust_analyzer' })
+
     local cmp = require('cmp')
 
-    -- Insert-mode completion: buffer words + file paths
+    -- Insert-mode completion: LSP + buffer words + file paths
     cmp.setup({
         sources = cmp.config.sources({
+            { name = 'nvim_lsp' },
             { name = 'path' },
             { name = 'buffer', keyword_length = 3 },
         }),
