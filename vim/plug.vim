@@ -164,10 +164,13 @@ if has('nvim')
 lua <<EOF
     -- vim.lsp.config / vim.lsp.enable require Neovim >= 0.11
     if vim.fn.has('nvim-0.11') == 1 then
-        -- Advertise nvim-cmp capabilities to every LSP server
-        vim.lsp.config('*', {
-            capabilities = require('cmp_nvim_lsp').default_capabilities(),
-        })
+        local ok, cmp_nvim_lsp = pcall(require, 'cmp_nvim_lsp')
+        if ok then
+            -- Advertise nvim-cmp capabilities to every LSP server
+            vim.lsp.config('*', {
+                capabilities = cmp_nvim_lsp.default_capabilities(),
+            })
+        end
 
         -- Enable LSP servers (only activates if the binary is in PATH)
         vim.lsp.enable({ 'pyright', 'rust_analyzer' })
