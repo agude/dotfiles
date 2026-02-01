@@ -18,7 +18,9 @@ Plug 'agude/vim-eldar'
 " Completion
 "=============================================================================
 
-Plug 'https://git.sr.ht/~ackyshake/VimCompletesMe.vim'
+if !has('nvim')
+    Plug 'https://git.sr.ht/~ackyshake/VimCompletesMe.vim'
+endif
 
 "=============================================================================
 " Text Objects and Operators
@@ -180,6 +182,15 @@ lua <<EOF
 
         -- Enable LSP servers (only activates if the binary is in PATH)
         vim.lsp.enable({ 'pyright', 'rust_analyzer' })
+
+        -- Tame diagnostics: show signs and underlines but not inline virtual
+        -- text, which is too noisy for rust-analyzer while typing incomplete code
+        vim.diagnostic.config({
+            virtual_text = false,
+            signs = true,
+            underline = true,
+            update_in_insert = false,
+        })
     end
 
     local cmp = require('cmp')
@@ -197,6 +208,8 @@ lua <<EOF
             ['<CR>']      = cmp.mapping.confirm({ select = false }),
             ['<C-n>']     = cmp.mapping.select_next_item(),
             ['<C-p>']     = cmp.mapping.select_prev_item(),
+            ['<Tab>']     = cmp.mapping.select_next_item(),
+            ['<S-Tab>']   = cmp.mapping.select_prev_item(),
         }),
     })
 
