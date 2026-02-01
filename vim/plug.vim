@@ -191,6 +191,24 @@ lua <<EOF
             underline = true,
             update_in_insert = false,
         })
+
+        -- LSP keybindings (buffer-local, only active when a server attaches)
+        --
+        -- Neovim 0.11 already provides these defaults (do NOT duplicate):
+        --   K        hover           grn      rename
+        --   gra      code action     grr      references
+        --   gri      implementation  gO       document symbols
+        --   [d / ]d  prev/next diagnostic     <C-w>d  diagnostic float
+        vim.api.nvim_create_autocmd('LspAttach', {
+            group = vim.api.nvim_create_augroup('UserLspKeybindings', { clear = true }),
+            callback = function(ev)
+                local opts = { buffer = ev.buf }
+                vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+                vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+                vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, opts)
+                vim.keymap.set('i', '<C-s>', vim.lsp.buf.signature_help, opts)
+            end,
+        })
     end
 
     local cmp = require('cmp')
