@@ -13,7 +13,7 @@
     untracked = red bold
 
 [core]
-    editor = vim
+    editor = nvim
     excludesfile = ~/.config/git/ignore
 
 [merge]
