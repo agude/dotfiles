@@ -211,5 +211,6 @@
   "alwaysThinkingEnabled": true,
   "git": {
     "includeCoAuthor": false
-  }
+  },
+  "effortLevel": "medium"
 }
