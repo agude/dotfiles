@@ -1,6 +1,5 @@
 {
   "includeCoAuthoredBy": false,
-  "autoUpdatesChannel": "stable",
   "permissions": {
     "allow": [
       "Bash(ack:*)",
@@ -209,6 +208,7 @@
   },
   "model": "opus",
   "alwaysThinkingEnabled": true,
+  "autoUpdatesChannel": "stable",
   "git": {
     "includeCoAuthor": false
   },
