@@ -23,7 +23,8 @@
       "respectGitIgnore": true,
       "respectGeminiIgnore": true,
       "enableRecursiveFileSearch": true,
-      "disableFuzzySearch": false
+      "disableFuzzySearch": false,
+      "enableFuzzySearch": true
     }
   },
   "tools": {
@@ -134,9 +135,15 @@
     "enablePermanentToolApproval": false,
     "folderTrust": {
       "enabled": false
+    },
+    "auth": {
+      "selectedType": "oauth-personal"
     }
   },
   "advanced": {
-    "excludedEnvVars": ["DEBUG", "DEBUG_MODE"]
+    "excludedEnvVars": [
+      "DEBUG",
+      "DEBUG_MODE"
+    ]
   }
 }
