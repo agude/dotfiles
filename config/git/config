@@ -33,6 +33,9 @@
     renames = copies
     mnemonicprefix = true
 
+[log]
+    date = iso
+
 [include]
     path = ~/.gitconfig_local
 
