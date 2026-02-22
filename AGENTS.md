@@ -119,13 +119,19 @@ All cache files use `g:VIM_CACHE_DIR` (`$XDG_CACHE_HOME/vim/`):
 
 All LLM tool configurations are organized under the `llm/` directory:
 
+#### Shared Agent Context
+- `llm/AGENTS.md`: Shared context file for all LLM coding agents (commit
+  style, tone preferences, etc.)
+- Symlinked to each tool's expected location:
+  - `~/.claude/CLAUDE.md` → `llm/AGENTS.md`
+  - `~/.gemini/GEMINI.md` → `llm/AGENTS.md`
+
 #### Claude Code Configuration
 - `llm/claude/settings.json`: User-level settings synced across machines
 - `llm/claude/commands/`: Custom slash commands (`.md` files)
-- `llm/claude/CLAUDE.md`: Project-level context file
 - `~/.claude/` is a real directory; only specific files are symlinked:
   - `~/.claude/settings.json` → `llm/claude/settings.json`
-  - `~/.claude/CLAUDE.md` → `llm/claude/CLAUDE.md`
+  - `~/.claude/CLAUDE.md` → `llm/AGENTS.md`
   - `~/.claude/commands/` is a real directory; each command is symlinked individually
     (e.g., `~/.claude/commands/foo.md` → `llm/claude/commands/foo.md`)
   - `~/.claude/skills/` is a real directory; each skill is symlinked individually
@@ -143,12 +149,12 @@ go in `~/.claude/settings.local.json` (automatically git-ignored).
 - `llm/gemini/settings.json`: User-level settings synced across machines
 - `~/.gemini/` is a real directory; only specific files are symlinked:
   - `~/.gemini/settings.json` → `llm/gemini/settings.json`
+  - `~/.gemini/GEMINI.md` → `llm/AGENTS.md`
 - Runtime files (sessions, tmp, shell_history, etc.) stay in `~/.gemini/` and
   are not tracked
 
 **Key settings:**
 - Auto-approves read-only operations (matching Claude Code's security model)
-- Uses `GEMINI.md` as context file (similar to Claude's `CLAUDE.md`)
 - Enabled tools: smart edit, todo tracking, ripgrep integration
 - Security: Destructive operations require explicit confirmation
 

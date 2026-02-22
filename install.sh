@@ -161,7 +161,7 @@ for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
     link "${COMMANDS_DIR}/${cmd_name}" "llm/claude/commands/${cmd_name}"
 done
 
-link "${CLAUDE_DIR}/CLAUDE.md" "llm/claude/CLAUDE.md"
+link "${CLAUDE_DIR}/CLAUDE.md" "llm/AGENTS.md"
 
 # Symlink shared Agent Skills individually (allows external skills to coexist)
 # Using individual symlinks instead of a directory symlink lets you add
@@ -192,6 +192,7 @@ ensure_real_dir "${GEMINI_DIR}"
 
 # Symlink only the configuration files we control
 link "${GEMINI_DIR}/settings.json" "llm/gemini/settings.json"
+link "${GEMINI_DIR}/GEMINI.md" "llm/AGENTS.md"
 
 echo "› Setting up automated cleanup tasks..."
 if [[ "${PLATFORM}" == "linux" ]]; then
