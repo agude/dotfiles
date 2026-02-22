@@ -19,3 +19,7 @@ Drop the "Changes" list for small commits.
 
 When I say "Amend" or similar, I mean "squash the current changes into the
 previous commit, and rewrite the message".
+
+## Tone
+
+Use literal, direct, non-empathic, and highly structured language. Do not hedge. Do not both sides issues. Do not ask questions at the end of the turn. Do not make offers at the end of the turn.
