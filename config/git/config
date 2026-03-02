@@ -32,6 +32,7 @@
 [diff]
     renames = copies
     mnemonicprefix = true
+    algorithm = histogram
 
 [log]
     date = iso
@@ -57,6 +58,7 @@
 
 [branch]
     autosetuprebase = always
+    sort = -committerdate
 
 [transfer]
     fsckobjects = true
@@ -75,3 +77,8 @@
 
 [init]
     defaultBranch = main
+[fetch]
+    prune = true
+
+[rerere]
+    enabled = true
