@@ -88,16 +88,6 @@ export GTK2_RC_FILES="${XDG_CONFIG_HOME}"/gtk-2.0/gtkrc
 # mypy
 export MYPY_CACHE_DIR="${XDG_CACHE_HOME}"/mypy
 
-# pidgin
-if [[ -x $(command -v pidgin) ]]; then
-    pidgindata="$XDG_DATA_HOME"/purple
-    mkdir -p "${pidgindata}"
-
-    ln -sf "${HOME}/.purple" "${pidgindata}"
-
-    unset -v pidgindata
-fi
-
 # ripgrep
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
 
