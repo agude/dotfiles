@@ -176,6 +176,7 @@
       "Bash(gh secret delete:*)",
       "Bash(gh secret set:*)",
       "Bash(gh ssh-key :*)",
+      "Bash(git -C:*)",
       "Bash(git clone:*)",
       "Bash(git commit --no-verify:*)",
       "Bash(git commit -n:*)",
@@ -209,8 +210,8 @@
   "model": "opus",
   "alwaysThinkingEnabled": true,
   "autoUpdatesChannel": "stable",
+  "skipDangerousModePermissionPrompt": true,
   "git": {
     "includeCoAuthor": false
-  },
-  "effortLevel": "medium"
+  }
 }
