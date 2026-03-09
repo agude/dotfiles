@@ -4,6 +4,7 @@ description: >
   Helps organize files in a Johnny Decimal system at ~/Documents. Use this
   skill when filing documents, finding files, creating folders, taking notes
   about JD items, or understanding where something belongs in the system.
+allowed-tools: "Bash({baseDir}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
 ---
 
 # Johnny Decimal File Organization

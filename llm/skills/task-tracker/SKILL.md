@@ -1,6 +1,7 @@
 ---
 name: task-tracker
 description: Track tasks and subtasks in .claude/tasks/ for context preservation. Use when planning multi-step work, tracking progress, or resuming interrupted sessions.
+allowed-tools: "Bash({baseDir}/scripts/:*) Read"
 ---
 
 # Task Tracker

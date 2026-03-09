@@ -5,6 +5,7 @@ description: >
   files, and validate the result against the spec. Use when the user wants to
   create a skill, make a new skill, scaffold a skill, or turn a workflow into a
   reusable skill.
+allowed-tools: "Bash(bash {baseDir}/scripts/:*) Read Write Edit"
 ---
 
 # Skill Creator
@@ -44,7 +45,7 @@ license: ...               # Optional.
 compatibility: ...         # Optional. Environment requirements.
 metadata:                  # Optional. Arbitrary key-value pairs.
   author: example-org
-allowed-tools: ...         # Optional. Experimental.
+allowed-tools: "Bash(command:*) Read"  # Optional. Pre-approved tools.
 ---
 
 # Skill Name
