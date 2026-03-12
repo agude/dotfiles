@@ -48,6 +48,9 @@ alias hs='history | grep'
 # Reload shell configuration
 alias reload='source "${HOME}/.${SHELL##*/}rc"'
 
+# Claude Code with all permissions pre-approved
+alias dclaude='claude --dangerously-skip-permissions'
+
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------
