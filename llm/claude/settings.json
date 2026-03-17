@@ -232,7 +232,6 @@
   },
   "model": "opus",
   "alwaysThinkingEnabled": true,
-  "autoUpdatesChannel": "stable",
   "skipDangerousModePermissionPrompt": true,
   "git": {
     "includeCoAuthor": false
