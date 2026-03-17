@@ -24,6 +24,7 @@ For detailed filing decisions, consult the flowchart in the JDex:
 - **Standalone appliances** → `93 Manuals and Documentation`
 - **Photos as memories** → `Pictures` folder (outside JD)
 - **Photos for projects** → `63 Creative Works`
+- **Book cover scans** (for updating ebook covers) → `91.10 Books` under the series folder, not `63 Creative Works`. This is data curation, not an artistic project.
 
 ## Naming: Look Before You Name
 

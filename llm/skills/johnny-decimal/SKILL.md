@@ -100,7 +100,7 @@ Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
 | `{baseDir}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
 | `{baseDir}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
 | `{baseDir}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `{baseDir}/scripts/jd-move.sh <file> <ID>` | Move a file to a JD location (with validation) |
+| `{baseDir}/scripts/jd-move.sh <file> <ID> [--subdir <path>]` | Move a file to a JD location (with validation). `--subdir` targets a subdirectory within the ID. |
 | `{baseDir}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
 | `{baseDir}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
@@ -126,7 +126,8 @@ All scripts support a `--porcelain` flag for machine-readable output:
 {baseDir}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
 {baseDir}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
 {baseDir}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
-{baseDir}/scripts/jd-move.sh file.pdf 21.10 --porcelain    # Outputs destination path
+{baseDir}/scripts/jd-move.sh file.pdf 21.10 --porcelain                        # Outputs destination path
+{baseDir}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain  # Move into subdir
 {baseDir}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
 {baseDir}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
 {baseDir}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation

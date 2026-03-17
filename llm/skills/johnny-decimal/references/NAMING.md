@@ -119,6 +119,30 @@ Within personal records, use area-based suffixes:
 └── 12.70 Legal and Records/
 ```
 
+### Books (91.10)
+Organized by series or author at the top level, with ebooks and a `covers/`
+subdirectory. Cover scans get a per-work subfolder containing raw scans,
+GIMP working files (`.xcf`), and corrected exports:
+```
+91.10 Books/
+├── Bolos/
+│   ├── 1982-bolo-annals_of_the_dinochrome_brigade-2nd_edition-ocr.pdf
+│   └── covers/
+│       ├── bolo_annals_of_the_dinochrome_brigade/
+│       │   ├── bolos.jpg
+│       │   └── bolos.xcf
+│       └── rogue_bolo/
+│           ├── rogue_bolo.jpg
+│           └── rogue_bolo.xcf
+├── Honor_Harrington/
+│   └── covers/
+│       ├── on_basilisk_station/
+│       └── the_honor_of_the_queen/
+└── Stross/
+    └── covers/
+        └── iron_sunrise/
+```
+
 ## Notes Files (in JDex)
 
 Notes for specific IDs use the ID as filename:

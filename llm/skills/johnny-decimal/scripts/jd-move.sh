@@ -6,6 +6,7 @@
 # Usage:
 #   jd-move document.pdf 21.10
 #   jd-move document.pdf 21.10 new_name.pdf
+#   jd-move document.pdf 91.10 --subdir Bolos/covers/rogue_bolo  # Into subdir
 #   jd-move --force document.pdf 21.10   # Allow overwrite
 #   jd-move document.pdf 21.10 --porcelain  # Output full path (for agents)
 
@@ -28,29 +29,42 @@ jd_validate_root || exit 1
 
 force=false
 dry_run=false
+subdir=""
 args=()
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --force|-f)
             force=true
+            shift
             ;;
         --dry-run|-n)
             dry_run=true
+            shift
+            ;;
+        --subdir)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --subdir requires a path argument" >&2
+                exit 1
+            fi
+            subdir="$2"
+            shift 2
             ;;
         *)
-            args+=("$arg")
+            args+=("$1")
+            shift
             ;;
     esac
 done
 set -- "${args[@]}"
 
 if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
-    echo "Usage: jd-move [--force] [--dry-run] <source> <ID> [new_name]" >&2
-    echo "  jd-move document.pdf 21.10              # Move file" >&2
-    echo "  jd-move my_folder 21.10                 # Move directory" >&2
-    echo "  jd-move document.pdf 21.10 renamed.pdf  # Rename during move" >&2
-    echo "  jd-move --force document.pdf 21.10      # Allow overwrite" >&2
-    echo "  jd-move --dry-run document.pdf 21.10    # Preview without moving" >&2
+    echo "Usage: jd-move [--force] [--dry-run] [--subdir <path>] <source> <ID> [new_name]" >&2
+    echo "  jd-move document.pdf 21.10                                  # Move file" >&2
+    echo "  jd-move my_folder 21.10                                     # Move directory" >&2
+    echo "  jd-move document.pdf 21.10 renamed.pdf                      # Rename during move" >&2
+    echo "  jd-move document.pdf 91.10 --subdir Bolos/covers/rogue_bolo # Move into subdir" >&2
+    echo "  jd-move --force document.pdf 21.10                          # Allow overwrite" >&2
+    echo "  jd-move --dry-run document.pdf 21.10                        # Preview without moving" >&2
     exit 1
 fi
 
@@ -82,6 +96,15 @@ fi
 
 # Find target directory
 target_dir=$(find_id_dir "$target_id") || exit 1
+
+# Append subdir if specified
+if [[ -n "$subdir" ]]; then
+    target_dir="${target_dir}/${subdir}"
+    if [[ ! -d "$target_dir" ]]; then
+        jd_error "Subdirectory does not exist: ${target_dir}"
+        exit 1
+    fi
+fi
 
 # Construct target path
 target_path="${target_dir}/${new_name}"
