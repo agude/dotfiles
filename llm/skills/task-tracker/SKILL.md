@@ -1,6 +1,12 @@
 ---
 name: task-tracker
-description: Track tasks and subtasks in .claude/tasks/ for context preservation. Use when planning multi-step work, tracking progress, or resuming interrupted sessions.
+description: >
+  Plan, track, and resume multi-step work across sessions. Use this skill when
+  the user wants to break a project into tasks, track what's done, pick up
+  where they left off, or manage dependencies between steps. Also use when
+  the user asks to plan work, create a checklist, or resume an interrupted
+  session — even if they don't explicitly say "task" or "todo."
+compatibility: Requires Python 3.
 allowed-tools: "Bash({baseDir}/scripts/:*) Read"
 ---
 
@@ -299,6 +305,19 @@ Output:
   "count": 5
 }
 ```
+
+## Gotchas
+
+- **Task IDs are derived from titles**: Renaming a task changes its ID (slug).
+  Any dependencies referencing the old ID must be updated (the `move` command
+  handles this, but manual edits do not).
+- **Adding a subtask promotes a leaf to a directory**: If `02-deploy.md` exists
+  and you add a subtask, the file becomes `02-deploy/00-index.md`. Removing the
+  last child demotes it back. This is automatic.
+- **`next` skips blocked tasks silently**: If `next` returns nothing, check
+  whether remaining tasks have unsatisfied dependencies.
+- **All script output is JSON**: Parse with `jq` or similar. Human-readable
+  output uses `task-render.py` separately.
 
 ## Typical Workflow
 

@@ -84,6 +84,11 @@ show_usage() {
     echo "  jd-list --porcelain  # Full paths (for agents)" >&2
 }
 
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
+
 if [[ $# -eq 0 ]]; then
     # No arguments: interactive browse or list areas
     if jd_is_interactive; then

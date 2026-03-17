@@ -1,9 +1,13 @@
 ---
 name: johnny-decimal
 description: >
-  Helps organize files in a Johnny Decimal system at ~/Documents. Use this
-  skill when filing documents, finding files, creating folders, taking notes
-  about JD items, or understanding where something belongs in the system.
+  Organize, file, find, and manage documents in a Johnny Decimal system at
+  ~/Documents. Use this skill when the user needs to file a document, sort
+  scanned papers, find where something belongs, create a new folder or
+  subcategory, take notes about a JD item, or clean out an inbox. Also use
+  when the user mentions ~/Documents, a JD ID like "21.10", or asks where to
+  put a file — even if they don't say "Johnny Decimal" explicitly.
+compatibility: Requires bash and tree. Optional: fzf for interactive browsing.
 allowed-tools: "Bash({baseDir}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
 ---
 
@@ -147,6 +151,21 @@ When using these scripts as an agent:
 - Scripts **validate paths** before operations
 - Always **confirm destructive operations** with the user
 - When uncertain about filing location, **ask** rather than guess
+
+## Gotchas
+
+- **Person-first filing**: A spouse's medical records go in `12 Spouse`, not
+  `50 Health`. A child's school docs go in `13 Kids`, not `40 Education`.
+  Always check if the item belongs to a specific person before filing by topic.
+- **Purpose over provider**: A utility bill goes in `27 Bills`, not with the
+  utility company in `80 Services`. File by purpose, not by the entity that
+  sent it.
+- **Scan-date filenames are never final**: Files in the inbox (`00.01`) are
+  named by scan date (e.g., `20260127.pdf`). Always rename before filing.
+- **JDex notes vs. filed documents**: Notes *about* a JD item go in the JDex
+  (`00.00`). The *actual documents* go in the item's folder.
+- **`--porcelain` is required in agent mode**: Without it, scripts may output
+  colored/truncated paths that are unreliable for further operations.
 
 ## Filing Inbox Documents
 

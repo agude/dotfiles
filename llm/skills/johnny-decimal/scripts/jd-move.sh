@@ -57,7 +57,7 @@ while [[ $# -gt 0 ]]; do
 done
 set -- "${args[@]}"
 
-if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
+show_usage() {
     echo "Usage: jd-move [--force] [--dry-run] [--subdir <path>] <source> <ID> [new_name]" >&2
     echo "  jd-move document.pdf 21.10                                  # Move file" >&2
     echo "  jd-move my_folder 21.10                                     # Move directory" >&2
@@ -65,6 +65,15 @@ if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
     echo "  jd-move document.pdf 91.10 --subdir Bolos/covers/rogue_bolo # Move into subdir" >&2
     echo "  jd-move --force document.pdf 21.10                          # Allow overwrite" >&2
     echo "  jd-move --dry-run document.pdf 21.10                        # Preview without moving" >&2
+}
+
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
+
+if [[ $# -lt 2 ]] || [[ $# -gt 3 ]]; then
+    show_usage
     exit 1
 fi
 

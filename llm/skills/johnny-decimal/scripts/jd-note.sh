@@ -68,7 +68,20 @@ get_note_from_editor() {
     echo "$content"
 }
 
+show_usage() {
+    echo "Usage: jd-note <ID> [note text]" >&2
+    echo "  jd-note                # Browse to ID interactively" >&2
+    echo "  jd-note 31.14          # Opens \$EDITOR (interactive)" >&2
+    echo "  jd-note 31.14 \"text\"   # Add note directly" >&2
+    echo "  jd-note --porcelain    # Machine-readable output (for agents)" >&2
+}
+
 # --- Main ---
+
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
 
 # No arguments: interactive ID selection (if TTY available)
 if [[ $# -lt 1 ]]; then

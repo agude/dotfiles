@@ -1,10 +1,11 @@
 ---
 name: skill-creator
 description: >
-  Create new Agent Skills from scratch: scaffold directories, write SKILL.md
-  files, and validate the result against the spec. Use when the user wants to
-  create a skill, make a new skill, scaffold a skill, or turn a workflow into a
-  reusable skill.
+  Create, scaffold, and validate new Agent Skills. Use this skill when the
+  user wants to create a skill, package knowledge or a workflow into a
+  reusable skill, scaffold a skill directory, write a SKILL.md, or validate
+  an existing skill against the spec.
+compatibility: Requires bash. curl needed for update-references.
 allowed-tools: "Bash(bash {baseDir}/scripts/:*) Read Write Edit"
 ---
 

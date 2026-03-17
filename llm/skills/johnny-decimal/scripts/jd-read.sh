@@ -42,7 +42,20 @@ for arg in "$@"; do
 done
 set -- "${args[@]}"
 
+show_usage() {
+    echo "Usage: jd-read <ID> [--edit]" >&2
+    echo "  jd-read               # Browse to ID interactively" >&2
+    echo "  jd-read 31.14         # Display notes" >&2
+    echo "  jd-read 31.14 --edit  # Open in \$EDITOR" >&2
+    echo "  jd-read --porcelain   # Machine-readable output (for agents)" >&2
+}
+
 # --- Main ---
+
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
 
 # No arguments: interactive browse (if TTY available)
 if [[ $# -eq 0 ]]; then

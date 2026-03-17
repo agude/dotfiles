@@ -64,13 +64,20 @@ jd_is_interactive() {
 
 # Parse common arguments (--porcelain, --help)
 # Usage: jd_parse_common_args "$@"; set -- "${JD_REMAINING_ARGS[@]}"
+#
+# After calling, check JD_HELP_REQUESTED and call your script's show_usage if set.
 JD_REMAINING_ARGS=()
+export JD_HELP_REQUESTED="false"
 jd_parse_common_args() {
     JD_REMAINING_ARGS=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --porcelain)
                 JD_PORCELAIN="true"
+                shift
+                ;;
+            --help|-h)
+                JD_HELP_REQUESTED="true"
                 shift
                 ;;
             *)

@@ -23,6 +23,19 @@ set -- "${JD_REMAINING_ARGS[@]}"
 # Validate JD_ROOT exists
 jd_validate_root || exit 1
 
+show_usage() {
+    echo "Usage: jd-mkdir <category> <name> [--id N] [--dry-run]" >&2
+    echo "  jd-mkdir 21 \"Chase Bank\"           # Auto-assigns next ID" >&2
+    echo "  jd-mkdir 21 \"Chase Bank\" --id 15   # Explicit: 21.15" >&2
+    echo "  jd-mkdir 21 \"Chase Bank\" --dry-run # Preview without creating" >&2
+    echo "  jd-mkdir 21 \"Name\" --porcelain     # Output full path (for agents)" >&2
+}
+
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
+
 # --- Parse arguments ---
 explicit_id=""
 category=""
@@ -55,10 +68,7 @@ done
 
 # --- Validate inputs ---
 if [[ -z "$category" ]] || [[ -z "$name" ]]; then
-    echo "Usage: jd-mkdir <category> <name> [--id N] [--dry-run]" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\"           # Auto-assigns next ID" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\" --id 15   # Explicit: 21.15" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\" --dry-run # Preview without creating" >&2
+    show_usage
     exit 1
 fi
 

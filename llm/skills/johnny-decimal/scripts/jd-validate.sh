@@ -89,10 +89,22 @@ validate_filename() {
     fi
 }
 
+show_usage() {
+    echo "Usage: jd-validate <filename> [filename...]" >&2
+    echo "  jd-validate statement.pdf          # Check filename conventions" >&2
+    echo "  jd-validate 2024-12-27_doc.pdf     # OK (date-prefixed)" >&2
+    echo "  jd-validate file.pdf --porcelain   # Machine-readable output" >&2
+}
+
 # --- Main ---
 
+if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
+    show_usage
+    exit 0
+fi
+
 if [[ $# -eq 0 ]]; then
-    echo "Usage: jd-validate <filename> [filename...]" >&2
+    show_usage
     exit 1
 fi
 
