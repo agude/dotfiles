@@ -166,6 +166,9 @@ When using these scripts as an agent:
   (`00.00`). The *actual documents* go in the item's folder.
 - **`--porcelain` is required in agent mode**: Without it, scripts may output
   colored/truncated paths that are unreliable for further operations.
+- **ScanSnap PDFs may be upside down**: When the ScanSnap scans directly to the
+  NAS, pages often come out rotated 180°. After filing, check orientation and
+  fix with `pdftk input.pdf cat 1-endsouth output rotated.pdf`.
 
 ## Filing Inbox Documents
 
