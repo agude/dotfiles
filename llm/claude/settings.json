@@ -235,5 +235,31 @@
   "skipDangerousModePermissionPrompt": true,
   "git": {
     "includeCoAuthor": false
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"# Knowledge Base Available\" && echo \"\" && ~/Knowledge/scripts/kb-toc.sh 2>/dev/null || echo \"(knowledge base not initialized)\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Knowledge/scripts/kb-extract-knowledge.sh",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
   }
 }
