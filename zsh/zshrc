@@ -19,7 +19,6 @@ typeset -U path
 # Prepend user-specific bin directories to the PATH.
 # Prepending ensures they are found before system binaries.
 path=(
-    "$HOME/.local/bin"
     "$HOME/bin"
     $path
 )
