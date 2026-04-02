@@ -1,6 +1,7 @@
 {
   "includeCoAuthoredBy": false,
   "permissions": {
+    "defaultMode": "auto",
     "allow": [
       "Bash(ack:*)",
       "Bash(ag:*)",
