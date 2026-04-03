@@ -10,6 +10,17 @@ and Zsh), Vim/Neovim setup, and various development tool configurations across
 Unix-like systems. The repository uses symbolic linking to install
 configurations from this centralized location to the user's home directory.
 
+## Shell Compatibility
+
+`install.sh` must run under **Bash 3.2** (the macOS system default). Do not
+use Bash 4+ features including:
+- Associative arrays (`declare -A`)
+- Namerefs (`declare -n`, `local -n`)
+- `|&` (pipe stderr), `&>>` (append stdout+stderr)
+- `readarray` / `mapfile`
+- `${var,,}` / `${var^^}` case modification
+- `coproc`
+
 ## Installation
 
 Run the installation script to set up all configurations:

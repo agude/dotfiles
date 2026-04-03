@@ -3,29 +3,41 @@
 #
 # Dotfiles Installation Script
 #
-# This script sets up the user's environment by creating symbolic links from the
-# home directory to the configuration files stored in this repository. It also
-# performs one-time setup tasks like configuring XDG user directories.
+# Phases:
+#   1. Helpers     — utility functions (link, ensure_real_dir, etc.)
+#   2. Arguments   — parse --profile / --help
+#   3. Profile     — load, source XDG, and validate the active profile
+#   4. Install     — create symlinks and run setup tasks
+#   5. Cleanup     — diff old manifest against new, remove stale links
+#   6. Summary     — report what changed
 
 # Exit immediately if a command exits with a non-zero status.
 set -e
 # Treat unset variables as an error when substituting.
 set -u
 
-# --- Configuration and Helper Functions ---
+# ============================================================================
+# Phase 1: Helpers
+# ============================================================================
 
-# Find the absolute path of the dotfiles directory, so the script can be run from anywhere.
-DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Find the absolute path of the dotfiles directory, so the script can be run
+# from anywhere.
+DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Source the platform detection script to set the PLATFORM variable.
+PLATFORM="unknown"
 PLATFORM_SCRIPT="${DOTFILES_DIR}/shared/sharedrc.d/000.set_platform.sh"
 if [[ -f "${PLATFORM_SCRIPT}" ]]; then
     # shellcheck disable=SC1090
     source "${PLATFORM_SCRIPT}"
 fi
 
-# All symlink targets created by link() are recorded here for cleanup.
+# All symlink targets created by link() are recorded here.  After install,
+# this array is diffed against the previous manifest to find stale links.
 MANAGED_LINKS=()
+
+# Default before helpers that reference it (run() uses $DRY_RUN).
+DRY_RUN=false
 
 # Ownership-aware link function.
 # - If the source doesn't exist, warn and skip (don't create dangling symlinks).
@@ -38,12 +50,20 @@ link() {
     local source="$2" # Source is repo-relative; DOTFILES_DIR is prepended below
     local source_path="${DOTFILES_DIR}/${source}"
 
-    # Validate source exists before doing anything
-    if [[ ! -e "$source_path" ]]; then
-        echo "  -> Warning: source does not exist, skipping: $source_path" >&2
+    # Reject empty source (e.g. unset profile variable → symlink to repo root).
+    if [[ -z "$source" ]]; then
+        echo "  -> Error: empty source for target: $target" >&2
         return 1
     fi
 
+    # Validate source exists before doing anything
+    if [[ ! -e "$source_path" ]]; then
+        echo "  -> Warning: source does not exist, skipping: $source_path" >&2
+        return 0
+    fi
+
+    # Record after validating the source exists — a missing source must not
+    # land in the manifest (it would prevent cleanup of the stale entry).
     MANAGED_LINKS+=("$target")
 
     # Already correct — skip silently
@@ -56,17 +76,17 @@ link() {
         if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${DOTFILES_DIR}/"* ]]; then
             # Our symlink, wrong target — safe to replace
             echo "  -> Updating: $target"
-            rm "$target"
+            run rm "$target"
         else
             # Not ours — back up with epoch timestamp, don't destroy
             local backup="${target}.dotfiles-backup.$(date +%s)"
             echo "  -> Backing up: $target -> ${backup}"
-            mv "$target" "$backup"
+            run mv "$target" "$backup"
         fi
     fi
 
     echo "  -> Linking: $source_path -> $target"
-    ln -s "$source_path" "$target"
+    run ln -s "$source_path" "$target"
 }
 
 # Create a real directory, removing any existing symlink first.
@@ -78,47 +98,132 @@ ensure_real_dir() {
     local dir="$1"
     if [[ -L "$dir" ]]; then
         echo "  -> Removing symlink to create real directory: $dir"
-        rm "$dir"
+        run rm "$dir"
     fi
-    mkdir -p "$dir"
+    run mkdir -p "$dir"
 }
 
 # Check whether an install group is enabled in the active profile.
+# Groups are declared in profiles/default.sh (source of truth) and toggled
+# by overlay profiles.
 install_group() {
     local varname="INSTALL_$(echo "$1" | tr '[:lower:]' '[:upper:]')"
     [[ "${!varname}" == "true" ]]
 }
 
-# --- Profile Loading ---
+# Check whether ANY of a comma-separated list of groups is enabled.
+# "*" is unconditional (always returns true).
+any_group_enabled() {
+    local groups="$1"
+    [[ "$groups" == "*" ]] && return 0
+    local g
+    for g in $(echo "$groups" | tr ',' ' '); do
+        # trim whitespace
+        g="${g## }"; g="${g%% }"
+        [[ -n "$g" ]] && install_group "$g" && return 0
+    done
+    return 1
+}
 
-PROFILE_FILE="${DOTFILES_DIR}/.active-profile"
+# Expand only the known set of variables in a string.  This replaces eval,
+# which would execute arbitrary code embedded in links.conf or profile vars.
+# Add a line here when you introduce a new variable to links.conf.
+expand_vars() {
+    local s="$1"
+    s="${s//\$\{HOME\}/$HOME}"
+    s="${s//\$HOME/$HOME}"
+    s="${s//\$\{XDG_CONFIG_HOME\}/$XDG_CONFIG_HOME}"
+    s="${s//\$\{CLAUDE_SETTINGS_REL\}/$CLAUDE_SETTINGS_REL}"
+    s="${s//\$\{CLAUDE_AGENTS_REL\}/$CLAUDE_AGENTS_REL}"
+    s="${s//\$\{GEMINI_SETTINGS_REL\}/$GEMINI_SETTINGS_REL}"
+    s="${s//\$\{GEMINI_AGENTS_REL\}/$GEMINI_AGENTS_REL}"
+    printf '%s' "$s"
+}
+
+# Wrap a command so that --dry-run prints instead of executing.
+run() {
+    if $DRY_RUN; then
+        echo "  [dry-run] $*"
+    else
+        "$@"
+    fi
+}
+
+# ============================================================================
+# Phase 2: Arguments
+# ============================================================================
+
 PROFILES_DIR="${DOTFILES_DIR}/profiles"
 
-# --profile NAME overrides and persists the active profile.
-for arg in "$@"; do
-    case "$arg" in
-        --profile)  echo "Error: --profile requires a name (e.g., --profile work)" >&2; exit 1 ;;
-        --profile=*) OVERRIDE_PROFILE="${arg#--profile=}" ;;
-    esac
-done
-# Handle --profile NAME (two separate args)
+usage() {
+    echo "Usage: install.sh [--profile NAME] [--dry-run] [--show]"
+    echo
+    echo "Options:"
+    echo "  --profile NAME   Set and persist the active profile"
+    echo "  --dry-run        Show what would change without modifying anything"
+    echo "  --show           Show active profile and enabled groups, then exit"
+    echo "  --help           Show this help message"
+    echo
+    echo "Available profiles:"
+    for p in "${PROFILES_DIR}/"*.sh; do
+        [[ -f "$p" ]] || continue
+        echo "  - $(basename "$p" .sh)"
+    done
+}
+
+OVERRIDE_PROFILE=""
+SHOW_ONLY=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --profile) OVERRIDE_PROFILE="${2:-}"; shift ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        --dry-run) DRY_RUN=true ;;
+        --show) SHOW_ONLY=true ;;
+        --profile=*) OVERRIDE_PROFILE="${1#--profile=}" ;;
+        --profile)
+            if [[ -z "${2:-}" ]]; then
+                echo "Error: --profile requires a name (e.g., --profile work)" >&2
+                exit 1
+            fi
+            OVERRIDE_PROFILE="$2"; shift
+            ;;
+        *)
+            echo "Error: Unknown option: $1" >&2
+            usage >&2
+            exit 1
+            ;;
     esac
     shift
 done
-if [[ -n "${OVERRIDE_PROFILE:-}" ]]; then
+
+# ============================================================================
+# Phase 3: Load and Validate Profile
+# ============================================================================
+
+PROFILE_FILE="${DOTFILES_DIR}/.active-profile"
+
+# --profile flag overrides and persists the active profile.
+# With --show, the override is ephemeral (inspect without side effects).
+if [[ -n "${OVERRIDE_PROFILE}" ]]; then
     if [[ ! -f "${PROFILES_DIR}/${OVERRIDE_PROFILE}.sh" ]]; then
         echo "Error: Profile '${OVERRIDE_PROFILE}' not found in ${PROFILES_DIR}/" >&2
         exit 1
     fi
-    echo "${OVERRIDE_PROFILE}" > "${PROFILE_FILE}"
-    echo "  -> Saved profile '${OVERRIDE_PROFILE}' to .active-profile"
+    if ! $SHOW_ONLY; then
+        if ! $DRY_RUN; then
+            echo "${OVERRIDE_PROFILE}" > "${PROFILE_FILE}"
+            echo "  -> Saved profile '${OVERRIDE_PROFILE}' to .active-profile"
+        else
+            echo "  [dry-run] Would save profile '${OVERRIDE_PROFILE}' to .active-profile"
+        fi
+    fi
+    ACTIVE_PROFILE="${OVERRIDE_PROFILE}"
 fi
 
-# First-run prompt: if no .active-profile exists, ask the user to choose.
-if [[ ! -f "${PROFILE_FILE}" ]]; then
+# First-run prompt: if no .active-profile exists and --profile wasn't given.
+if [[ -z "${ACTIVE_PROFILE:-}" ]] && [[ ! -f "${PROFILE_FILE}" ]]; then
     echo "No active profile found. Available profiles:"
     echo
     for p in "${PROFILES_DIR}/"*.sh; do
@@ -137,11 +242,23 @@ if [[ ! -f "${PROFILE_FILE}" ]]; then
         echo "Error: Profile '${chosen_profile}' not found in ${PROFILES_DIR}/" >&2
         exit 1
     fi
-    echo "${chosen_profile}" > "${PROFILE_FILE}"
-    echo "  -> Saved profile '${chosen_profile}' to .active-profile"
+    if ! $DRY_RUN; then
+        echo "${chosen_profile}" > "${PROFILE_FILE}"
+        echo "  -> Saved profile '${chosen_profile}' to .active-profile"
+    else
+        echo "  [dry-run] Would save profile '${chosen_profile}' to .active-profile"
+    fi
+    ACTIVE_PROFILE="${chosen_profile}"
 fi
 
-read -r ACTIVE_PROFILE < "${PROFILE_FILE}"
+if [[ -z "${ACTIVE_PROFILE:-}" ]]; then
+    read -r ACTIVE_PROFILE < "${PROFILE_FILE}"
+fi
+
+if [[ -z "${ACTIVE_PROFILE}" ]]; then
+    echo "Error: .active-profile is empty. Delete it and re-run, or use --profile NAME." >&2
+    exit 1
+fi
 
 # Always source default first, then layer the chosen profile on top.
 echo "› Active profile: ${ACTIVE_PROFILE} (change with --profile NAME)"
@@ -157,139 +274,135 @@ if [[ "${ACTIVE_PROFILE}" != "default" ]]; then
     source "${PROFILE_OVERLAY}"
 fi
 
-# --- Main Installation ---
+# Set XDG_CONFIG_HOME if the environment doesn't already provide it.
+# We intentionally avoid sourcing 001.xdg_base_directory.sh here — that file
+# is designed for interactive shells and has side effects (mkdir for Jupyter,
+# Gimp, GnuPG, etc.) that install.sh should not trigger.
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 
-# Source XDG early — multiple groups need $XDG_CONFIG_HOME.
-echo "› Setting up XDG configuration directories..."
-XDG_FILE="$DOTFILES_DIR/shared/sharedrc.d/001.xdg_base_directory.sh"
-if [[ -f ${XDG_FILE} ]]; then
-    # shellcheck disable=SC1090
-    source "${XDG_FILE}"
+# Derive the known-groups list once from default.sh (the source of truth).
+# Reused by group validation, links.conf validation, and --show.
+KNOWN_GROUPS=$(sed -n 's/^INSTALL_\([A-Z_]*\)=.*/\1/p' "${PROFILES_DIR}/default.sh" | tr '[:upper:]' '[:lower:]')
+
+# Validate install-group variables are well-formed.
+_known_groups=$KNOWN_GROUPS
+_group_errors=0
+for _g in $_known_groups; do
+    _vn="INSTALL_$(echo "$_g" | tr '[:lower:]' '[:upper:]')"
+    case "${!_vn:-}" in
+        true|false) ;;
+        "")
+            echo "Error: ${_vn} not set after sourcing profile '${ACTIVE_PROFILE}'." >&2
+            _group_errors=1
+            ;;
+        *)
+            echo "Error: ${_vn}='${!_vn}' — must be 'true' or 'false'." >&2
+            _group_errors=1
+            ;;
+    esac
+done
+[[ $_group_errors -eq 0 ]] || exit 1
+unset _g _vn _known_groups _group_errors
+
+# Validate that every group name used in links.conf is a known group (or "*").
+# Catches typos like "shel" that would silently skip entries.
+LINKS_FILE="${DOTFILES_DIR}/links.conf"
+if [[ -f "$LINKS_FILE" ]]; then
+    _known_groups=$KNOWN_GROUPS
+    _group_errors=0
+    _lineno=0
+    while IFS='|' read -r _target _source _groups; do
+        _lineno=$((_lineno + 1))
+        _target="${_target#"${_target%%[! ]*}"}"
+        _groups="${_groups#"${_groups%%[! ]*}"}"; _groups="${_groups%"${_groups##*[! ]}"}"
+        [[ -z "$_target" || "$_target" == "#"* ]] && continue
+        [[ "$_groups" == "*" ]] && continue
+        for _g in $(echo "$_groups" | tr ',' ' '); do
+            _g="${_g## }"; _g="${_g%% }"
+            [[ -z "$_g" ]] && continue
+            _match=false
+            for _k in $_known_groups; do
+                [[ "$_g" == "$_k" ]] && { _match=true; break; }
+            done
+            if ! $_match; then
+                echo "Error: links.conf:${_lineno}: unknown group '${_g}' (known: ${_known_groups//$'\n'/, })" >&2
+                _group_errors=1
+            fi
+        done
+    done < "$LINKS_FILE"
+    [[ $_group_errors -eq 0 ]] || exit 1
+    unset _target _source _groups _g _k _match _lineno _known_groups _group_errors
 fi
 
-if install_group shell; then
-    echo "› Linking shell configurations..."
-    link "${HOME}/.bashrc" "bash/bashrc"
-    link "${HOME}/.bash_profile" "bash/bashrc"
-    link "${HOME}/.bash_login" "bash/bashrc"
-    link "${HOME}/.bashrc.d" "bash/bashrc.d"
-    link "${HOME}/.bash_logout" "bash/bash_logout"
-    link "${HOME}/.bashrc.profiler" "bash/bashrc.profiler"
-
-    link "${HOME}/.zshrc" "zsh/zshrc"
-    link "${HOME}/.zshrc.d" "zsh/zshrc.d"
-
-    link "${HOME}/.sharedrc.d" "shared/sharedrc.d"
+# --show: print profile state and exit.
+if $SHOW_ONLY; then
+    echo
+    echo "Profile: ${ACTIVE_PROFILE}"
+    echo "Groups:"
+    for _g in $KNOWN_GROUPS; do
+        if install_group "$_g"; then
+            echo "  + ${_g}"
+        else
+            echo "  - ${_g}  (disabled)"
+        fi
+    done
+    unset _g
+    exit 0
 fi
 
-echo "› Linking core configuration files..."
-link "${HOME}/.terminfo" "terminfo"
-link "${HOME}/.astylerc" "astyle/astylerc"
+# ============================================================================
+# Phase 4: Install
+# ============================================================================
 
-if install_group gui; then
-    echo "› Linking GUI configuration files..."
-    link "${HOME}/.Xmodmap" "xmodmap/Xmodmap"
+# --- 4a. Declarative links from links.conf ---
 
-    echo "› Configuring XDG User Directories for the graphical session..."
-    # This ensures the ~/.config/user-dirs.dirs file is correctly set up
-    # for graphical environments (like GNOME, KDE, MATE) to find the right folders.
-    if command -v xdg-user-dirs-update &> /dev/null; then
-        xdg-user-dirs-update --set DESKTOP "${HOME}/Desktop"
-        xdg-user-dirs-update --set DOCUMENTS "${HOME}/Documents"
-        xdg-user-dirs-update --set DOWNLOAD "${HOME}/Downloads"
-        xdg-user-dirs-update --set MUSIC "${HOME}/Music"
-        xdg-user-dirs-update --set PICTURES "${HOME}/Pictures"
-        xdg-user-dirs-update --set VIDEOS "${HOME}/Videos"
+echo "› Processing link map..."
+while IFS='|' read -r target source groups; do
+    # Trim leading and trailing whitespace from each field.
+    target="${target#"${target%%[! ]*}"}"; target="${target%"${target##*[! ]}"}"
+    source="${source#"${source%%[! ]*}"}"; source="${source%"${source##*[! ]}"}"
+    groups="${groups#"${groups%%[! ]*}"}"; groups="${groups%"${groups##*[! ]}"}"
+    # Skip comments and blank lines.
+    [[ -z "$target" || "$target" == "#"* ]] && continue
+    # Skip if none of the listed groups are enabled.
+    any_group_enabled "$groups" || continue
+    # Expand known variables (HOME, XDG_CONFIG_HOME, profile path vars).
+    target="$(expand_vars "$target")"
+    source="$(expand_vars "$source")"
+    # Ensure parent directory exists as a real directory (not a symlink).
+    # Guard: skip if the parent already exists as a real directory (avoids
+    # calling ensure_real_dir on $HOME, which would destroy a symlinked home).
+    _parent="$(dirname "$target")"
+    [[ -d "$_parent" && ! -L "$_parent" ]] || ensure_real_dir "$_parent"
+    link "$target" "$source"
+done < "$LINKS_FILE"
 
-        # Create the directories if they don't exist to be thorough.
-        mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
-                 "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
-                 "${HOME}/Templates" "${HOME}/Public"
-    else
-        echo "  -> Skipping: xdg-user-dirs-update command not found."
-    fi
-fi
+# --- 4b. Procedural installs (glob loops, runtime setup) ---
 
 if install_group scripts; then
     echo "› Setting up executable scripts in ~/bin..."
     ensure_real_dir "${HOME}/bin"
-    # Loop through each file in the dotfiles/bin directory.
     for full_path in "$DOTFILES_DIR/bin/"*; do
         script_file=${full_path##*/}
         script_name=${script_file%%.*}
-        # Link the file into ~/bin, stripping its original extension.
         link "${HOME}/bin/${script_name}" "bin/${script_file}"
     done
 fi
 
-# Link XDG config directories, respecting group toggles for specific programs.
-# Map config directory names to required install groups. Unlisted directories
-# are linked unconditionally. Add entries here to gate future config dirs.
-declare -A CONFIG_GROUP_MAP=([ghostty]=gui [git]=git)
-
-for config_sub_directory in "$DOTFILES_DIR/config/"*; do
-    program_directory=${config_sub_directory##*/}
-    # Skip directories that require special handling.
-    if [[ "$program_directory" == "systemd" || "$program_directory" == "launchd" ]]; then
-        continue
-    fi
-    # Skip if the program's group is disabled.
-    local_group="${CONFIG_GROUP_MAP[$program_directory]:-}"
-    if [[ -n "$local_group" ]] && ! install_group "$local_group"; then
-        continue
-    fi
-    link "${XDG_CONFIG_HOME}/${program_directory}" "config/${program_directory}"
-done
-
-if install_group vim; then
-    echo "› Setting up Vim and Neovim..."
-    link "${HOME}/.vim" "vim"
-    link "${HOME}/.vimrc" "vim/vimrc"
-    link "${HOME}/.gvimrc" "vim/gvimrc"
-    link "${HOME}/.ideavimrc" "vim/ideavimrc"
-
-    # Neovim uses the same config as Vim, linked into its XDG-compliant directory.
-    link "${XDG_CONFIG_HOME}/nvim" "vim"
-
-    # Install plugins for both Vim and Neovim, if they exist.
-    if command -v vim &> /dev/null; then
-        echo "› Installing Vim plugins..."
-        vim +PlugInstall +qall
-    fi
-
-    if command -v nvim &> /dev/null; then
-        echo "› Installing Neovim plugins..."
-        nvim +PlugInstall +qall
-    fi
-fi
-
 if install_group llm; then
     echo "› Setting up LLM tool configurations..."
-    # Claude Code uses ~/.claude and stores runtime files there.
-    # We create a real directory and symlink only the files we manage.
-    CLAUDE_DIR="${HOME}/.claude"
-    ensure_real_dir "${CLAUDE_DIR}"
-
-    # Symlink only the configuration files we control
-    link "${CLAUDE_DIR}/settings.json" "${CLAUDE_SETTINGS_REL}"
-    # Symlink custom commands individually (excludes README.md)
-    # Using individual symlinks allows external commands to coexist.
-    COMMANDS_DIR="${CLAUDE_DIR}/commands"
+    # Claude custom commands (individual symlinks so external commands coexist).
+    COMMANDS_DIR="${HOME}/.claude/commands"
     ensure_real_dir "$COMMANDS_DIR"
     for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
         [ -f "$cmd_file" ] || continue
         cmd_name=$(basename "$cmd_file")
-        # Skip README files
         [[ "$cmd_name" == "README.md" ]] && continue
         link "${COMMANDS_DIR}/${cmd_name}" "llm/claude/commands/${cmd_name}"
     done
 
-    link "${CLAUDE_DIR}/CLAUDE.md" "${CLAUDE_AGENTS_REL}"
-
-    # Symlink shared Agent Skills individually (allows external skills to coexist)
-    # Using individual symlinks instead of a directory symlink lets you add
-    # work-specific or machine-local skills alongside the dotfiles-managed ones.
-    SKILLS_DIR="${CLAUDE_DIR}/skills"
+    # Shared Agent Skills (individual symlinks so external skills coexist).
+    SKILLS_DIR="${HOME}/.claude/skills"
     ensure_real_dir "$SKILLS_DIR"
     for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
         [ -d "$skill_dir" ] || continue
@@ -297,29 +410,46 @@ if install_group llm; then
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
-    # Expose Johnny Decimal scripts without .sh extension, but only if the
-    # scripts group is enabled (since these go into ~/bin).
+    # Johnny Decimal scripts into ~/bin (needs scripts group too).
     if install_group scripts; then
-        # (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
-        ensure_real_dir "${HOME}/bin"
         ensure_real_dir "${HOME}/bin/johnny-decimal"
         for script in "$DOTFILES_DIR/llm/skills/johnny-decimal/scripts/"*.sh; do
             script_basename=$(basename "$script")
-            # Skip the library file - it's not meant to be run directly
             [[ "$script_basename" == "jd-lib.sh" ]] && continue
             script_name="${script_basename%.sh}"
             link "${HOME}/bin/johnny-decimal/${script_name}" "llm/skills/johnny-decimal/scripts/${script_basename}"
         done
     fi
+fi
 
-    # Gemini CLI uses ~/.gemini and stores runtime files there.
-    # We create a real directory and symlink only the files we manage.
-    GEMINI_DIR="${HOME}/.gemini"
-    ensure_real_dir "${GEMINI_DIR}"
+if install_group vim; then
+    if ! $DRY_RUN; then
+        if command -v vim &> /dev/null; then
+            echo "› Installing Vim plugins..."
+            vim +PlugInstall +qall
+        fi
+        if command -v nvim &> /dev/null; then
+            echo "› Installing Neovim plugins..."
+            nvim +PlugInstall +qall
+        fi
+    fi
+fi
 
-    # Symlink only the configuration files we control
-    link "${GEMINI_DIR}/settings.json" "${GEMINI_SETTINGS_REL}"
-    link "${GEMINI_DIR}/GEMINI.md" "${GEMINI_AGENTS_REL}"
+if install_group gui; then
+    echo "› Configuring XDG User Directories..."
+    if command -v xdg-user-dirs-update &> /dev/null; then
+        run xdg-user-dirs-update --set DESKTOP "${HOME}/Desktop"
+        run xdg-user-dirs-update --set DOCUMENTS "${HOME}/Documents"
+        run xdg-user-dirs-update --set DOWNLOAD "${HOME}/Downloads"
+        run xdg-user-dirs-update --set MUSIC "${HOME}/Music"
+        run xdg-user-dirs-update --set PICTURES "${HOME}/Pictures"
+        run xdg-user-dirs-update --set VIDEOS "${HOME}/Videos"
+        run mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
+                     "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
+                     "${HOME}/Templates" "${HOME}/Public"
+    else
+        echo "  -> Skipping: xdg-user-dirs-update command not found."
+    fi
 fi
 
 if install_group cleanup; then
@@ -329,17 +459,13 @@ if install_group cleanup; then
             echo "  -> Setting up systemd user service for emptying Downloads..."
             SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
             SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
-            SOURCE_SERVICE_FILE="${DOTFILES_DIR}/config/systemd/user/empty-downloads.service"
-
             ensure_real_dir "${SYSTEMD_USER_DIR}"
-
-            # Systemd requires a real file, not a symlink, for 'enable'.
             echo "  -> Copying systemd service file (required by systemctl)..."
-            cp "${SOURCE_SERVICE_FILE}" "${SERVICE_FILE}"
-
-            # Attempt to reload and enable, but don't fail the script if the user session isn't running.
-            systemctl --user daemon-reload || true
-            systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
+            run cp "${DOTFILES_DIR}/config/systemd/user/empty-downloads.service" "${SERVICE_FILE}"
+            if ! $DRY_RUN; then
+                systemctl --user daemon-reload || true
+                systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
+            fi
         else
             echo "  -> Skipping systemd setup: systemctl command not found."
         fi
@@ -348,77 +474,84 @@ if install_group cleanup; then
             echo "  -> Setting up launchd agent for emptying Downloads..."
             LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
             PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
-
             ensure_real_dir "${LAUNCHD_DIR}"
-
-            # Link the plist file into the real directory.
             link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
-
-            # Unload the service first in case it's already running, then load it.
-            launchctl unload "${PLIST_FILE}" 2>/dev/null || true
-            launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
+            if ! $DRY_RUN; then
+                launchctl unload "${PLIST_FILE}" 2>/dev/null || true
+                launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
+            fi
         fi
     fi
 fi
 
-# --- Cleanup Stale Symlinks ---
+# ============================================================================
+# Phase 5: Cleanup (manifest diff)
+# ============================================================================
 
-# Track removed links for the post-install summary.
+MANIFEST_FILE="${DOTFILES_DIR}/.link-manifest"
 REMOVED_LINKS=()
 
-# Remove symlinks that point into DOTFILES_DIR but are either dangling (source
-# file deleted from repo) or not in MANAGED_LINKS (group disabled / file
-# removed from install script).
-cleanup_unmanaged() {
-    local dir="$1"
-    [[ -d "$dir" ]] || return
-    for entry in "$dir"/*; do
-        [[ -L "$entry" ]] || continue
-        local target
-        target=$(readlink "$entry")
-        [[ "$target" == "${DOTFILES_DIR}/"* ]] || continue
+# Read the previous run's manifest (if any).
+OLD_MANIFEST=()
+if [[ -f "$MANIFEST_FILE" ]]; then
+    while IFS= read -r _line; do
+        OLD_MANIFEST+=("$_line")
+    done < "$MANIFEST_FILE"
+    unset _line
+fi
 
-        # Dangling: target file gone from repo
-        if [[ ! -e "$entry" ]]; then
-            REMOVED_LINKS+=("$entry")
-            rm "$entry"
-            continue
+# Diff: anything in the old manifest but not in MANAGED_LINKS is stale.
+if [[ ${#OLD_MANIFEST[@]} -gt 0 ]]; then
+    for old in "${OLD_MANIFEST[@]}"; do
+        _found=false
+        if [[ ${#MANAGED_LINKS[@]} -gt 0 ]]; then
+            for new in "${MANAGED_LINKS[@]}"; do
+                [[ "$old" == "$new" ]] && { _found=true; break; }
+            done
         fi
-
-        # Unmanaged: target exists but wasn't created this run
-        local found=false
-        for m in "${MANAGED_LINKS[@]}"; do
-            [[ "$m" == "$entry" ]] && { found=true; break; }
-        done
-        if ! $found; then
-            REMOVED_LINKS+=("$entry")
-            rm "$entry"
+        if ! $_found; then
+            # Safety: only remove if it's still a symlink pointing into our repo
+            if [[ -L "$old" ]] && [[ "$(readlink "$old")" == "${DOTFILES_DIR}/"* ]]; then
+                if [[ ${#REMOVED_LINKS[@]} -eq 0 ]]; then
+                    echo "› Cleaning up stale symlinks..."
+                fi
+                REMOVED_LINKS+=("$old")
+                run rm "$old"
+            fi
         fi
     done
-}
+    unset _found
+fi
 
-# Derive the set of directories to scan from MANAGED_LINKS itself, so new
-# link target directories are automatically covered without maintenance.
-echo "› Cleaning up stale symlinks..."
-declare -A _cleanup_dirs
-for m in "${MANAGED_LINKS[@]}"; do
-    _cleanup_dirs["$(dirname "$m")"]=1
-done
-for dir in "${!_cleanup_dirs[@]}"; do
-    cleanup_unmanaged "$dir"
-done
-unset _cleanup_dirs
+# Write the new manifest for the next run (skip in dry-run mode).
+if ! $DRY_RUN; then
+    if [[ ${#MANAGED_LINKS[@]} -gt 0 ]]; then
+        printf '%s\n' "${MANAGED_LINKS[@]}" > "$MANIFEST_FILE"
+    else
+        : > "$MANIFEST_FILE"
+    fi
+fi
 
-# --- Post-Install Summary ---
+# ============================================================================
+# Phase 6: Summary
+# ============================================================================
 
 if [[ ${#REMOVED_LINKS[@]} -gt 0 ]]; then
     echo
-    echo "› Cleanup summary:"
+    if $DRY_RUN; then
+        echo "› Cleanup summary (would remove):"
+    else
+        echo "› Cleanup summary:"
+    fi
     for removed in "${REMOVED_LINKS[@]}"; do
-        echo "  Removed: $removed"
+        echo "  ${removed}"
     done
 fi
 
 echo
-echo "✓ Dotfiles installation complete!"
-echo "Note: Some changes may require a new shell session or a full logout/login to take effect."
+if $DRY_RUN; then
+    echo "✓ Dry run complete — no changes were made."
+else
+    echo "✓ Dotfiles installation complete!"
+    echo "Note: Some changes may require a new shell session or a full logout/login to take effect."
+fi

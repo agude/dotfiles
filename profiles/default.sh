@@ -6,8 +6,20 @@
 # Profiles control which files install.sh links. They do not affect runtime
 # behavior — shell configs detect available tools at startup.
 
-# --- Install Groups ---
-# Set to "true" to install, anything else to skip.
+# --- Install Groups (source of truth) ---
+# This file is the single source of truth for which groups exist and their
+# defaults.  install.sh derives its validation list from these INSTALL_*
+# declarations.  Overlay profiles (server.sh, work.sh) override individual
+# values.
+#
+# Groups are used in two ways in install.sh:
+#   1. links.conf:      declarative mapping of target → source → groups.
+#      Each row is processed by the engine loop; add a row to link a new file.
+#   2. Inline blocks:  `if install_group <name>; then ... fi` for procedural
+#      tasks (glob loops, plugin install, service management).
+#
+# To add a new group: add INSTALL_<NAME>=true here, then reference the group
+# name in links.conf rows or inline blocks in install.sh.
 INSTALL_SHELL=true
 INSTALL_VIM=true
 INSTALL_GIT=true
