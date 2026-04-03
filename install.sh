@@ -260,6 +260,64 @@ elif [[ "${PLATFORM}" == "mac" ]]; then
     fi
 fi
 
+# --- Cleanup Stale Symlinks ---
+
+# Track removed links for the post-install summary.
+REMOVED_LINKS=()
+
+# Remove symlinks that point into DOTFILES_DIR but are either dangling (source
+# file deleted from repo) or not in MANAGED_LINKS (group disabled / file
+# removed from install script).
+cleanup_unmanaged() {
+    local dir="$1"
+    [[ -d "$dir" ]] || return
+    for entry in "$dir"/*; do
+        [[ -L "$entry" ]] || continue
+        local target
+        target=$(readlink "$entry")
+        [[ "$target" == "${DOTFILES_DIR}/"* ]] || continue
+
+        # Dangling: target file gone from repo
+        if [[ ! -e "$entry" ]]; then
+            REMOVED_LINKS+=("$entry")
+            rm "$entry"
+            continue
+        fi
+
+        # Unmanaged: target exists but wasn't created this run
+        local found=false
+        for m in "${MANAGED_LINKS[@]}"; do
+            [[ "$m" == "$entry" ]] && { found=true; break; }
+        done
+        if ! $found; then
+            REMOVED_LINKS+=("$entry")
+            rm "$entry"
+        fi
+    done
+}
+
+# Derive the set of directories to scan from MANAGED_LINKS itself, so new
+# link target directories are automatically covered without maintenance.
+echo "› Cleaning up stale symlinks..."
+declare -A _cleanup_dirs
+for m in "${MANAGED_LINKS[@]}"; do
+    _cleanup_dirs["$(dirname "$m")"]=1
+done
+for dir in "${!_cleanup_dirs[@]}"; do
+    cleanup_unmanaged "$dir"
+done
+unset _cleanup_dirs
+
+# --- Post-Install Summary ---
+
+if [[ ${#REMOVED_LINKS[@]} -gt 0 ]]; then
+    echo
+    echo "› Cleanup summary:"
+    for removed in "${REMOVED_LINKS[@]}"; do
+        echo "  Removed: $removed"
+    done
+fi
+
 echo
 echo "✓ Dotfiles installation complete!"
 echo "Note: Some changes may require a new shell session or a full logout/login to take effect."
