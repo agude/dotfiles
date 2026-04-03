@@ -24,20 +24,49 @@ if [[ -f "${PLATFORM_SCRIPT}" ]]; then
     source "${PLATFORM_SCRIPT}"
 fi
 
-# A safer and more informative link function.
-# It removes any existing file, directory, or symlink at the target location
-# before creating the new symlink.
+# All symlink targets created by link() are recorded here for cleanup.
+MANAGED_LINKS=()
+
+# Ownership-aware link function.
+# - If the source doesn't exist, warn and skip (don't create dangling symlinks).
+# - If the target is already a correct symlink, skip silently (idempotent).
+# - If the target is a symlink we own (points into DOTFILES_DIR), replace it.
+# - If the target is anything else (real file, dir, foreign symlink), back it
+#   up with an epoch timestamp before linking.
 link() {
     local target="$1"
-    local source="$2" # Source is relative to the dotfiles directory
+    local source="$2" # Source is repo-relative; DOTFILES_DIR is prepended below
+    local source_path="${DOTFILES_DIR}/${source}"
 
-    if [[ -e "$target" || -L "$target" ]]; then
-        echo "  -> Removing existing target: $target"
-        rm -rf "$target"
+    # Validate source exists before doing anything
+    if [[ ! -e "$source_path" ]]; then
+        echo "  -> Warning: source does not exist, skipping: $source_path" >&2
+        return 1
     fi
 
-    echo "  -> Linking: $DOTFILES_DIR/$source -> $target"
-    ln -s "$DOTFILES_DIR/$source" "$target"
+    MANAGED_LINKS+=("$target")
+
+    # Already correct — skip silently
+    if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source_path" ]]; then
+        return
+    fi
+
+    # Something exists that isn't what we want
+    if [[ -e "$target" || -L "$target" ]]; then
+        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${DOTFILES_DIR}/"* ]]; then
+            # Our symlink, wrong target — safe to replace
+            echo "  -> Updating: $target"
+            rm "$target"
+        else
+            # Not ours — back up with epoch timestamp, don't destroy
+            local backup="${target}.dotfiles-backup.$(date +%s)"
+            echo "  -> Backing up: $target -> ${backup}"
+            mv "$target" "$backup"
+        fi
+    fi
+
+    echo "  -> Linking: $source_path -> $target"
+    ln -s "$source_path" "$target"
 }
 
 # Create a real directory, removing any existing symlink first.
