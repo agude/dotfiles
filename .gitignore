@@ -18,6 +18,10 @@ Session.vim
 
 # Linux files from Github Gitignore:
 # https://github.com/github/gitignore/blob/master/Global/Linux.gitignore
+# Machine-local install state (written by install.sh)
+.active-profile
+.link-manifest
+
 .*
 !.gitignore
 !.github
