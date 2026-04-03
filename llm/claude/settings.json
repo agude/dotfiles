@@ -1,7 +1,6 @@
 {
   "includeCoAuthoredBy": false,
   "permissions": {
-    "defaultMode": "auto",
     "allow": [
       "Bash(ack:*)",
       "Bash(ag:*)",
@@ -229,10 +228,12 @@
     ],
     "ask": [
       "*"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "model": "opus",
   "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
   "git": {
     "includeCoAuthor": false
@@ -244,7 +245,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/kb-context.sh 2>/dev/null || echo '(knowledge base not initialized)'",
+            "command": "~/Knowledge/scripts/session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Knowledge/scripts/session-prompt",
             "timeout": 5
           }
         ]
@@ -256,8 +269,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/kb-extract-knowledge.sh",
-            "timeout": 180
+            "command": "~/Knowledge/scripts/session-stop",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Knowledge/scripts/session-end",
+            "timeout": 10
           }
         ]
       }
