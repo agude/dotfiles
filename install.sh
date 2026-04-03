@@ -83,6 +83,80 @@ ensure_real_dir() {
     mkdir -p "$dir"
 }
 
+# Check whether an install group is enabled in the active profile.
+install_group() {
+    local varname="INSTALL_$(echo "$1" | tr '[:lower:]' '[:upper:]')"
+    [[ "${!varname}" == "true" ]]
+}
+
+# --- Profile Loading ---
+
+PROFILE_FILE="${DOTFILES_DIR}/.active-profile"
+PROFILES_DIR="${DOTFILES_DIR}/profiles"
+
+# --profile NAME overrides and persists the active profile.
+for arg in "$@"; do
+    case "$arg" in
+        --profile)  echo "Error: --profile requires a name (e.g., --profile work)" >&2; exit 1 ;;
+        --profile=*) OVERRIDE_PROFILE="${arg#--profile=}" ;;
+    esac
+done
+# Handle --profile NAME (two separate args)
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --profile) OVERRIDE_PROFILE="${2:-}"; shift ;;
+    esac
+    shift
+done
+if [[ -n "${OVERRIDE_PROFILE:-}" ]]; then
+    if [[ ! -f "${PROFILES_DIR}/${OVERRIDE_PROFILE}.sh" ]]; then
+        echo "Error: Profile '${OVERRIDE_PROFILE}' not found in ${PROFILES_DIR}/" >&2
+        exit 1
+    fi
+    echo "${OVERRIDE_PROFILE}" > "${PROFILE_FILE}"
+    echo "  -> Saved profile '${OVERRIDE_PROFILE}' to .active-profile"
+fi
+
+# First-run prompt: if no .active-profile exists, ask the user to choose.
+if [[ ! -f "${PROFILE_FILE}" ]]; then
+    echo "No active profile found. Available profiles:"
+    echo
+    for p in "${PROFILES_DIR}/"*.sh; do
+        [[ -f "$p" ]] || continue
+        echo "  - $(basename "$p" .sh)"
+    done
+    echo
+    if [[ -t 0 ]]; then
+        read -rp "Enter profile name [default]: " chosen_profile
+        chosen_profile="${chosen_profile:-default}"
+    else
+        echo "  -> Non-interactive session detected, using 'default' profile."
+        chosen_profile="default"
+    fi
+    if [[ ! -f "${PROFILES_DIR}/${chosen_profile}.sh" ]]; then
+        echo "Error: Profile '${chosen_profile}' not found in ${PROFILES_DIR}/" >&2
+        exit 1
+    fi
+    echo "${chosen_profile}" > "${PROFILE_FILE}"
+    echo "  -> Saved profile '${chosen_profile}' to .active-profile"
+fi
+
+read -r ACTIVE_PROFILE < "${PROFILE_FILE}"
+
+# Always source default first, then layer the chosen profile on top.
+echo "› Active profile: ${ACTIVE_PROFILE} (change with --profile NAME)"
+# shellcheck disable=SC1091
+source "${PROFILES_DIR}/default.sh"
+if [[ "${ACTIVE_PROFILE}" != "default" ]]; then
+    PROFILE_OVERLAY="${PROFILES_DIR}/${ACTIVE_PROFILE}.sh"
+    if [[ ! -f "${PROFILE_OVERLAY}" ]]; then
+        echo "Error: Profile file '${PROFILE_OVERLAY}' does not exist." >&2
+        exit 1
+    fi
+    # shellcheck disable=SC1090
+    source "${PROFILE_OVERLAY}"
+fi
+
 # --- Main Installation ---
 
 echo "› Linking shell configurations..."
