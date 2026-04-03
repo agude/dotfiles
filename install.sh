@@ -159,178 +159,205 @@ fi
 
 # --- Main Installation ---
 
-echo "› Linking shell configurations..."
-link "${HOME}/.bashrc" "bash/bashrc"
-link "${HOME}/.bash_profile" "bash/bashrc"
-link "${HOME}/.bash_login" "bash/bashrc"
-link "${HOME}/.bashrc.d" "bash/bashrc.d"
-link "${HOME}/.bash_logout" "bash/bash_logout"
-link "${HOME}/.bashrc.profiler" "bash/bashrc.profiler"
-
-link "${HOME}/.zshrc" "zsh/zshrc"
-link "${HOME}/.zshrc.d" "zsh/zshrc.d"
-
-link "${HOME}/.sharedrc.d" "shared/sharedrc.d"
-
-echo "› Linking core configuration files..."
-link "${HOME}/.Xmodmap" "xmodmap/Xmodmap"
-link "${HOME}/.astylerc" "astyle/astylerc"
-link "${HOME}/.terminfo" "terminfo"
-
-echo "› Setting up executable scripts in ~/bin..."
-ensure_real_dir "${HOME}/bin"
-# Loop through each file in the dotfiles/bin directory.
-for full_path in "$DOTFILES_DIR/bin/"*; do
-    script_file=${full_path##*/}
-    script_name=${script_file%%.*}
-    # Link the file into ~/bin, stripping its original extension.
-    link "${HOME}/bin/${script_name}" "bin/${script_file}"
-done
-
+# Source XDG early — multiple groups need $XDG_CONFIG_HOME.
 echo "› Setting up XDG configuration directories..."
-# Source the XDG file to ensure $XDG_CONFIG_HOME is available for the rest of the script.
 XDG_FILE="$DOTFILES_DIR/shared/sharedrc.d/001.xdg_base_directory.sh"
 if [[ -f ${XDG_FILE} ]]; then
     # shellcheck disable=SC1090
     source "${XDG_FILE}"
 fi
 
-# Link generic config directories, skipping special cases handled later.
+if install_group shell; then
+    echo "› Linking shell configurations..."
+    link "${HOME}/.bashrc" "bash/bashrc"
+    link "${HOME}/.bash_profile" "bash/bashrc"
+    link "${HOME}/.bash_login" "bash/bashrc"
+    link "${HOME}/.bashrc.d" "bash/bashrc.d"
+    link "${HOME}/.bash_logout" "bash/bash_logout"
+    link "${HOME}/.bashrc.profiler" "bash/bashrc.profiler"
+
+    link "${HOME}/.zshrc" "zsh/zshrc"
+    link "${HOME}/.zshrc.d" "zsh/zshrc.d"
+
+    link "${HOME}/.sharedrc.d" "shared/sharedrc.d"
+fi
+
+echo "› Linking core configuration files..."
+link "${HOME}/.terminfo" "terminfo"
+link "${HOME}/.astylerc" "astyle/astylerc"
+
+if install_group gui; then
+    echo "› Linking GUI configuration files..."
+    link "${HOME}/.Xmodmap" "xmodmap/Xmodmap"
+
+    echo "› Configuring XDG User Directories for the graphical session..."
+    # This ensures the ~/.config/user-dirs.dirs file is correctly set up
+    # for graphical environments (like GNOME, KDE, MATE) to find the right folders.
+    if command -v xdg-user-dirs-update &> /dev/null; then
+        xdg-user-dirs-update --set DESKTOP "${HOME}/Desktop"
+        xdg-user-dirs-update --set DOCUMENTS "${HOME}/Documents"
+        xdg-user-dirs-update --set DOWNLOAD "${HOME}/Downloads"
+        xdg-user-dirs-update --set MUSIC "${HOME}/Music"
+        xdg-user-dirs-update --set PICTURES "${HOME}/Pictures"
+        xdg-user-dirs-update --set VIDEOS "${HOME}/Videos"
+
+        # Create the directories if they don't exist to be thorough.
+        mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
+                 "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
+                 "${HOME}/Templates" "${HOME}/Public"
+    else
+        echo "  -> Skipping: xdg-user-dirs-update command not found."
+    fi
+fi
+
+if install_group scripts; then
+    echo "› Setting up executable scripts in ~/bin..."
+    ensure_real_dir "${HOME}/bin"
+    # Loop through each file in the dotfiles/bin directory.
+    for full_path in "$DOTFILES_DIR/bin/"*; do
+        script_file=${full_path##*/}
+        script_name=${script_file%%.*}
+        # Link the file into ~/bin, stripping its original extension.
+        link "${HOME}/bin/${script_name}" "bin/${script_file}"
+    done
+fi
+
+# Link XDG config directories, respecting group toggles for specific programs.
+# Map config directory names to required install groups. Unlisted directories
+# are linked unconditionally. Add entries here to gate future config dirs.
+declare -A CONFIG_GROUP_MAP=([ghostty]=gui [git]=git)
+
 for config_sub_directory in "$DOTFILES_DIR/config/"*; do
     program_directory=${config_sub_directory##*/}
     # Skip directories that require special handling.
     if [[ "$program_directory" == "systemd" || "$program_directory" == "launchd" ]]; then
         continue
     fi
+    # Skip if the program's group is disabled.
+    local_group="${CONFIG_GROUP_MAP[$program_directory]:-}"
+    if [[ -n "$local_group" ]] && ! install_group "$local_group"; then
+        continue
+    fi
     link "${XDG_CONFIG_HOME}/${program_directory}" "config/${program_directory}"
 done
 
-echo "› Configuring XDG User Directories for the graphical session..."
-# This ensures the ~/.config/user-dirs.dirs file is correctly set up
-# for graphical environments (like GNOME, KDE, MATE) to find the right folders.
-if command -v xdg-user-dirs-update &> /dev/null; then
-    xdg-user-dirs-update --set DESKTOP "${HOME}/Desktop"
-    xdg-user-dirs-update --set DOCUMENTS "${HOME}/Documents"
-    xdg-user-dirs-update --set DOWNLOAD "${HOME}/Downloads"
-    xdg-user-dirs-update --set MUSIC "${HOME}/Music"
-    xdg-user-dirs-update --set PICTURES "${HOME}/Pictures"
-    xdg-user-dirs-update --set VIDEOS "${HOME}/Videos"
+if install_group vim; then
+    echo "› Setting up Vim and Neovim..."
+    link "${HOME}/.vim" "vim"
+    link "${HOME}/.vimrc" "vim/vimrc"
+    link "${HOME}/.gvimrc" "vim/gvimrc"
+    link "${HOME}/.ideavimrc" "vim/ideavimrc"
 
-    # Create the directories if they don't exist to be thorough.
-    mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
-             "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
-             "${HOME}/Templates" "${HOME}/Public"
-else
-    echo "  -> Skipping: xdg-user-dirs-update command not found."
-fi
+    # Neovim uses the same config as Vim, linked into its XDG-compliant directory.
+    link "${XDG_CONFIG_HOME}/nvim" "vim"
 
-echo "› Setting up Vim and Neovim..."
-link "${HOME}/.vim" "vim"
-link "${HOME}/.vimrc" "vim/vimrc"
-link "${HOME}/.gvimrc" "vim/gvimrc"
-link "${HOME}/.ideavimrc" "vim/ideavimrc"
-
-# Neovim uses the same config as Vim, linked into its XDG-compliant directory.
-link "${XDG_CONFIG_HOME}/nvim" "vim"
-
-# Install plugins for both Vim and Neovim, if they exist.
-if command -v vim &> /dev/null; then
-    echo "› Installing Vim plugins..."
-    vim +PlugInstall +qall
-fi
-
-if command -v nvim &> /dev/null; then
-    echo "› Installing Neovim plugins..."
-    nvim +PlugInstall +qall
-fi
-
-echo "› Setting up LLM tool configurations..."
-# Claude Code uses ~/.claude and stores runtime files there.
-# We create a real directory and symlink only the files we manage.
-CLAUDE_DIR="${HOME}/.claude"
-ensure_real_dir "${CLAUDE_DIR}"
-
-# Symlink only the configuration files we control
-link "${CLAUDE_DIR}/settings.json" "llm/claude/settings.json"
-# Symlink custom commands individually (excludes README.md)
-# Using individual symlinks allows external commands to coexist.
-COMMANDS_DIR="${CLAUDE_DIR}/commands"
-ensure_real_dir "$COMMANDS_DIR"
-for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
-    [ -f "$cmd_file" ] || continue
-    cmd_name=$(basename "$cmd_file")
-    # Skip README files
-    [[ "$cmd_name" == "README.md" ]] && continue
-    link "${COMMANDS_DIR}/${cmd_name}" "llm/claude/commands/${cmd_name}"
-done
-
-link "${CLAUDE_DIR}/CLAUDE.md" "llm/AGENTS.md"
-
-# Symlink shared Agent Skills individually (allows external skills to coexist)
-# Using individual symlinks instead of a directory symlink lets you add
-# work-specific or machine-local skills alongside the dotfiles-managed ones.
-SKILLS_DIR="${CLAUDE_DIR}/skills"
-ensure_real_dir "$SKILLS_DIR"
-for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
-    [ -d "$skill_dir" ] || continue
-    skill_name=$(basename "$skill_dir")
-    link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
-done
-
-# Expose Johnny Decimal scripts without .sh extension
-# (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
-ensure_real_dir "${HOME}/bin/johnny-decimal"
-for script in "$DOTFILES_DIR/llm/skills/johnny-decimal/scripts/"*.sh; do
-    script_basename=$(basename "$script")
-    # Skip the library file - it's not meant to be run directly
-    [[ "$script_basename" == "jd-lib.sh" ]] && continue
-    script_name="${script_basename%.sh}"
-    link "${HOME}/bin/johnny-decimal/${script_name}" "llm/skills/johnny-decimal/scripts/${script_basename}"
-done
-
-# Gemini CLI uses ~/.gemini and stores runtime files there.
-# We create a real directory and symlink only the files we manage.
-GEMINI_DIR="${HOME}/.gemini"
-ensure_real_dir "${GEMINI_DIR}"
-
-# Symlink only the configuration files we control
-link "${GEMINI_DIR}/settings.json" "llm/gemini/settings.json"
-link "${GEMINI_DIR}/GEMINI.md" "llm/AGENTS.md"
-
-echo "› Setting up automated cleanup tasks..."
-if [[ "${PLATFORM}" == "linux" ]]; then
-    if command -v systemctl &> /dev/null; then
-        echo "  -> Setting up systemd user service for emptying Downloads..."
-        SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
-        SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
-        SOURCE_SERVICE_FILE="${DOTFILES_DIR}/config/systemd/user/empty-downloads.service"
-
-        ensure_real_dir "${SYSTEMD_USER_DIR}"
-
-        # Systemd requires a real file, not a symlink, for 'enable'.
-        echo "  -> Copying systemd service file (required by systemctl)..."
-        cp "${SOURCE_SERVICE_FILE}" "${SERVICE_FILE}"
-
-        # Attempt to reload and enable, but don't fail the script if the user session isn't running.
-        systemctl --user daemon-reload || true
-        systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
-    else
-        echo "  -> Skipping systemd setup: systemctl command not found."
+    # Install plugins for both Vim and Neovim, if they exist.
+    if command -v vim &> /dev/null; then
+        echo "› Installing Vim plugins..."
+        vim +PlugInstall +qall
     fi
-elif [[ "${PLATFORM}" == "mac" ]]; then
-    if command -v launchctl &> /dev/null; then
-        echo "  -> Setting up launchd agent for emptying Downloads..."
-        LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
-        PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
 
-        ensure_real_dir "${LAUNCHD_DIR}"
+    if command -v nvim &> /dev/null; then
+        echo "› Installing Neovim plugins..."
+        nvim +PlugInstall +qall
+    fi
+fi
 
-        # Link the plist file into the real directory.
-        link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
+if install_group llm; then
+    echo "› Setting up LLM tool configurations..."
+    # Claude Code uses ~/.claude and stores runtime files there.
+    # We create a real directory and symlink only the files we manage.
+    CLAUDE_DIR="${HOME}/.claude"
+    ensure_real_dir "${CLAUDE_DIR}"
 
-        # Unload the service first in case it's already running, then load it.
-        launchctl unload "${PLIST_FILE}" 2>/dev/null || true
-        launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
+    # Symlink only the configuration files we control
+    link "${CLAUDE_DIR}/settings.json" "${CLAUDE_SETTINGS_REL}"
+    # Symlink custom commands individually (excludes README.md)
+    # Using individual symlinks allows external commands to coexist.
+    COMMANDS_DIR="${CLAUDE_DIR}/commands"
+    ensure_real_dir "$COMMANDS_DIR"
+    for cmd_file in "$DOTFILES_DIR/llm/claude/commands/"*.md; do
+        [ -f "$cmd_file" ] || continue
+        cmd_name=$(basename "$cmd_file")
+        # Skip README files
+        [[ "$cmd_name" == "README.md" ]] && continue
+        link "${COMMANDS_DIR}/${cmd_name}" "llm/claude/commands/${cmd_name}"
+    done
+
+    link "${CLAUDE_DIR}/CLAUDE.md" "${CLAUDE_AGENTS_REL}"
+
+    # Symlink shared Agent Skills individually (allows external skills to coexist)
+    # Using individual symlinks instead of a directory symlink lets you add
+    # work-specific or machine-local skills alongside the dotfiles-managed ones.
+    SKILLS_DIR="${CLAUDE_DIR}/skills"
+    ensure_real_dir "$SKILLS_DIR"
+    for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
+        [ -d "$skill_dir" ] || continue
+        skill_name=$(basename "$skill_dir")
+        link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+    done
+
+    # Expose Johnny Decimal scripts without .sh extension, but only if the
+    # scripts group is enabled (since these go into ~/bin).
+    if install_group scripts; then
+        # (subdirs are added to PATH by shared/sharedrc.d/002.bin_subdirs.sh)
+        ensure_real_dir "${HOME}/bin"
+        ensure_real_dir "${HOME}/bin/johnny-decimal"
+        for script in "$DOTFILES_DIR/llm/skills/johnny-decimal/scripts/"*.sh; do
+            script_basename=$(basename "$script")
+            # Skip the library file - it's not meant to be run directly
+            [[ "$script_basename" == "jd-lib.sh" ]] && continue
+            script_name="${script_basename%.sh}"
+            link "${HOME}/bin/johnny-decimal/${script_name}" "llm/skills/johnny-decimal/scripts/${script_basename}"
+        done
+    fi
+
+    # Gemini CLI uses ~/.gemini and stores runtime files there.
+    # We create a real directory and symlink only the files we manage.
+    GEMINI_DIR="${HOME}/.gemini"
+    ensure_real_dir "${GEMINI_DIR}"
+
+    # Symlink only the configuration files we control
+    link "${GEMINI_DIR}/settings.json" "${GEMINI_SETTINGS_REL}"
+    link "${GEMINI_DIR}/GEMINI.md" "${GEMINI_AGENTS_REL}"
+fi
+
+if install_group cleanup; then
+    echo "› Setting up automated cleanup tasks..."
+    if [[ "${PLATFORM}" == "linux" ]]; then
+        if command -v systemctl &> /dev/null; then
+            echo "  -> Setting up systemd user service for emptying Downloads..."
+            SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
+            SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
+            SOURCE_SERVICE_FILE="${DOTFILES_DIR}/config/systemd/user/empty-downloads.service"
+
+            ensure_real_dir "${SYSTEMD_USER_DIR}"
+
+            # Systemd requires a real file, not a symlink, for 'enable'.
+            echo "  -> Copying systemd service file (required by systemctl)..."
+            cp "${SOURCE_SERVICE_FILE}" "${SERVICE_FILE}"
+
+            # Attempt to reload and enable, but don't fail the script if the user session isn't running.
+            systemctl --user daemon-reload || true
+            systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
+        else
+            echo "  -> Skipping systemd setup: systemctl command not found."
+        fi
+    elif [[ "${PLATFORM}" == "mac" ]]; then
+        if command -v launchctl &> /dev/null; then
+            echo "  -> Setting up launchd agent for emptying Downloads..."
+            LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
+            PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
+
+            ensure_real_dir "${LAUNCHD_DIR}"
+
+            # Link the plist file into the real directory.
+            link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
+
+            # Unload the service first in case it's already running, then load it.
+            launchctl unload "${PLIST_FILE}" 2>/dev/null || true
+            launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
+        fi
     fi
 fi
 
