@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2034
 # Default profile — personal desktop with everything enabled.
 # Other profiles source default.sh first (via install.sh), then override
 # specific values.

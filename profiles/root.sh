@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2034
 # Root profile — minimal config for brief sudo su sessions.
 # No git, scripts, GUI, LLM, or scheduled cleanup.
 

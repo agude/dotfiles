@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2034
 # Synology profile — minimal shell environment for NAS access over SSH.
 # Synology uses BusyBox-based tools; keep the footprint small.
 

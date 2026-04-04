@@ -79,7 +79,8 @@ link() {
             run rm "$target"
         else
             # Not ours — back up with epoch timestamp, don't destroy
-            local backup="${target}.dotfiles-backup.$(date +%s)"
+            local backup
+            backup="${target}.dotfiles-backup.$(date +%s)"
             echo "  -> Backing up: $target -> ${backup}"
             run mv "$target" "$backup"
         fi
@@ -107,7 +108,8 @@ ensure_real_dir() {
 # Groups are declared in profiles/default.sh (source of truth) and toggled
 # by overlay profiles.
 install_group() {
-    local varname="INSTALL_$(echo "$1" | tr '[:lower:]' '[:upper:]')"
+    local varname
+    varname="INSTALL_$(echo "$1" | tr '[:lower:]' '[:upper:]')"
     [[ "${!varname}" == "true" ]]
 }
 

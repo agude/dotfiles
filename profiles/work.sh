@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2034
 # Work profile — overrides LLM config paths for corporate settings.
 # Create the referenced files when you need them:
 #   llm/claude/settings.work.json
