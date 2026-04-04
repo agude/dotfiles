@@ -6,7 +6,7 @@ description: >
   scanned papers, find where something belongs, create a new folder or
   subcategory, take notes about a JD item, or clean out an inbox. Also use
   when the user mentions ~/Documents, a JD ID like "21.10", or asks where to
-  put a file — even if they don't say "Johnny Decimal" explicitly.
+  put a file --- even if they don't say "Johnny Decimal" explicitly.
 compatibility: Requires bash and tree. Optional: fzf for interactive browsing.
 allowed-tools: "Bash({baseDir}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
 ---
@@ -110,6 +110,9 @@ Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
+Some bash commands, like `mv` are not allowed by your settings in the folder,
+so use the scripts.
+
 ### Interactive Features
 
 When run by a human (not an agent), these commands have interactive modes:
@@ -178,7 +181,7 @@ Files in the inbox (`00.01`) are typically scanned documents named by scan date
 1. **Read the file** to determine what it is
 2. **Decide where it goes** using the flowchart and overview
 3. **`ls` the target directory** to learn its naming conventions
-4. **Rename the file** to match the existing pattern — see `{baseDir}/references/NAMING.md`
+4. **Rename the file** to match the existing pattern --- see `{baseDir}/references/NAMING.md`
 5. **Move the file** using `jd-move` or `mv`
 
 The scan-date filename is never the final name. Always rename.
