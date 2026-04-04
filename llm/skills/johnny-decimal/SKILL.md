@@ -104,7 +104,7 @@ Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
 | `{baseDir}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
 | `{baseDir}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
 | `{baseDir}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `{baseDir}/scripts/jd-move.sh <file> <ID> [--subdir <path>]` | Move a file to a JD location (with validation). `--subdir` targets a subdirectory within the ID. |
+| `{baseDir}/scripts/jd-move.sh <file> <ID> [new_name] [--subdir <path>]` | Move (and optionally rename) a file to a JD location. `new_name` sets the destination filename. `--subdir` targets a subdirectory within the ID. |
 | `{baseDir}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
 | `{baseDir}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
@@ -134,6 +134,7 @@ All scripts support a `--porcelain` flag for machine-readable output:
 {baseDir}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
 {baseDir}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
 {baseDir}/scripts/jd-move.sh file.pdf 21.10 --porcelain                        # Outputs destination path
+{baseDir}/scripts/jd-move.sh file.pdf 21.10 renamed.pdf --porcelain            # Move and rename
 {baseDir}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain  # Move into subdir
 {baseDir}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
 {baseDir}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
@@ -181,10 +182,10 @@ Files in the inbox (`00.01`) are typically scanned documents named by scan date
 1. **Read the file** to determine what it is
 2. **Decide where it goes** using the flowchart and overview
 3. **`ls` the target directory** to learn its naming conventions
-4. **Rename the file** to match the existing pattern --- see `{baseDir}/references/NAMING.md`
-5. **Move the file** using `jd-move` or `mv`
+4. **Choose the final filename** to match the existing pattern --- see `{baseDir}/references/NAMING.md`
+5. **Move and rename in one step** using `jd-move <file> <ID> <new_name>`
 
-The scan-date filename is never the final name. Always rename.
+The scan-date filename is never the final name. Always rename during the move.
 
 ## When to Explore
 
