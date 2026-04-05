@@ -34,6 +34,23 @@ let g:VIM_CACHE_DIR = $XDG_CACHE_HOME . '/vim'
 let g:mapleader="\<Space>"
 let g:maplocalleader="\\"
 
+" Neovim 0.12+ unconditionally calls vim.treesitter.start() in the built-in
+" markdown ftplugin. For compound filetypes like liquid.markdown (set by
+" vim-liquid), this fails because no liquid treesitter parser is installed.
+" Wrap the call so the error is swallowed only for liquid filetypes.
+if has('nvim')
+    lua << EOF
+    local orig = vim.treesitter.start
+    vim.treesitter.start = function(...)
+        if vim.bo.filetype:find('liquid') then
+            pcall(orig, ...)
+        else
+            orig(...)
+        end
+    end
+EOF
+endif
+
 " Plugin installer and manager (includes plugin configurations)
 runtime plug.vim
 
