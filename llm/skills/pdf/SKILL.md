@@ -43,14 +43,14 @@ uv run {baseDir}/scripts/extract_text.py document.pdf
 | Extract text | `extract_text.py input.pdf` |
 | Extract tables | `extract_text.py --tables input.pdf` |
 | OCR scanned PDF to text | `ocr_text.py input.pdf` |
-| Add OCR text layer to PDF | `ocr_pdf.py input.pdf output.pdf` |
+| Add OCR text layer to PDF | `ocr_pdf.py -i input.pdf` or `ocr_pdf.py input.pdf -o output.pdf` |
 | Detect page orientation | `detect_orientation.py input.pdf` |
-| OCR + auto-rotate | `ocr_pdf.py --rotate input.pdf output.pdf` |
+| OCR + auto-rotate | `ocr_pdf.py --rotate -i input.pdf` |
 | Merge PDFs | `merge.py -o out.pdf a.pdf b.pdf c.pdf` |
 | Split PDF | `split.py input.pdf output_dir/` |
 | Split page range | `split.py input.pdf output.pdf --pages 1-5` |
-| Rotate pages | `rotate.py input.pdf output.pdf --angle 90` |
-| Rotate specific pages | `rotate.py input.pdf output.pdf --angle 90 --pages 1,3,5` |
+| Rotate pages | `rotate.py -i --angle 90 input.pdf` or `rotate.py input.pdf -o output.pdf --angle 90` |
+| Rotate specific pages | `rotate.py -i --angle 90 --pages 1,3,5 input.pdf` |
 | Show metadata | `metadata.py input.pdf` |
 | Encrypt PDF | `encrypt.py input.pdf output.pdf --user-password secret` |
 | Decrypt PDF | `decrypt.py input.pdf output.pdf --password secret` |
@@ -58,6 +58,29 @@ uv run {baseDir}/scripts/extract_text.py document.pdf
 | Check for form fields | `check_fields.py input.pdf` |
 
 All scripts accept `--help` for full usage.
+
+**Batch processing** — these scripts accept multiple input files:
+
+```bash
+# OCR all scanned PDFs in a directory, in-place
+uv run {baseDir}/scripts/ocr_pdf.py -i inbox/*.pdf
+
+# Check orientation of all files
+uv run {baseDir}/scripts/detect_orientation.py inbox/*.pdf
+
+# Extract text from multiple files
+uv run {baseDir}/scripts/extract_text.py inbox/*.pdf
+
+# Rotate all files in-place
+uv run {baseDir}/scripts/rotate.py -i --angle 90 inbox/*.pdf
+
+# Metadata for multiple files as JSONL
+uv run {baseDir}/scripts/metadata.py --porcelain inbox/*.pdf
+```
+
+Batch flags: `--porcelain` (machine-readable output), `--fail-fast` (stop on
+first error; default is continue and report). File-producing scripts accept
+`-i`/`--in-place` or `-d`/`--output-dir` for batch output.
 
 **Custom PDF work (reportlab, advanced pdfplumber, etc.):**
 
@@ -73,23 +96,34 @@ script with `uv run {baseDir}/scripts/<name>.py`.
 
 **`extract_text.py`** — Extract text or tables from born-digital PDFs.
 - `extract_text.py input.pdf` — print all text to stdout
+- `extract_text.py *.pdf` — batch: prints with `=== file ===` headers
 - `extract_text.py --tables input.pdf` — extract tables as CSV
 - `extract_text.py --pages 1-3 input.pdf` — specific page range
+- `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 
 **`ocr_text.py`** — OCR scanned/image PDFs to text via tesseract.
 - `ocr_text.py input.pdf` — print OCR text to stdout
+- `ocr_text.py *.pdf` — batch with file headers
 - `ocr_text.py --pages 1-3 input.pdf` — specific page range
+- `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 - Requires `tesseract` installed on the system
 
 **`ocr_pdf.py`** — Add searchable text layer to a scanned PDF.
-- `ocr_pdf.py input.pdf output.pdf` — produce searchable PDF
-- `ocr_pdf.py --rotate input.pdf output.pdf` — auto-rotate pages first
-- `ocr_pdf.py --deskew input.pdf output.pdf` — deskew before OCR
+- `ocr_pdf.py input.pdf -o output.pdf` — produce searchable PDF
+- `ocr_pdf.py -i input.pdf` — OCR in-place (atomic temp file + rename)
+- `ocr_pdf.py -i *.pdf` — batch in-place
+- `ocr_pdf.py -d output_dir/ *.pdf` — batch to output directory
+- `ocr_pdf.py --rotate -i input.pdf` — auto-rotate pages first
+- `ocr_pdf.py --deskew -i input.pdf` — deskew before OCR
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
 - Requires `tesseract` installed on the system
+- Legacy `ocr_pdf.py input.pdf output.pdf` syntax still works (with warning)
 
 **`detect_orientation.py`** — Detect page rotation using tesseract OSD.
 - `detect_orientation.py input.pdf` — report orientation per page
+- `detect_orientation.py *.pdf` — batch with file headers
 - `detect_orientation.py --pages 1-3 input.pdf` — specific pages
+- `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 - Requires `tesseract` installed on the system
 
 ### Manipulation
@@ -102,12 +136,19 @@ script with `uv run {baseDir}/scripts/<name>.py`.
 - `split.py input.pdf output.pdf --pages 1-5` — extract page range
 
 **`rotate.py`** — Rotate PDF pages.
-- `rotate.py input.pdf output.pdf --angle 90` — all pages
-- `rotate.py input.pdf output.pdf --angle 90 --pages 1,3` — specific pages
+- `rotate.py input.pdf -o output.pdf --angle 90` — all pages
+- `rotate.py -i --angle 90 input.pdf` — rotate in-place
+- `rotate.py -i --angle 90 *.pdf` — batch in-place
+- `rotate.py -d output_dir/ --angle 90 *.pdf` — batch to output directory
+- `rotate.py -o output.pdf --angle 90 --pages 1,3 input.pdf` — specific pages
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
+- Legacy `rotate.py input.pdf output.pdf --angle 90` syntax still works (with warning)
 
 **`metadata.py`** — Display PDF metadata.
 - `metadata.py input.pdf` — print title, author, creator, etc.
+- `metadata.py *.pdf` — batch with file headers
 - `metadata.py --json input.pdf` — output as JSON
+- `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 
 ### Security
 
