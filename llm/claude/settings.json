@@ -232,12 +232,6 @@
     "defaultMode": "auto"
   },
   "model": "opus",
-  "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
-  "skipDangerousModePermissionPrompt": true,
-  "git": {
-    "includeCoAuthor": false
-  },
   "hooks": {
     "SessionStart": [
       {
@@ -287,5 +281,11 @@
         ]
       }
     ]
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true,
+  "git": {
+    "includeCoAuthor": false
   }
 }
