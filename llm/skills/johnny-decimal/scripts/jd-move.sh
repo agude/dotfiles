@@ -110,8 +110,7 @@ target_dir=$(find_id_dir "$target_id") || exit 1
 if [[ -n "$subdir" ]]; then
     target_dir="${target_dir}/${subdir}"
     if [[ ! -d "$target_dir" ]]; then
-        jd_error "Subdirectory does not exist: ${target_dir}"
-        exit 1
+        mkdir -p "$target_dir"
     fi
 fi
 
