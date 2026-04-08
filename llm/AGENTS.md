@@ -20,8 +20,6 @@ previous commit, and rewrite the message".
 
 ## Git Usage
 
-Always use `git secure-commit` instead of `git commit`.
-
 Do not use `git -C`.
 
 ## Tone

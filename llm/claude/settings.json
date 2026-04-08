@@ -77,7 +77,7 @@
       "Bash(git remote)",
       "Bash(git rev-list:*)",
       "Bash(git rev-parse:*)",
-      "Bash(git secure-commit:*)",
+      "Bash(git commit:*)",
       "Bash(git shortlog:*)",
       "Bash(git show:*)",
       "Bash(git stash list)",
@@ -201,8 +201,6 @@
       "Bash(gh ssh-key :*)",
       "Bash(git -C:*)",
       "Bash(git clone:*)",
-      "Bash(git commit --no-verify:*)",
-      "Bash(git commit -n:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
       "Bash(git push:*)",
@@ -233,14 +231,35 @@
   },
   "model": "opus",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Projects/claude-hooks/dispatch.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Projects/claude-hooks/dispatch.sh"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/session-start",
-            "timeout": 10
+            "command": "~/Projects/claude-hooks/dispatch.sh"
           }
         ]
       }
@@ -251,8 +270,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/session-prompt",
-            "timeout": 5
+            "command": "~/Projects/claude-hooks/dispatch.sh"
           }
         ]
       }
@@ -263,8 +281,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/session-stop",
-            "timeout": 5
+            "command": "~/Projects/claude-hooks/dispatch.sh"
           }
         ]
       }
@@ -275,8 +292,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Knowledge/scripts/session-end",
-            "timeout": 10
+            "command": "~/Projects/claude-hooks/dispatch.sh"
           }
         ]
       }
