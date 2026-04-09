@@ -237,7 +237,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }
@@ -248,7 +248,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }
@@ -259,7 +259,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }
@@ -270,7 +270,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }
@@ -281,7 +281,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }
@@ -292,7 +292,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/Projects/claude-hooks/dispatch.sh"
+            "command": "coat-tree"
           }
         ]
       }

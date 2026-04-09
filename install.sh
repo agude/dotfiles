@@ -412,6 +412,44 @@ if install_group llm; then
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
+    # Coat tree — modular hook dispatcher for Claude Code.
+    # Binary goes on PATH; hook scripts go into XDG config dir.
+    COAT_TREE_CONFIG="${XDG_CONFIG_HOME}/coat-tree/hooks.d"
+    ensure_real_dir "${HOME}/.local/bin"
+    link "${HOME}/.local/bin/coat-tree" "llm/coat-tree/dispatch.sh"
+    for event_dir in "$DOTFILES_DIR/llm/coat-tree/hooks.d/"*/; do
+        [ -d "$event_dir" ] || continue
+        event_name=$(basename "$event_dir")
+        ensure_real_dir "${COAT_TREE_CONFIG}/${event_name}"
+        for hook_script in "$event_dir"*; do
+            [ -f "$hook_script" ] || continue
+            hook_name=$(basename "$hook_script")
+            link "${COAT_TREE_CONFIG}/${event_name}/${hook_name}" "llm/coat-tree/hooks.d/${event_name}/${hook_name}"
+        done
+    done
+    # Knowledge hooks — only on machines with the Knowledge repo.
+    if [[ -d "${HOME}/Knowledge/scripts" ]]; then
+        for event_pair in \
+            "SessionStart:session-start" \
+            "UserPromptSubmit:session-prompt" \
+            "Stop:session-stop" \
+            "SessionEnd:session-end"; do
+            event="${event_pair%%:*}"
+            script="${event_pair##*:}"
+            ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
+            # Direct symlink to Knowledge script (not managed by link()).
+            target="${COAT_TREE_CONFIG}/${event}/010.knowledge"
+            source="${HOME}/Knowledge/scripts/${script}"
+            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+                : # already correct
+            else
+                [[ -e "$target" || -L "$target" ]] && run rm "$target"
+                echo "  -> Linking: $source -> $target"
+                run ln -s "$source" "$target"
+            fi
+        done
+    fi
+
     # Johnny Decimal scripts into ~/bin (needs scripts group too).
     if install_group scripts; then
         ensure_real_dir "${HOME}/bin/johnny-decimal"
