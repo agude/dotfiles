@@ -160,18 +160,7 @@
     "deny": [
       "Bash(dd:*)",
       "Bash(fdisk:*)",
-      "Bash(gh repo archive:*)",
-      "Bash(gh repo change-visibility:*)",
-      "Bash(gh repo delete:*)",
-      "Bash(gh repo rename:*)",
-      "Bash(gh auth :*)",
-      "Bash(gh ssh-key :*)",
-      "Bash(gh gpg-key :*)",
       "Bash(gh issue delete:*)",
-      "Bash(git commit --no-verify:*)",
-      "Bash(git commit -n :*)",
-      "Bash(git push --force:*)",
-      "Bash(git push -f :*)",
       "Bash(git -C:*)",
       "Bash(git clone:*)",
       "Bash(git fetch:*)",
@@ -201,7 +190,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -271,7 +260,8 @@
     ]
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "medium",
+  "effortLevel": "high",
+  "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true
 }

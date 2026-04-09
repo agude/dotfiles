@@ -50,6 +50,8 @@ alias reload='source "${HOME}/.${SHELL##*/}rc"'
 
 # Claude Code with all permissions pre-approved
 alias dclaude='claude --dangerously-skip-permissions'
+# Claude Code with all permissions, no knowledge-base observation
+alias qclaude='KNOWLEDGE_OBSERVE=0 claude --dangerously-skip-permissions'
 
 # ------------------------------------------------------------------------------
 # Functions
