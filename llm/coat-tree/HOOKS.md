@@ -1,5 +1,29 @@
 # Writing Coat Tree Hooks
 
+## When to use hooks vs. settings
+
+Hooks and permission rules in `settings.json` serve different purposes.
+Use the right tool for the job:
+
+| Situation | Mechanism | Example |
+|-----------|-----------|---------|
+| **Always safe** | `allow` in settings | `git log`, `ls`, `gh pr list` |
+| **Never safe** | `deny` in settings | `sudo`, `reboot`, `dd` |
+| **Nuanced** | Hook decides | `git push` (ok to feature, not to main) |
+| **Dangerous, hard to filter** | Hook as smart filter | `gh` subcommands (many safe, some destructive) |
+
+The `ask: *` rule in settings is the universal backstop. Any command not
+explicitly allowed by a rule or hook still prompts the user. This means:
+
+- **Hooks don't need to be exhaustive.** If a hook doesn't match, the
+  command falls through to `ask` and the user decides.
+- **Deny rules and hooks are redundant.** A deny rule overrides a hook's
+  `allow` decision, so using both for the same command means the hook can
+  never allow it. Pick one: deny (absolute) or hook (judgment).
+- **Hooks replace deny rules when you need nuance.** Move the command out
+  of deny, write a hook that allows the safe cases and denies the dangerous
+  ones, and let `ask` catch anything the hook doesn't cover.
+
 ## File conventions
 
 - Place hooks in `hooks.d/<EventName>/NNN.name.sh`
