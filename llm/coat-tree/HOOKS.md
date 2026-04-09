@@ -17,9 +17,11 @@ explicitly allowed by a rule or hook still prompts the user. This means:
 
 - **Hooks don't need to be exhaustive.** If a hook doesn't match, the
   command falls through to `ask` and the user decides.
-- **Deny rules and hooks are redundant.** A deny rule overrides a hook's
-  `allow` decision, so using both for the same command means the hook can
-  never allow it. Pick one: deny (absolute) or hook (judgment).
+- **Deny + hook is valid when the prefix matcher can't cover all forms.**
+  Permission rules match command prefixes. `Bash(git commit --no-verify:*)`
+  catches the flag at the start but misses `git commit -m "msg" --no-verify`
+  where it appears later. Deny catches the obvious prefix forms; the hook
+  catches reordered and short-flag variants the prefix matcher misses.
 - **Hooks replace deny rules when you need nuance.** Move the command out
   of deny, write a hook that allows the safe cases and denies the dangerous
   ones, and let `ask` catch anything the hook doesn't cover.
