@@ -27,6 +27,12 @@ debug() {
     fi
 }
 
+# Log to syslog unconditionally. Provides a paper trail without visible
+# noise — check with: journalctl -t coat-tree
+log() {
+    logger -t coat-tree "$@" 2>/dev/null || true
+}
+
 # --- Read and parse stdin ---
 # Buffer stdin so multiple scripts can receive it. Note: command
 # substitution strips trailing newlines — acceptable for JSON input.
@@ -87,17 +93,24 @@ for script in "${scripts[@]}"; do
         debug "run $name — non-tool event"
     fi
 
-    # Run the script, piping buffered input. Stderr flows through to
-    # the dispatcher's stderr naturally.
-    output=$(printf '%s\n' "$INPUT" | "$script" 2>&2)
+    # Run the script with buffered input via here-string. Avoids a
+    # pipeline subshell so background processes spawned by the script
+    # (e.g., nohup in session-end) survive after the script exits.
+    _out_file=$(mktemp)
+    "$script" > "$_out_file" 2>&2 <<< "$INPUT"
     rc=$?
+    output=$(<"$_out_file")
+    rm -f "$_out_file"
 
     if [[ $rc -eq 2 ]]; then
         debug "ABORT $name — exit code 2"
-        # Script's stderr already reached the user. Exit immediately.
+        log "$EVENT $name ABORT"
         exit 2
     elif [[ $rc -ne 0 ]]; then
         echo "[dispatch] warning: $name exited $rc" >&2
+        log "$EVENT $name FAIL rc=$rc"
+    else
+        log "$EVENT $name ok"
     fi
 
     if [[ -n "$output" ]]; then

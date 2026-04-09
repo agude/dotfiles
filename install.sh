@@ -437,9 +437,11 @@ if install_group llm; then
             event="${event_pair%%:*}"
             script="${event_pair##*:}"
             ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
-            # Direct symlink to Knowledge script (not managed by link()).
+            # Direct symlink to Knowledge script (outside dotfiles, so
+            # link() can't be used — but we still track it in the manifest).
             target="${COAT_TREE_CONFIG}/${event}/010.knowledge"
             source="${HOME}/Knowledge/scripts/${script}"
+            MANAGED_LINKS+=("$target")
             if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
                 : # already correct
             else
