@@ -263,5 +263,8 @@
   "effortLevel": "high",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "attribution": {
+    "coAuthoredBy": true
+  }
 }
