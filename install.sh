@@ -45,16 +45,15 @@ DRY_RUN=false
 # - If the target is a symlink we own (points into DOTFILES_DIR), replace it.
 # - If the target is anything else (real file, dir, foreign symlink), back it
 #   up with an epoch timestamp before linking.
-link() {
+# Core symlink placement.  All link functions funnel through here.
+#   $1 = target path (where the symlink is created)
+#   $2 = source path (absolute path the symlink points to)
+#   $3 = ownership prefix (symlinks pointing under this prefix are "ours"
+#        and safe to replace; anything else gets backed up)
+_place_link() {
     local target="$1"
-    local source="$2" # Source is repo-relative; DOTFILES_DIR is prepended below
-    local source_path="${DOTFILES_DIR}/${source}"
-
-    # Reject empty source (e.g. unset profile variable → symlink to repo root).
-    if [[ -z "$source" ]]; then
-        echo "  -> Error: empty source for target: $target" >&2
-        return 1
-    fi
+    local source_path="$2"
+    local owner_prefix="$3"
 
     # Validate source exists before doing anything
     if [[ ! -e "$source_path" ]]; then
@@ -73,7 +72,7 @@ link() {
 
     # Something exists that isn't what we want
     if [[ -e "$target" || -L "$target" ]]; then
-        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${DOTFILES_DIR}/"* ]]; then
+        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${owner_prefix}/"* ]]; then
             # Our symlink, wrong target — safe to replace
             echo "  -> Updating: $target"
             run rm "$target"
@@ -88,6 +87,37 @@ link() {
 
     echo "  -> Linking: $source_path -> $target"
     run ln -s "$source_path" "$target"
+}
+
+# Create a symlink from target to a repo-relative source path.
+link() {
+    local target="$1"
+    local source="$2" # Source is repo-relative; DOTFILES_DIR is prepended below
+
+    # Reject empty source (e.g. unset profile variable → symlink to repo root).
+    if [[ -z "$source" ]]; then
+        echo "  -> Error: empty source for target: $target" >&2
+        return 1
+    fi
+
+    _place_link "$target" "${DOTFILES_DIR}/${source}" "${DOTFILES_DIR}"
+}
+
+# Create a symlink from target to an absolute source path outside the repo.
+#   $1 = target path
+#   $2 = absolute source path
+#   $3 = ownership prefix (for safe-replace detection)
+ext_link() {
+    local target="$1"
+    local source="$2"
+    local owner_prefix="$3"
+
+    if [[ -z "$source" ]]; then
+        echo "  -> Error: empty source for target: $target" >&2
+        return 1
+    fi
+
+    _place_link "$target" "$source" "$owner_prefix"
 }
 
 # Create a real directory, removing any existing symlink first.
@@ -437,33 +467,15 @@ if install_group llm; then
             event="${event_pair%%:*}"
             script="${event_pair##*:}"
             ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
-            # Direct symlink to Knowledge script (outside dotfiles, so
-            # link() can't be used — but we still track it in the manifest).
-            target="${COAT_TREE_CONFIG}/${event}/010.knowledge"
-            source="${HOME}/Knowledge/scripts/${script}"
-            MANAGED_LINKS+=("$target")
-            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
-                : # already correct
-            else
-                [[ -e "$target" || -L "$target" ]] && run rm "$target"
-                echo "  -> Linking: $source -> $target"
-                run ln -s "$source" "$target"
-            fi
+            ext_link "${COAT_TREE_CONFIG}/${event}/010.knowledge" \
+                     "${HOME}/Knowledge/scripts/${script}" \
+                     "${HOME}/Knowledge"
         done
-        # Skills from the Knowledge repo.
         for skill_dir in "${HOME}/Knowledge/skills/"*/; do
             [ -d "$skill_dir" ] || continue
-            skill_name=$(basename "$skill_dir")
-            target="${SKILLS_DIR}/${skill_name}"
-            source="$skill_dir"
-            MANAGED_LINKS+=("$target")
-            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
-                : # already correct
-            else
-                [[ -e "$target" || -L "$target" ]] && run rm "$target"
-                echo "  -> Linking: $source -> $target"
-                run ln -s "$source" "$target"
-            fi
+            ext_link "${SKILLS_DIR}/$(basename "$skill_dir")" \
+                     "$skill_dir" \
+                     "${HOME}/Knowledge"
         done
     fi
 
@@ -474,31 +486,15 @@ if install_group llm; then
             event="${event_pair%%:*}"
             script="${event_pair##*:}"
             ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
-            target="${COAT_TREE_CONFIG}/${event}/020.wiki"
-            source="${HOME}/Wiki/scripts/${script}"
-            MANAGED_LINKS+=("$target")
-            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
-                : # already correct
-            else
-                [[ -e "$target" || -L "$target" ]] && run rm "$target"
-                echo "  -> Linking: $source -> $target"
-                run ln -s "$source" "$target"
-            fi
+            ext_link "${COAT_TREE_CONFIG}/${event}/020.wiki" \
+                     "${HOME}/Wiki/scripts/${script}" \
+                     "${HOME}/Wiki"
         done
-        # Skills from the Wiki repo.
         for skill_dir in "${HOME}/Wiki/skills/"*/; do
             [ -d "$skill_dir" ] || continue
-            skill_name=$(basename "$skill_dir")
-            target="${SKILLS_DIR}/${skill_name}"
-            source="$skill_dir"
-            MANAGED_LINKS+=("$target")
-            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
-                : # already correct
-            else
-                [[ -e "$target" || -L "$target" ]] && run rm "$target"
-                echo "  -> Linking: $source -> $target"
-                run ln -s "$source" "$target"
-            fi
+            ext_link "${SKILLS_DIR}/$(basename "$skill_dir")" \
+                     "$skill_dir" \
+                     "${HOME}/Wiki"
         done
     fi
 
