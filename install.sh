@@ -427,7 +427,7 @@ if install_group llm; then
             link "${COAT_TREE_CONFIG}/${event_name}/${hook_name}" "llm/coat-tree/hooks.d/${event_name}/${hook_name}"
         done
     done
-    # Knowledge hooks — only on machines with the Knowledge repo.
+    # Knowledge Base — hooks and skills. Only on machines with the repo.
     if [[ -d "${HOME}/Knowledge/scripts" ]]; then
         for event_pair in \
             "SessionStart:session-start" \
@@ -441,6 +441,56 @@ if install_group llm; then
             # link() can't be used — but we still track it in the manifest).
             target="${COAT_TREE_CONFIG}/${event}/010.knowledge"
             source="${HOME}/Knowledge/scripts/${script}"
+            MANAGED_LINKS+=("$target")
+            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+                : # already correct
+            else
+                [[ -e "$target" || -L "$target" ]] && run rm "$target"
+                echo "  -> Linking: $source -> $target"
+                run ln -s "$source" "$target"
+            fi
+        done
+        # Skills from the Knowledge repo.
+        for skill_dir in "${HOME}/Knowledge/skills/"*/; do
+            [ -d "$skill_dir" ] || continue
+            skill_name=$(basename "$skill_dir")
+            target="${SKILLS_DIR}/${skill_name}"
+            source="$skill_dir"
+            MANAGED_LINKS+=("$target")
+            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+                : # already correct
+            else
+                [[ -e "$target" || -L "$target" ]] && run rm "$target"
+                echo "  -> Linking: $source -> $target"
+                run ln -s "$source" "$target"
+            fi
+        done
+    fi
+
+    # Wiki — hooks and skills. Only on machines with the repo.
+    if [[ -d "${HOME}/Wiki/scripts" ]]; then
+        for event_pair in \
+            "SessionStart:session-start"; do
+            event="${event_pair%%:*}"
+            script="${event_pair##*:}"
+            ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
+            target="${COAT_TREE_CONFIG}/${event}/020.wiki"
+            source="${HOME}/Wiki/scripts/${script}"
+            MANAGED_LINKS+=("$target")
+            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+                : # already correct
+            else
+                [[ -e "$target" || -L "$target" ]] && run rm "$target"
+                echo "  -> Linking: $source -> $target"
+                run ln -s "$source" "$target"
+            fi
+        done
+        # Skills from the Wiki repo.
+        for skill_dir in "${HOME}/Wiki/skills/"*/; do
+            [ -d "$skill_dir" ] || continue
+            skill_name=$(basename "$skill_dir")
+            target="${SKILLS_DIR}/${skill_name}"
+            source="$skill_dir"
             MANAGED_LINKS+=("$target")
             if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
                 : # already correct
