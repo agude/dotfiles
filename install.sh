@@ -463,7 +463,8 @@ if install_group llm; then
             "SessionStart:session-start" \
             "UserPromptSubmit:session-prompt" \
             "Stop:session-stop" \
-            "SessionEnd:session-end"; do
+            "SessionEnd:session-end" \
+            "PreToolUse:pretool-allow"; do
             event="${event_pair%%:*}"
             script="${event_pair##*:}"
             ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
@@ -482,7 +483,8 @@ if install_group llm; then
     # Wiki — hooks and skills. Only on machines with the repo.
     if [[ -d "${HOME}/Wiki/scripts" ]]; then
         for event_pair in \
-            "SessionStart:session-start"; do
+            "SessionStart:session-start" \
+            "PreToolUse:pretool-allow"; do
             event="${event_pair%%:*}"
             script="${event_pair##*:}"
             ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
@@ -495,6 +497,29 @@ if install_group llm; then
             ext_link "${SKILLS_DIR}/$(basename "$skill_dir")" \
                      "$skill_dir" \
                      "${HOME}/Wiki"
+        done
+    fi
+
+    # Wiki hooks — only on machines with the Wiki repo.
+    if [[ -d "${HOME}/Wiki/scripts" ]]; then
+        for event_pair in \
+            "SessionStart:session-start" \
+            "UserPromptSubmit:session-prompt" \
+            "Stop:session-stop" \
+            "SessionEnd:session-end"; do
+            event="${event_pair%%:*}"
+            script="${event_pair##*:}"
+            ensure_real_dir "${COAT_TREE_CONFIG}/${event}"
+            target="${COAT_TREE_CONFIG}/${event}/020.wiki"
+            source="${HOME}/Wiki/scripts/${script}"
+            MANAGED_LINKS+=("$target")
+            if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+                : # already correct
+            else
+                [[ -e "$target" || -L "$target" ]] && run rm "$target"
+                echo "  -> Linking: $source -> $target"
+                run ln -s "$source" "$target"
+            fi
         done
     fi
 
