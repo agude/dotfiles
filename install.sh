@@ -103,23 +103,6 @@ link() {
     _place_link "$target" "${DOTFILES_DIR}/${source}" "${DOTFILES_DIR}"
 }
 
-# Create a symlink from target to an absolute source path outside the repo.
-#   $1 = target path
-#   $2 = absolute source path
-#   $3 = ownership prefix (for safe-replace detection)
-ext_link() {
-    local target="$1"
-    local source="$2"
-    local owner_prefix="$3"
-
-    if [[ -z "$source" ]]; then
-        echo "  -> Error: empty source for target: $target" >&2
-        return 1
-    fi
-
-    _place_link "$target" "$source" "$owner_prefix"
-}
-
 # Create a real directory, removing any existing symlink first.
 # This is important when transitioning from "symlink the whole directory"
 # to "symlink individual files inside a real directory". Without this guard,
