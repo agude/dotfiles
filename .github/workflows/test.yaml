@@ -18,6 +18,16 @@ jobs:
           # Only fail the build on actual errors, not warnings or style suggestions.
           #severity: error
 
+  bats:
+    name: Bats Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bats
+        run: sudo apt-get install -y bats jq
+      - name: Run hook tests
+        run: bats tests/hooks/*.bats
+
   install:
     name: Test Install on ${{ matrix.os }}
     needs: lint
