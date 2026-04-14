@@ -483,33 +483,23 @@ if install_group gui; then
 fi
 
 if install_group cleanup; then
-    echo "› Setting up automated cleanup tasks..."
+    echo "› Deploying cleanup service files..."
     if [[ "${PLATFORM}" == "linux" ]]; then
         if command -v systemctl &> /dev/null; then
-            echo "  -> Setting up systemd user service for emptying Downloads..."
             SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
-            SERVICE_FILE="${SYSTEMD_USER_DIR}/empty-downloads.service"
             ensure_real_dir "${SYSTEMD_USER_DIR}"
-            echo "  -> Copying systemd service file (required by systemctl)..."
-            run cp "${DOTFILES_DIR}/config/systemd/user/empty-downloads.service" "${SERVICE_FILE}"
-            if ! $DRY_RUN; then
-                systemctl --user daemon-reload || true
-                systemctl --user enable --now empty-downloads.service >/dev/null 2>&1 || echo "  -> Warning: Failed to enable systemd service. This may be expected in a non-interactive session."
-            fi
-        else
-            echo "  -> Skipping systemd setup: systemctl command not found."
+            run cp "${DOTFILES_DIR}/config/systemd/user/empty-downloads.service" \
+                   "${SYSTEMD_USER_DIR}/empty-downloads.service"
+            echo "  -> Deployed empty-downloads.service"
+            echo "  -> Enable with: systemctl --user enable --now empty-downloads.service"
         fi
     elif [[ "${PLATFORM}" == "mac" ]]; then
         if command -v launchctl &> /dev/null; then
-            echo "  -> Setting up launchd agent for emptying Downloads..."
             LAUNCHD_DIR="${HOME}/Library/LaunchAgents"
             PLIST_FILE="${LAUNCHD_DIR}/com.user.empty-downloads.plist"
             ensure_real_dir "${LAUNCHD_DIR}"
             link "${PLIST_FILE}" "config/launchd/com.user.empty-downloads.plist"
-            if ! $DRY_RUN; then
-                launchctl unload "${PLIST_FILE}" 2>/dev/null || true
-                launchctl load "${PLIST_FILE}" >/dev/null 2>&1 || echo "  -> Warning: Failed to load launchd agent. This may be expected in a non-interactive session."
-            fi
+            echo "  -> Enable with: launchctl load ${PLIST_FILE}"
         fi
     fi
 fi
