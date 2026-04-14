@@ -23,10 +23,9 @@ EOF
     exit 0
 fi
 
-# Parse the remote and refspec from the command. Strip flags first.
+# Parse the refspec from the command. Strip flags first.
 # Patterns: git push, git push origin, git push origin branch
 cleaned=$(printf '%s\n' "$COMMAND" | sed 's/git push//' | sed 's/-[[:alpha:]][[:space:]]*[^[:space:]]*//g' | sed 's/--[[:alpha:]-]*//g' | xargs)
-remote=$(echo "$cleaned" | awk '{print $1}')
 refspec=$(echo "$cleaned" | awk '{print $2}')
 
 # Determine which branch is being pushed
