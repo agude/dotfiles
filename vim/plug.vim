@@ -138,7 +138,12 @@ nnoremap <silent> <Leader>gb :Git blame<CR>
 
 if has('nvim')
     " Completion engine
-    Plug 'hrsh7th/nvim-cmp'
+    " nvim-cmp after abacd4c requires nvim_get_option_value (Neovim >= 0.8)
+    if has('nvim-0.8')
+        Plug 'hrsh7th/nvim-cmp'
+    else
+        Plug 'hrsh7th/nvim-cmp', { 'commit': 'abacd4c' }
+    endif
     Plug 'hrsh7th/cmp-buffer'
     Plug 'hrsh7th/cmp-path'
     Plug 'hrsh7th/cmp-cmdline'
