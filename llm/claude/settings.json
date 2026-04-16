@@ -1,4 +1,5 @@
 {
+  "attribution": {},
   "permissions": {
     "allow": [
       "Bash(ack:*)",
@@ -273,8 +274,5 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "attribution": {
-    "coAuthoredBy": false
-  }
+  "skipAutoPermissionPrompt": true
 }
