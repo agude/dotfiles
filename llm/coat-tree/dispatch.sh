@@ -64,7 +64,7 @@ fi
 scripts=()
 while IFS= read -r -d '' entry; do
     scripts+=("$entry")
-done < <(find "$EVENT_DIR" -maxdepth 1 -not -name '.*' \( -type f -o -type l \) -perm +0111 -print0 | sort -z)
+done < <(find "$EVENT_DIR" -maxdepth 1 -not -name '.*' \( -type f -o -type l \) -exec test -x {} \; -print0 | sort -z)
 
 if [[ ${#scripts[@]} -eq 0 ]]; then
     debug "no scripts in $EVENT_DIR — noop"
