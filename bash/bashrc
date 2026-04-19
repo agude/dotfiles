@@ -57,7 +57,9 @@ if command -v stty &>/dev/null; then
 fi
 
 # do not let others write to my terminal
-mesg n
+if command -v mesg >/dev/null 2>&1; then
+    mesg n
+fi
 
 # make less more friendly for non-text input files, see lesspipe(1)
 [[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
