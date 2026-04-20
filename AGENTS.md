@@ -140,8 +140,12 @@ All LLM tool configurations are organized under the `llm/` directory:
 #### Claude Code Configuration
 - `llm/claude/settings.json`: User-level settings synced across machines
 - `llm/claude/commands/`: Custom slash commands (`.md` files)
+- `llm/claude/statusline-command.sh`: Script rendered as Claude Code's status line
+  (username, cwd, git state, context-window usage). Wired in via the
+  `statusLine` key in `settings.work.json`.
 - `~/.claude/` is a real directory; only specific files are symlinked:
   - `~/.claude/settings.json` → `llm/claude/settings.json`
+  - `~/.claude/statusline-command.sh` → `llm/claude/statusline-command.sh`
   - `~/.claude/CLAUDE.md` → `llm/AGENTS.md`
   - `~/.claude/commands/` is a real directory; each command is symlinked individually
     (e.g., `~/.claude/commands/foo.md` → `llm/claude/commands/foo.md`)
