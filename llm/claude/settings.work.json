@@ -2,6 +2,7 @@
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
+  "attribution": {},
   "permissions": {
     "allow": [
       "Bash(ack:*)",
@@ -277,11 +278,8 @@
     ]
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
+  "effortLevel": "xhigh",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "attribution": {
-    "coAuthoredBy": true
-  }
+  "skipAutoPermissionPrompt": true
 }
