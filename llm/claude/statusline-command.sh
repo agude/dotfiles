@@ -75,7 +75,7 @@ human_countdown() {
     fi
 }
 
-# rate_segment PCT RESET LABEL -> " [bar LABEL N% ⟳countdown]" in threshold color
+# rate_segment PCT RESET LABEL -> " [bar LABEL N% countdown]" in threshold color
 rate_segment() {
     local pct=$1 reset=$2 label=$3
     [[ -z "$pct" || -z "$reset" ]] && return
@@ -85,7 +85,7 @@ rate_segment() {
     color=$(bar_color "$int")
     bar=$(render_bar "$int" 5)
     countdown=$(human_countdown "$reset")
-    printf ' \033[%sm[%s %s %s%% ⟳%s]\033[0m' \
+    printf ' \033[%sm[%s %s %s%% %s]\033[0m' \
         "$color" "$bar" "$label" "$int" "$countdown"
 }
 
