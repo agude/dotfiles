@@ -1,8 +1,4 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  },
   "attribution": {
     "commit": "",
     "pr": ""
@@ -209,7 +205,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "claude-opus-4-5",
   "hooks": {
     "PreToolUse": [
       {
@@ -277,6 +273,10 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
