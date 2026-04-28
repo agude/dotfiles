@@ -425,19 +425,17 @@ if install_group llm; then
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
-    # Coat tree — modular hook dispatcher for Claude Code.
-    # Binary goes on PATH; hook scripts go into XDG config dir.
+    # Coat tree hooks — guard scripts for Claude Code.
+    # The coat-tree binary is installed separately; hooks go into XDG config.
     COAT_TREE_CONFIG="${XDG_CONFIG_HOME}/coat-tree/hooks.d"
-    ensure_real_dir "${HOME}/.local/bin"
-    link "${HOME}/.local/bin/coat-tree" "llm/coat-tree/dispatch.sh"
-    for event_dir in "$DOTFILES_DIR/llm/coat-tree/hooks.d/"*/; do
+    for event_dir in "$DOTFILES_DIR/llm/claude/hooks.d/"*/; do
         [ -d "$event_dir" ] || continue
         event_name=$(basename "$event_dir")
         ensure_real_dir "${COAT_TREE_CONFIG}/${event_name}"
         for hook_script in "$event_dir"*; do
             [ -f "$hook_script" ] || continue
             hook_name=$(basename "$hook_script")
-            link "${COAT_TREE_CONFIG}/${event_name}/${hook_name}" "llm/coat-tree/hooks.d/${event_name}/${hook_name}"
+            link "${COAT_TREE_CONFIG}/${event_name}/${hook_name}" "llm/claude/hooks.d/${event_name}/${hook_name}"
         done
     done
     # Johnny Decimal scripts into ~/bin (needs scripts group too).
