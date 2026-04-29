@@ -279,7 +279,7 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true
 }
