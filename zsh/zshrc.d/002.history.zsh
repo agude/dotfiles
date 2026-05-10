@@ -30,7 +30,7 @@ SAVEHIST=10000
 # Append to the history file instead of overwriting it.
 setopt APPEND_HISTORY
 # Write to the history file immediately and share history between all running shells.
-setopt SHARE_HISTORY
+# setopt SHARE_HISTORY
 # Add timestamps to history entries.
 setopt EXTENDED_HISTORY
 # Remove leading and trailing whitespace from commands.
