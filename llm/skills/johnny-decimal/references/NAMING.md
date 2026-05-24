@@ -45,12 +45,12 @@ Each area can have system subcategories in the `.0X` range:
 
 ### Date-Prefixed Files (Transient/Recurring)
 ```
-YYYY-MM-DD_description.ext
+YYYYMMDD_description.ext
 ```
 Examples:
-- `2024-12-27_statement.pdf`
-- `2024-01-15_receipt.pdf`
-- `20150917_recsys.md` (also acceptable: YYYYMMDD)
+- `20241227_statement.pdf`
+- `20240115_receipt.pdf`
+- `20150917_recsys.md`
 
 ### Descriptive Files (Permanent/Reference)
 ```

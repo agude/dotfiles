@@ -90,7 +90,7 @@ Use `jd-note` to add timestamped entries to these files.
 - Subcategories: `XX.YY Name` (e.g., `21.10 Example Bank`)
 
 **Files:**
-- Date-prefixed for transient items: `2024-12-27_statement.pdf`
+- Date-prefixed for transient items: `20241227_statement.pdf` (YYYYMMDD, no hyphens)
 - Descriptive for permanent items: `policy_declaration.pdf`
 - Statements: `statements/YYYY/MM.pdf` or `cc_MM.pdf` for credit cards
 
