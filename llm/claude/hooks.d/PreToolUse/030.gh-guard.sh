@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # hook-matcher: Bash
 #
-# Smart GitHub CLI guard. Replaces blanket deny rules with categories:
+# Smart GitHub CLI guard — primary permission gate for all gh commands.
 #   - Block:  destructive repo/org operations, credential changes
-#   - Allow:  PR and issue workflow commands (create, comment, edit, etc.)
-#   - Defer:  mutating API calls (gh api POST/PUT/DELETE/PATCH) to user prompt
+#   - Ask:    mutating API calls (gh api POST/PUT/DELETE/PATCH)
+#   - Allow:  everything else (read-only, PR/issue workflow, browse, etc.)
+# Deny rules in settings.json serve as a backstop for the worst cases.
 
 set -uo pipefail
 
@@ -53,6 +54,9 @@ EOF
 # Codespace management
 [[ "$COMMAND" =~ gh[[:space:]]+codespace ]] && deny "Codespace operation blocked."
 
+# Issue/gist deletion
+[[ "$COMMAND" =~ gh[[:space:]]+issue[[:space:]]+delete ]] && deny "Issue deletion blocked."
+
 # --- Allow: common PR and issue workflow ---
 
 # PR operations
@@ -76,4 +80,5 @@ EOF
 [[ "$COMMAND" =~ gh[[:space:]]+release[[:space:]]+delete ]] && ask "Release deletion — confirm."
 [[ "$COMMAND" =~ gh[[:space:]]+gist[[:space:]]+delete ]] && ask "Gist deletion — confirm."
 
-# If no rule matched, let it through (read-only commands, etc.)
+# Everything else (read-only commands, browse, etc.) is safe
+allow "Unmatched gh command — assumed safe."
