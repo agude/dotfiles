@@ -200,9 +200,7 @@
       "Bash(uv cache clean:*)",
       "Bash(uv pip uninstall:*)"
     ],
-    "ask": [
-      "*"
-    ],
+    "ask": [],
     "defaultMode": "auto"
   },
   "model": "claude-opus-4-6",
