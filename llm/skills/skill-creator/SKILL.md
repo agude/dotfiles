@@ -6,12 +6,12 @@ description: >
   reusable skill, scaffold a skill directory, write a SKILL.md, or validate
   an existing skill against the spec.
 compatibility: Requires bash. curl needed for update-references.
-allowed-tools: "Bash(bash {baseDir}/scripts/:*) Read Write Edit"
+allowed-tools: "Bash(bash ${CLAUDE_SKILL_DIR}/scripts/:*) Read Write Edit"
 ---
 
 # Skill Creator
 
-**Skill base directory:** `{baseDir}`
+**Skill base directory:** `${CLAUDE_SKILL_DIR}`
 
 Create new Agent Skills that conform to the agentskills.io specification.
 
@@ -92,7 +92,7 @@ Markdown instructions follow the frontmatter.
 
 ## Available Scripts
 
-Scripts are in `{baseDir}/scripts/`. Use the full path when invoking.
+Scripts are in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking.
 
 | Script | Purpose |
 |--------|---------|
@@ -103,12 +103,12 @@ Scripts are in `{baseDir}/scripts/`. Use the full path when invoking.
 ### scaffold.sh
 
 ```bash
-bash {baseDir}/scripts/scaffold.sh <name> [--scripts] [--references] [--assets] [--dir <path>]
+bash ${CLAUDE_SKILL_DIR}/scripts/scaffold.sh <name> [--scripts] [--references] [--assets] [--dir <path>]
 ```
 
 Creates a skill directory (in `--dir` or the current working directory) with:
 - A `SKILL.md` containing valid frontmatter and a body placeholder
-- A `**Skill base directory:** \`{baseDir}\`` line in the stub (only when `--scripts` is passed)
+- A `**Skill base directory:** \`${CLAUDE_SKILL_DIR}\`` line in the stub (only when `--scripts` is passed)
 - Optional `scripts/`, `references/`, `assets/` subdirectories
 
 The name is validated against the spec's naming rules before creation. Exits
@@ -117,7 +117,7 @@ non-zero if the name is invalid or the directory already exists.
 ### validate.sh
 
 ```bash
-bash {baseDir}/scripts/validate.sh <skill-directory>
+bash ${CLAUDE_SKILL_DIR}/scripts/validate.sh <skill-directory>
 ```
 
 Runs these checks:
@@ -134,12 +134,12 @@ Prints PASS/FAIL per check. Exits 0 if all pass, 1 if any fail.
 ### update-references.sh
 
 ```bash
-bash {baseDir}/scripts/update-references.sh
+bash ${CLAUDE_SKILL_DIR}/scripts/update-references.sh
 ```
 
 Parses the agentskills.io sitemap, fetches each relevant page as markdown, and
-writes them to `{baseDir}/references/`. Records the fetch date in
-`{baseDir}/references/.last-updated`.
+writes them to `${CLAUDE_SKILL_DIR}/references/`. Records the fetch date in
+`${CLAUDE_SKILL_DIR}/references/.last-updated`.
 
 Run this periodically to keep the vendored spec docs current.
 
@@ -160,7 +160,7 @@ directory):
 
 ```bash
 cd /path/to/skills
-bash {baseDir}/scripts/scaffold.sh my-skill --scripts --references
+bash ${CLAUDE_SKILL_DIR}/scripts/scaffold.sh my-skill --scripts --references
 ```
 
 ### 3. Write the SKILL.md
@@ -168,7 +168,7 @@ bash {baseDir}/scripts/scaffold.sh my-skill --scripts --references
 Replace the stub content with real instructions. Follow this structure:
 
 1. **Frontmatter** with a descriptive `description` field
-2. **`{baseDir}` line** — include `**Skill base directory:** \`{baseDir}\`` if the skill has scripts (agents need the resolved path to invoke them)
+2. **`${CLAUDE_SKILL_DIR}` line** — include `**Skill base directory:** \`${CLAUDE_SKILL_DIR}\`` if the skill has scripts (agents need the resolved path to invoke them)
 3. **Overview** — what the skill does in 1-2 sentences
 4. **Workflow** — step-by-step instructions for the agent
 5. **Script documentation** — if the skill has scripts, document each one
@@ -178,7 +178,7 @@ Replace the stub content with real instructions. Follow this structure:
 ### 4. Validate
 
 ```bash
-bash {baseDir}/scripts/validate.sh /path/to/my-skill
+bash ${CLAUDE_SKILL_DIR}/scripts/validate.sh /path/to/my-skill
 ```
 
 Fix any failures and re-validate until all checks pass.
@@ -186,9 +186,9 @@ Fix any failures and re-validate until all checks pass.
 ## References
 
 For the full Agent Skills specification and authoring guides, use the Read tool
-to load these files. Check `{baseDir}/references/.last-updated` for freshness.
+to load these files. Check `${CLAUDE_SKILL_DIR}/references/.last-updated` for freshness.
 
-- `{baseDir}/references/specification.md` — complete format specification
-- `{baseDir}/references/what-are-skills.md` — overview and concepts
-- `{baseDir}/references/skill-creation-using-scripts.md` — script authoring guide
-- `{baseDir}/references/skill-creation-evaluating-skills.md` — testing and eval guide
+- `${CLAUDE_SKILL_DIR}/references/specification.md` — complete format specification
+- `${CLAUDE_SKILL_DIR}/references/what-are-skills.md` — overview and concepts
+- `${CLAUDE_SKILL_DIR}/references/skill-creation-using-scripts.md` — script authoring guide
+- `${CLAUDE_SKILL_DIR}/references/skill-creation-evaluating-skills.md` — testing and eval guide

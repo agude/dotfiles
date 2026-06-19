@@ -115,7 +115,7 @@ fi
 mkdir -p "$SKILL_DIR"
 
 if $MAKE_SCRIPTS; then
-    BASEDIR_LINE=$'\n**Skill base directory:** `{baseDir}`\n'
+    BASEDIR_LINE=$'\n**Skill base directory:** `${CLAUDE_SKILL_DIR}`\n'
 else
     BASEDIR_LINE=""
 fi

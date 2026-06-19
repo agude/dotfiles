@@ -142,17 +142,17 @@ else
     check "SKILL.md ≤500 lines" "pass"
 fi
 
-# --- {baseDir} line when scripts/ exists (warn only) ---
+# --- ${CLAUDE_SKILL_DIR} line when scripts/ exists (warn only) ---
 
 if [[ -d "${SKILL_DIR}/scripts" ]]; then
-    if ! grep -q '{baseDir}' "$SKILL_MD"; then
-        echo "WARN  scripts/ exists but SKILL.md does not contain a {baseDir} line"
+    if ! grep -q '${CLAUDE_SKILL_DIR}' "$SKILL_MD"; then
+        echo "WARN  scripts/ exists but SKILL.md does not contain a \${CLAUDE_SKILL_DIR} line"
     fi
 fi
 
 # --- Unexpected top-level entries (warn only) ---
 
-EXPECTED_PATTERN="^(SKILL\.md|scripts|references|assets|evals|LICENSE\.txt|LICENSE|\.claude)$"
+EXPECTED_PATTERN="^(SKILL\.md|scripts|references|assets|tests|evals|LICENSE\.txt|LICENSE|\.claude)$"
 while IFS= read -r entry; do
     entry_name=$(basename "$entry")
     if ! [[ "$entry_name" =~ $EXPECTED_PATTERN ]]; then

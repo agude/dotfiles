@@ -8,12 +8,12 @@ description: >
   when the user mentions ~/Documents, a JD ID like "21.10", or asks where to
   put a file --- even if they don't say "Johnny Decimal" explicitly.
 compatibility: Requires bash and tree. Optional: fzf for interactive browsing.
-allowed-tools: "Bash({baseDir}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
+allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
 ---
 
 # Johnny Decimal File Organization
 
-**Skill base directory:** `{baseDir}`
+**Skill base directory:** `${CLAUDE_SKILL_DIR}`
 
 This skill helps you work with the Johnny Decimal (JD) file system located at
 `~/Documents` (or `$XDG_DOCUMENTS_DIR`).
@@ -96,17 +96,17 @@ Use `jd-note` to add timestamped entries to these files.
 
 ## Available Scripts
 
-Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
+Scripts are located in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking:
 
 | Script | Purpose |
 |--------|---------|
-| `{baseDir}/scripts/jd-list.sh [ID]` | List contents of an area, category, or ID |
-| `{baseDir}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
-| `{baseDir}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
-| `{baseDir}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `{baseDir}/scripts/jd-move.sh <file> <ID> [new_name] [--subdir <path>]` | Move (and optionally rename) a file to a JD location. `new_name` sets the destination filename. `--subdir` targets a subdirectory within the ID. |
-| `{baseDir}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
-| `{baseDir}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-list.sh [ID]` | List contents of an area, category, or ID |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-move.sh <file> <ID> [new_name] [--subdir <path>]` | Move (and optionally rename) a file to a JD location. `new_name` sets the destination filename. `--subdir` targets a subdirectory within the ID. |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
 Also available: `jd <query>` for navigation (in `~/bin/`).
 
@@ -130,15 +130,15 @@ All properly handle TTY redirection for compatibility with any editor.
 All scripts support a `--porcelain` flag for machine-readable output:
 
 ```bash
-{baseDir}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
-{baseDir}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
-{baseDir}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
-{baseDir}/scripts/jd-move.sh file.pdf 21.10 --porcelain                        # Outputs destination path
-{baseDir}/scripts/jd-move.sh file.pdf 21.10 renamed.pdf --porcelain            # Move and rename
-{baseDir}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain  # Move into subdir
-{baseDir}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
-{baseDir}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
-{baseDir}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation
+${CLAUDE_SKILL_DIR}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
+${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
+${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --porcelain                        # Outputs destination path
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 renamed.pdf --porcelain            # Move and rename
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain  # Move into subdir
+${CLAUDE_SKILL_DIR}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
+${CLAUDE_SKILL_DIR}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
+${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation
 ```
 
 When using these scripts as an agent:
@@ -182,7 +182,7 @@ Files in the inbox (`00.01`) are typically scanned documents named by scan date
 1. **Read the file** to determine what it is
 2. **Decide where it goes** using the flowchart and overview
 3. **`ls` the target directory** to learn its naming conventions
-4. **Choose the final filename** to match the existing pattern --- see `{baseDir}/references/NAMING.md`
+4. **Choose the final filename** to match the existing pattern --- see `${CLAUDE_SKILL_DIR}/references/NAMING.md`
 5. **Move and rename in one step** using `jd-move <file> <ID> <new_name>`
 
 The scan-date filename is never the final name. Always rename during the move.
@@ -192,10 +192,10 @@ The scan-date filename is never the final name. Always rename during the move.
 If you need current structure details not covered here, read:
 1. `overview.md` in the JDex for full category breakdown
 2. `flowchart.md` in the JDex for filing decisions
-3. Use `{baseDir}/scripts/jd-list.sh` to see what exists in a location
+3. Use `${CLAUDE_SKILL_DIR}/scripts/jd-list.sh` to see what exists in a location
 
 ## References
 
 For more detailed guidance, use the Read tool to load:
-- `{baseDir}/references/FILING-GUIDE.md` - Detailed filing decisions and examples
-- `{baseDir}/references/NAMING.md` - File and folder naming conventions
+- `${CLAUDE_SKILL_DIR}/references/FILING-GUIDE.md` - Detailed filing decisions and examples
+- `${CLAUDE_SKILL_DIR}/references/NAMING.md` - File and folder naming conventions

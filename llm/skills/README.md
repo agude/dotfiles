@@ -31,7 +31,7 @@ description: ...          # Required: 1-1024 chars, what/when to use
 license: ...              # Optional
 compatibility: ...        # Optional: env requirements
 metadata: {}              # Optional: key-value pairs
-allowed-tools: "Bash({baseDir}/scripts/:*) Read"  # Optional (experimental)
+allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read"  # Optional (experimental)
 ---
 
 # Skill Name

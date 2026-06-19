@@ -7,12 +7,12 @@ description: >
   the user asks to plan work, create a checklist, or resume an interrupted
   session — even if they don't explicitly say "task" or "todo."
 compatibility: Requires Python 3.
-allowed-tools: "Bash({baseDir}/scripts/:*) Read"
+allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read"
 ---
 
 # Task Tracker
 
-**Skill base directory:** `{baseDir}`
+**Skill base directory:** `${CLAUDE_SKILL_DIR}`
 
 Persist task state across LLM sessions using markdown files in `.claude/tasks/`.
 Helps agents plan and remember what they're working on, and track progress through
@@ -20,20 +20,20 @@ multi-step work.
 
 ## Quick Start
 
-Scripts are located in `{baseDir}/scripts/`. Use the full path when invoking:
+Scripts are located in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking:
 
 ```bash
 # Initialize in current project
-{baseDir}/scripts/task.py init
+${CLAUDE_SKILL_DIR}/scripts/task.py init
 
 # Add tasks
-{baseDir}/scripts/task.py add "Implement user authentication"
-{baseDir}/scripts/task.py add "Write login tests" --parent 01-implement-user-authentication
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Implement user authentication"
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Write login tests" --parent 01-implement-user-authentication
 
 # Work through tasks
-{baseDir}/scripts/task.py start 01-implement-user-authentication
-{baseDir}/scripts/task.py done
-{baseDir}/scripts/task.py next
+${CLAUDE_SKILL_DIR}/scripts/task.py start 01-implement-user-authentication
+${CLAUDE_SKILL_DIR}/scripts/task.py done
+${CLAUDE_SKILL_DIR}/scripts/task.py next
 ```
 
 ## Directory Structure
@@ -117,12 +117,12 @@ These help an agent resume work across sessions without re-discovering context.
 
 ## Commands
 
-All output is JSON. Use `{baseDir}/scripts/task.py` for all commands.
+All output is JSON. Use `${CLAUDE_SKILL_DIR}/scripts/task.py` for all commands.
 
 ### Initialize
 
 ```bash
-{baseDir}/scripts/task.py init
+${CLAUDE_SKILL_DIR}/scripts/task.py init
 ```
 
 Creates `.claude/tasks/` directory.
@@ -130,13 +130,13 @@ Creates `.claude/tasks/` directory.
 ### Add Task
 
 ```bash
-{baseDir}/scripts/task.py add "Task title"
-{baseDir}/scripts/task.py add "Subtask title" --parent 01-parent-task
-{baseDir}/scripts/task.py add "Task with deps" --deps 01-auth-login 02-database
-{baseDir}/scripts/task.py add "With description" --description "Detailed info"
-{baseDir}/scripts/task.py add "With approach" --approach "Use existing auth middleware"
-{baseDir}/scripts/task.py add "With criteria" --criteria "Tests pass" "Docs updated"
-{baseDir}/scripts/task.py add "With files" --files src/auth.ts src/middleware.ts
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Task title"
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Subtask title" --parent 01-parent-task
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Task with deps" --deps 01-auth-login 02-database
+${CLAUDE_SKILL_DIR}/scripts/task.py add "With description" --description "Detailed info"
+${CLAUDE_SKILL_DIR}/scripts/task.py add "With approach" --approach "Use existing auth middleware"
+${CLAUDE_SKILL_DIR}/scripts/task.py add "With criteria" --criteria "Tests pass" "Docs updated"
+${CLAUDE_SKILL_DIR}/scripts/task.py add "With files" --files src/auth.ts src/middleware.ts
 ```
 
 Adding a subtask to a leaf task automatically promotes it to a directory.
@@ -144,8 +144,8 @@ Adding a subtask to a leaf task automatically promotes it to a directory.
 ### Remove Task
 
 ```bash
-{baseDir}/scripts/task.py remove 01-auth-login              # Remove task
-{baseDir}/scripts/task.py remove 01-auth-login/02-session   # Remove subtask
+${CLAUDE_SKILL_DIR}/scripts/task.py remove 01-auth-login              # Remove task
+${CLAUDE_SKILL_DIR}/scripts/task.py remove 01-auth-login/02-session   # Remove subtask
 ```
 
 Removing the last child of a parent automatically demotes it back to a file.
@@ -153,27 +153,27 @@ Removing the last child of a parent automatically demotes it back to a file.
 ### Update Task
 
 ```bash
-{baseDir}/scripts/task.py update 01-auth-login --title "New title"
-{baseDir}/scripts/task.py update 01-auth-login --status complete
-{baseDir}/scripts/task.py update 01-auth-login --deps 02-database
-{baseDir}/scripts/task.py update 01-auth-login --approach "Changed to use Redis"
-{baseDir}/scripts/task.py update 01-auth-login --criteria "Cache hits > 90%"
-{baseDir}/scripts/task.py update 01-auth-login --files src/cache.ts
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --title "New title"
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --status complete
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --deps 02-database
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --approach "Changed to use Redis"
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --criteria "Cache hits > 90%"
+${CLAUDE_SKILL_DIR}/scripts/task.py update 01-auth-login --files src/cache.ts
 ```
 
 ### List Tasks
 
 ```bash
-{baseDir}/scripts/task.py list
-{baseDir}/scripts/task.py list --status pending
-{baseDir}/scripts/task.py list --status in_progress
+${CLAUDE_SKILL_DIR}/scripts/task.py list
+${CLAUDE_SKILL_DIR}/scripts/task.py list --status pending
+${CLAUDE_SKILL_DIR}/scripts/task.py list --status in_progress
 ```
 
 ### Show Task
 
 ```bash
-{baseDir}/scripts/task.py show 01-auth-login
-{baseDir}/scripts/task.py show 01-auth-login/02-session
+${CLAUDE_SKILL_DIR}/scripts/task.py show 01-auth-login
+${CLAUDE_SKILL_DIR}/scripts/task.py show 01-auth-login/02-session
 ```
 
 Returns task details including dependency status.
@@ -181,7 +181,7 @@ Returns task details including dependency status.
 ### Get Next Task
 
 ```bash
-{baseDir}/scripts/task.py next
+${CLAUDE_SKILL_DIR}/scripts/task.py next
 ```
 
 Returns the next task to work on using depth-first logic:
@@ -191,7 +191,7 @@ Returns the next task to work on using depth-first logic:
 ### Start Task
 
 ```bash
-{baseDir}/scripts/task.py start 01-auth-login
+${CLAUDE_SKILL_DIR}/scripts/task.py start 01-auth-login
 ```
 
 Sets status to `in_progress` and records start time. Warns (but allows) if
@@ -200,22 +200,22 @@ dependencies incomplete.
 ### Complete Task
 
 ```bash
-{baseDir}/scripts/task.py done                  # Current in_progress task
-{baseDir}/scripts/task.py done 01-auth-login    # Specific task
+${CLAUDE_SKILL_DIR}/scripts/task.py done                  # Current in_progress task
+${CLAUDE_SKILL_DIR}/scripts/task.py done 01-auth-login    # Specific task
 ```
 
 ### Block/Unblock Task
 
 ```bash
-{baseDir}/scripts/task.py block 01-auth-login --reason "Waiting on API spec"
-{baseDir}/scripts/task.py unblock 01-auth-login
+${CLAUDE_SKILL_DIR}/scripts/task.py block 01-auth-login --reason "Waiting on API spec"
+${CLAUDE_SKILL_DIR}/scripts/task.py unblock 01-auth-login
 ```
 
 ### Add Note
 
 ```bash
-{baseDir}/scripts/task.py note 01-auth-login "Discovered edge case X"
-{baseDir}/scripts/task.py note 01-auth-login/02-session "Harder than expected"
+${CLAUDE_SKILL_DIR}/scripts/task.py note 01-auth-login "Discovered edge case X"
+${CLAUDE_SKILL_DIR}/scripts/task.py note 01-auth-login/02-session "Harder than expected"
 ```
 
 Attach learnings, context, or decisions to a task. Notes are timestamped and
@@ -224,7 +224,7 @@ preserved for future sessions.
 ### View All Notes
 
 ```bash
-{baseDir}/scripts/task.py notes
+${CLAUDE_SKILL_DIR}/scripts/task.py notes
 ```
 
 Returns all notes chronologically across all tasks - a project journal showing
@@ -233,8 +233,8 @@ what you learned over time.
 ### Move Task
 
 ```bash
-{baseDir}/scripts/task.py move 01-auth-login/03-feature --parent 02-backend
-{baseDir}/scripts/task.py move 02-backend/01-api                             # Move to top level
+${CLAUDE_SKILL_DIR}/scripts/task.py move 01-auth-login/03-feature --parent 02-backend
+${CLAUDE_SKILL_DIR}/scripts/task.py move 02-backend/01-api                             # Move to top level
 ```
 
 Moves a task to a new location and updates any dependency references.
@@ -244,7 +244,7 @@ Moves a task to a new location and updates any dependency references.
 Tasks can depend on other tasks by path:
 
 ```bash
-{baseDir}/scripts/task.py add "Deploy" --deps 01-auth-login 02-database-setup
+${CLAUDE_SKILL_DIR}/scripts/task.py add "Deploy" --deps 01-auth-login 02-database-setup
 ```
 
 Dependencies are soft-blocking:
@@ -256,7 +256,7 @@ Dependencies are soft-blocking:
 Use `task-render.py` to generate readable markdown:
 
 ```bash
-{baseDir}/scripts/task-render.py
+${CLAUDE_SKILL_DIR}/scripts/task-render.py
 ```
 
 Output:
@@ -321,16 +321,16 @@ Output:
 
 ## Typical Workflow
 
-1. **Starting a session**: Run `{baseDir}/scripts/task.py next` to see what to work on
-2. **Resuming after time away**: Run `{baseDir}/scripts/task.py notes` to review learnings
-3. **Beginning work**: Run `{baseDir}/scripts/task.py start <id>` on the task
+1. **Starting a session**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py next` to see what to work on
+2. **Resuming after time away**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py notes` to review learnings
+3. **Beginning work**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py start <id>` on the task
 4. **Breaking down work**: Add subtasks with `--parent`
-5. **Capturing learnings**: Run `{baseDir}/scripts/task.py note <id> "text"` when you discover something
-6. **Completing**: Run `{baseDir}/scripts/task.py done` when finished
-7. **Repeat**: Run `{baseDir}/scripts/task.py next` for the next task
+5. **Capturing learnings**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py note <id> "text"` when you discover something
+6. **Completing**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py done` when finished
+7. **Repeat**: Run `${CLAUDE_SKILL_DIR}/scripts/task.py next` for the next task
 
 ## References
 
 For more detailed guidance, use the Read tool to load:
-- `{baseDir}/references/markdown-format.md` - The task file format specification
-- `{baseDir}/references/project-breakdown.md` - How to decompose projects into atomic tasks
+- `${CLAUDE_SKILL_DIR}/references/markdown-format.md` - The task file format specification
+- `${CLAUDE_SKILL_DIR}/references/project-breakdown.md` - How to decompose projects into atomic tasks
