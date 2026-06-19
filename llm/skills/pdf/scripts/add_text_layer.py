@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.11"
 # dependencies = ["pypdf>=4.0", "reportlab>=4.0"]
@@ -21,7 +20,6 @@ from io import BytesIO
 from pathlib import Path
 
 from pypdf import PdfReader, PdfWriter
-from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 
@@ -75,7 +73,7 @@ def add_text_layer(input_path: Path, output_path: Path, text: str) -> None:
         writer.write(f)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Add invisible text layer to image-based PDF"
     )

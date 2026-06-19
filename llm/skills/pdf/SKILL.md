@@ -2,9 +2,13 @@
 name: pdf
 description: >-
   Process PDF files: extract text and tables, fill forms (fillable and
-  non-fillable), merge, split, rotate, encrypt, decrypt, extract metadata,
-  convert to images, and OCR scanned documents. Use whenever the user mentions
-  a .pdf file or asks to produce, read, modify, or analyze one.
+  non-fillable), merge, split, rotate, encrypt/decrypt and add or remove
+  password protection, extract metadata, convert pages to images, add
+  invisible text layers, and OCR scanned documents to produce searchable
+  PDFs. Supports page orientation detection, deskewing, annotation-based
+  form filling, and watermarking. Use whenever the user mentions a .pdf
+  file or asks to produce, read, modify, secure, scan, search, or analyze
+  one.
 compatibility: Requires uv and Python 3.11+. OCR scripts require tesseract.
 allowed-tools: "Bash({baseDir}/scripts/:*) Read"
 ---
@@ -52,10 +56,12 @@ uv run {baseDir}/scripts/extract_text.py document.pdf
 | Rotate pages | `rotate.py -i --angle 90 input.pdf` or `rotate.py input.pdf -o output.pdf --angle 90` |
 | Rotate specific pages | `rotate.py -i --angle 90 --pages 1,3,5 input.pdf` |
 | Show metadata | `metadata.py input.pdf` |
-| Encrypt PDF | `encrypt.py input.pdf output.pdf --user-password secret` |
-| Decrypt PDF | `decrypt.py input.pdf output.pdf --password secret` |
-| Convert to images | `pdf_to_images.py input.pdf output_dir/` |
+| Encrypt PDF | `encrypt.py input.pdf -o output.pdf --user-password secret` |
+| Decrypt PDF | `decrypt.py input.pdf -o output.pdf --password secret` |
+| Convert to images | `pdf_to_images.py input.pdf -d output_dir/` |
 | Check for form fields | `check_fields.py input.pdf` |
+| Add text layer | `add_text_layer.py input.pdf output.pdf "transcription"` |
+| Add text layer (file) | `add_text_layer.py input.pdf output.pdf --file transcript.txt` |
 
 All scripts accept `--help` for full usage.
 
@@ -76,6 +82,23 @@ uv run {baseDir}/scripts/rotate.py -i --angle 90 inbox/*.pdf
 
 # Metadata for multiple files as JSONL
 uv run {baseDir}/scripts/metadata.py --porcelain inbox/*.pdf
+```
+
+```bash
+# Encrypt all files in-place
+uv run {baseDir}/scripts/encrypt.py -i --user-password secret inbox/*.pdf
+
+# Decrypt all files to a directory
+uv run {baseDir}/scripts/decrypt.py -d decrypted/ --password secret inbox/*.pdf
+
+# Check which files have form fields
+uv run {baseDir}/scripts/check_fields.py --porcelain inbox/*.pdf
+
+# Convert all PDFs to images (each gets a subdirectory)
+uv run {baseDir}/scripts/pdf_to_images.py -d images/ inbox/*.pdf
+
+# Split all PDFs into individual pages
+uv run {baseDir}/scripts/split.py -d pages/ inbox/*.pdf
 ```
 
 Batch flags: `--porcelain` (machine-readable output), `--fail-fast` (stop on
@@ -126,14 +149,26 @@ script with `uv run {baseDir}/scripts/<name>.py`.
 - `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 - Requires `tesseract` installed on the system
 
+### Text Layers
+
+**`add_text_layer.py`** — Add invisible text layer to image-based PDFs.
+- `add_text_layer.py input.pdf output.pdf "transcription text"` — add text
+- `add_text_layer.py input.pdf output.pdf --file transcript.txt` — from file
+- `add_text_layer.py -i input.pdf "text here"` — modify in-place
+- Useful when OCR fails (e.g., handwriting) but manual transcription exists
+- Makes scanned pages searchable/selectable without OCR
+
 ### Manipulation
 
 **`merge.py`** — Combine multiple PDFs into one.
 - `merge.py -o merged.pdf a.pdf b.pdf c.pdf`
 
 **`split.py`** — Split a PDF into pages or a range.
-- `split.py input.pdf output_dir/` — one file per page
-- `split.py input.pdf output.pdf --pages 1-5` — extract page range
+- `split.py input.pdf -d output_dir/` — one file per page
+- `split.py input.pdf -o output.pdf --pages 1-5` — extract page range
+- `split.py -d output_dir/ *.pdf` — batch: each PDF gets a subdirectory
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
+- Legacy `split.py input.pdf output_dir/` syntax still works
 
 **`rotate.py`** — Rotate PDF pages.
 - `rotate.py input.pdf -o output.pdf --angle 90` — all pages
@@ -153,23 +188,37 @@ script with `uv run {baseDir}/scripts/<name>.py`.
 ### Security
 
 **`encrypt.py`** — Add password protection.
-- `encrypt.py input.pdf output.pdf --user-password read_pw`
-- `encrypt.py input.pdf output.pdf --user-password read_pw --owner-password admin_pw`
+- `encrypt.py input.pdf -o output.pdf --user-password read_pw`
+- `encrypt.py input.pdf -o output.pdf --user-password read_pw --owner-password admin_pw`
+- `encrypt.py -i --user-password secret *.pdf` — batch in-place
+- `encrypt.py -d encrypted/ --user-password secret *.pdf` — batch to directory
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
+- Legacy `encrypt.py input.pdf output.pdf --user-password ...` syntax still works
 
 **`decrypt.py`** — Remove password protection.
-- `decrypt.py input.pdf output.pdf --password secret`
+- `decrypt.py input.pdf -o output.pdf --password secret`
+- `decrypt.py -i --password secret *.pdf` — batch in-place
+- `decrypt.py -d decrypted/ --password secret *.pdf` — batch to directory
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
+- Skips non-encrypted files with a message
+- Legacy `decrypt.py input.pdf output.pdf --password ...` syntax still works
 
 ### Conversion
 
 **`pdf_to_images.py`** — Convert PDF pages to PNG images.
-- `pdf_to_images.py input.pdf output_dir/` — all pages
-- `pdf_to_images.py --pages 1-3 --dpi 300 input.pdf output_dir/`
+- `pdf_to_images.py input.pdf -d output_dir/` — all pages
+- `pdf_to_images.py --pages 1-3 --dpi 300 input.pdf -d output_dir/`
+- `pdf_to_images.py -d images/ *.pdf` — batch: each PDF gets a subdirectory
+- `--porcelain` — tab-delimited status output; `--fail-fast` — stop on first error
 - Uses pypdfium2 (no poppler dependency)
+- Legacy `pdf_to_images.py input.pdf output_dir/` syntax still works
 
 ### Form Filling
 
 **`check_fields.py`** — Detect whether a PDF has fillable form fields.
 - `check_fields.py input.pdf` — prints result and exits 0 (has fields) or 1
+- `check_fields.py *.pdf` — batch with per-file results
+- `--porcelain` — JSONL output; `--fail-fast` — stop on first error
 
 **`extract_fields.py`** — Dump fillable field metadata to JSON.
 - `extract_fields.py input.pdf fields.json`
