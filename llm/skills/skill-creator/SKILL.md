@@ -90,6 +90,32 @@ Markdown instructions follow the frontmatter.
 - Avoid interactive prompts — accept all input via flags or stdin.
 - Design for idempotency where possible.
 
+#### PEP 723 Python scripts (recommended pattern)
+
+For Python scripts, use PEP 723 inline metadata so they run via `uv run`
+with zero manual dependency installation:
+
+```python
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["beautifulsoup4>=4.12", "requests>=2.31"]
+# ///
+```
+
+Then invoke with `uv run ${CLAUDE_SKILL_DIR}/scripts/myscript.py`.
+
+#### Human vs agent mode (`--porcelain`)
+
+Scripts that serve both humans and agents should support a `--porcelain`
+flag. See `llm/skills/README.md` for the full pattern. Summary:
+
+| Feature | Human mode | `--porcelain` |
+|---------|-----------|---------------|
+| Paths | Basenames | Full absolute paths |
+| Output | Colored, decorated | Plain, structured |
+| Interactive | Opens `$EDITOR` | Requires all args |
+| Errors | Colored to stderr | Plain to stderr |
+
 ## Available Scripts
 
 Scripts are in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking.
@@ -126,6 +152,7 @@ Runs these checks:
 - `name` matches the directory name
 - `name` follows naming rules
 - `description` is ≤1024 characters
+- `compatibility` is ≤500 characters (if present)
 - SKILL.md is ≤500 lines
 - Warns on unexpected top-level entries
 
@@ -187,8 +214,12 @@ Fix any failures and re-validate until all checks pass.
 
 For the full Agent Skills specification and authoring guides, use the Read tool
 to load these files. Check `${CLAUDE_SKILL_DIR}/references/.last-updated` for freshness.
+Run `bash ${CLAUDE_SKILL_DIR}/scripts/update-references.sh` to refresh.
 
 - `${CLAUDE_SKILL_DIR}/references/specification.md` — complete format specification
-- `${CLAUDE_SKILL_DIR}/references/what-are-skills.md` — overview and concepts
+- `${CLAUDE_SKILL_DIR}/references/skill-creation-best-practices.md` — scoping and calibration
+- `${CLAUDE_SKILL_DIR}/references/skill-creation-optimizing-descriptions.md` — description tuning for reliable triggering
 - `${CLAUDE_SKILL_DIR}/references/skill-creation-using-scripts.md` — script authoring guide
 - `${CLAUDE_SKILL_DIR}/references/skill-creation-evaluating-skills.md` — testing and eval guide
+- `${CLAUDE_SKILL_DIR}/references/skill-creation-quickstart.md` — quick start walkthrough
+- `${CLAUDE_SKILL_DIR}/references/clients.md` — agents that support the format

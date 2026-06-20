@@ -16,7 +16,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="uvx">
     [uvx](https://docs.astral.sh/uv/guides/tools/) runs Python packages in isolated environments with aggressive caching. It ships with [uv](https://docs.astral.sh/uv/).
 
-    ```bash  theme={null}
+    ```bash theme={null}
     uvx ruff@0.8.0 check .
     uvx black@24.10.0 .
     ```
@@ -28,7 +28,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="pipx">
     [pipx](https://pipx.pypa.io/) runs Python packages in isolated environments. Available via OS package managers (`apt install pipx`, `brew install pipx`).
 
-    ```bash  theme={null}
+    ```bash theme={null}
     pipx run 'black==24.10.0' .
     pipx run 'ruff==0.8.0' check .
     ```
@@ -40,7 +40,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="npx">
     [npx](https://docs.npmjs.com/cli/commands/npx) runs npm packages, downloading them on demand. It ships with npm (which ships with Node.js).
 
-    ```bash  theme={null}
+    ```bash theme={null}
     npx eslint@9 --fix .
     npx create-vite@6 my-app
     ```
@@ -53,7 +53,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="bunx">
     [bunx](https://bun.sh/docs/cli/bunx) is Bun's equivalent of `npx`. It ships with [Bun](https://bun.sh/).
 
-    ```bash  theme={null}
+    ```bash theme={null}
     bunx eslint@9 --fix .
     bunx create-vite@6 my-app
     ```
@@ -65,7 +65,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="deno run">
     [deno run](https://docs.deno.com/runtime/reference/cli/run/) runs scripts directly from URLs or specifiers. It ships with [Deno](https://deno.com/).
 
-    ```bash  theme={null}
+    ```bash theme={null}
     deno run npm:create-vite@6 my-app
     deno run --allow-read npm:eslint@9 -- --fix .
     ```
@@ -77,7 +77,7 @@ When an existing package already does what you need, you can reference it direct
   <Tab title="go run">
     [go run](https://pkg.go.dev/cmd/go#hdr-Compile_and_run_Go_program) compiles and runs Go packages directly. It is built into the `go` command.
 
-    ```bash  theme={null}
+    ```bash theme={null}
     go run golang.org/x/tools/cmd/goimports@v0.28.0 .
     go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0 run
     ```
@@ -151,7 +151,7 @@ Several languages support inline dependency declarations:
 
     Run with [uv](https://docs.astral.sh/uv/) (recommended):
 
-    ```bash  theme={null}
+    ```bash theme={null}
     uv run scripts/extract.py
     ```
 
@@ -175,7 +175,7 @@ Several languages support inline dependency declarations:
     console.log($("p.info").text());
     ```
 
-    ```bash  theme={null}
+    ```bash theme={null}
     deno run scripts/extract.ts
     ```
 
@@ -198,7 +198,7 @@ Several languages support inline dependency declarations:
     console.log($("p.info").text());
     ```
 
-    ```bash  theme={null}
+    ```bash theme={null}
     bun run scripts/extract.ts
     ```
 
@@ -223,7 +223,7 @@ Several languages support inline dependency declarations:
     puts doc.at_css('p.info').text
     ```
 
-    ```bash  theme={null}
+    ```bash theme={null}
     ruby scripts/extract.rb
     ```
 

@@ -20,6 +20,7 @@ Checks:
   - name matches directory name
   - name follows naming rules (lowercase, hyphens, 1-64 chars)
   - description is non-empty and ≤1024 characters
+  - compatibility is ≤500 characters (if present)
   - SKILL.md is ≤500 lines
 EOF
 }
@@ -130,6 +131,18 @@ else
         check "description length (≤1024)" "fail" "got ${DESC_LEN} chars"
     else
         check "description length (≤1024)" "pass"
+    fi
+fi
+
+# --- compatibility field length (if present) ---
+
+COMPAT_VALUE=$(echo "$FRONTMATTER" | grep -E '^compatibility:\s*' | head -1 | sed 's/^compatibility:\s*//' | xargs)
+if [[ -n "$COMPAT_VALUE" ]]; then
+    COMPAT_LEN=${#COMPAT_VALUE}
+    if [[ $COMPAT_LEN -gt 500 ]]; then
+        check "compatibility length (≤500)" "fail" "got ${COMPAT_LEN} chars"
+    else
+        check "compatibility length (≤500)" "pass"
     fi
 fi
 
