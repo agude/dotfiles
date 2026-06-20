@@ -104,7 +104,7 @@ Scripts are located in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when in
 | `${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-move.sh <file> <ID> [new_name] [--subdir <path>]` | Move (and optionally rename) a file to a JD location. `new_name` sets the destination filename. `--subdir` targets a subdirectory within the ID. |
+| `${CLAUDE_SKILL_DIR}/scripts/jd-move.sh <source...> <ID> [--name <new_name>] [--subdir <path>]` | Move files to a JD location. Supports globs (e.g., `*.pdf 00.01`). `--name` renames (single source only). `--subdir` targets a subdirectory within the ID. |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
 
@@ -133,9 +133,10 @@ All scripts support a `--porcelain` flag for machine-readable output:
 ${CLAUDE_SKILL_DIR}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
 ${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
 ${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --porcelain                        # Outputs destination path
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 renamed.pdf --porcelain            # Move and rename
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain  # Move into subdir
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --porcelain                              # Outputs destination path
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh *.pdf 00.01 --porcelain                                # Move multiple files
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --name renamed.pdf --porcelain           # Move and rename
+${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain        # Move into subdir
 ${CLAUDE_SKILL_DIR}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
 ${CLAUDE_SKILL_DIR}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
 ${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation
@@ -183,7 +184,7 @@ Files in the inbox (`00.01`) are typically scanned documents named by scan date
 2. **Decide where it goes** using the flowchart and overview
 3. **`ls` the target directory** to learn its naming conventions
 4. **Choose the final filename** to match the existing pattern --- see `${CLAUDE_SKILL_DIR}/references/NAMING.md`
-5. **Move and rename in one step** using `jd-move <file> <ID> <new_name>`
+5. **Move and rename in one step** using `jd-move <file> <ID> --name <new_name>`
 
 The scan-date filename is never the final name. Always rename during the move.
 

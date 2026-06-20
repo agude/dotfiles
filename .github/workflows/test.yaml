@@ -18,6 +18,21 @@ jobs:
           # Only fail the build on actual errors, not warnings or style suggestions.
           #severity: error
 
+  skill-tests:
+    name: Skill Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install bats and tree
+        run: sudo apt-get update && sudo apt-get install -y bats tree
+      - name: Run Johnny Decimal tests
+        run: bats llm/skills/johnny-decimal/tests/
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Run PDF skill tests
+        run: uv run llm/skills/pdf/tests/run.py
+
   install:
     name: Test Install on ${{ matrix.os }}
     needs: lint

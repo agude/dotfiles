@@ -14,8 +14,9 @@ For detailed filing decisions, consult the flowchart in the JDex:
 4. **Major asset (home, car)?** → `30-39 Home and Property`
 5. **Job/career/education?** → `40-49 Career and Education`
 6. **Hobby or creative project?** → `60-69 Hobbies and Recreation`
-7. **Household service/utility?** → `80-89 Household and Services`
-8. **Reference material?** → `90-99 Reference`
+7. **Litigation or legal proceedings?** → `70-79 Legal and Records`
+8. **Household service/utility?** → `80-89 Household and Services`
+9. **Reference material?** → `90-99 Reference`
 
 ## Common Gotchas
 

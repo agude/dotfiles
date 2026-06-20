@@ -15,7 +15,7 @@
 #   Call jd_parse_common_args "$@" early, then use JD_PORCELAIN to check mode.
 
 # --- Configuration (exported for use by scripts that source this library) ---
-export JD_ROOT="${XDG_DOCUMENTS_DIR:-${HOME}/Documents}"
+export JD_ROOT="${JD_ROOT:-${XDG_DOCUMENTS_DIR:-${HOME}/Documents}}"
 export JDEX_PATH="${JD_ROOT}/00-09 System/00 System/00.00 JDex for System"
 
 # Validate that JD_ROOT exists and is a directory
