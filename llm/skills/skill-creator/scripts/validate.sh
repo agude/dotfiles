@@ -145,6 +145,7 @@ fi
 # --- ${CLAUDE_SKILL_DIR} line when scripts/ exists (warn only) ---
 
 if [[ -d "${SKILL_DIR}/scripts" ]]; then
+    # shellcheck disable=SC2016 -- matching the literal string ${CLAUDE_SKILL_DIR}
     if ! grep -q '${CLAUDE_SKILL_DIR}' "$SKILL_MD"; then
         echo "WARN  scripts/ exists but SKILL.md does not contain a \${CLAUDE_SKILL_DIR} line"
     fi
