@@ -100,6 +100,7 @@ Scripts are located in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when in
 
 | Script | Purpose |
 |--------|---------|
+| `${CLAUDE_SKILL_DIR}/scripts/jd-search.sh <query>` | Search for JD folders by name or ID fragment (case-insensitive) |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-list.sh [ID]` | List contents of an area, category, or ID |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
 | `${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
@@ -131,6 +132,7 @@ All properly handle TTY redirection for compatibility with any editor.
 All scripts support a `--porcelain` flag for machine-readable output:
 
 ```bash
+${CLAUDE_SKILL_DIR}/scripts/jd-search.sh bank --porcelain             # Find folders matching "bank"
 ${CLAUDE_SKILL_DIR}/scripts/jd-inbox.sh scan.pdf --porcelain         # Move to inbox (00.01)
 ${CLAUDE_SKILL_DIR}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
 ${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
