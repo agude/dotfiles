@@ -450,6 +450,13 @@ if install_group llm; then
     fi
 fi
 
+# Install git pre-commit hook for the dotfiles repo itself.
+if [[ -d "${DOTFILES_DIR}/.git" ]]; then
+    run mkdir -p "${DOTFILES_DIR}/.git/hooks"
+    run cp "${DOTFILES_DIR}/bin/pre-commit.sh" "${DOTFILES_DIR}/.git/hooks/pre-commit"
+    run chmod +x "${DOTFILES_DIR}/.git/hooks/pre-commit"
+fi
+
 if install_group vim; then
     if ! $DRY_RUN; then
         if command -v vim &> /dev/null; then
