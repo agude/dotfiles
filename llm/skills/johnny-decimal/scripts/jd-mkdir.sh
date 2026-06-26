@@ -6,6 +6,7 @@
 # Usage:
 #   jd-mkdir 21 "Chase Bank"           # Auto-assigns next ID (e.g., 21.15)
 #   jd-mkdir 21 "Chase Bank" --id 15   # Explicit ID: 21.15
+#   jd-mkdir 93.10 "ninja_blender"     # Subdirectory inside existing ID
 #   jd-mkdir 21 "Name" --porcelain     # Output full path (for agents)
 
 set -euo pipefail
@@ -24,9 +25,10 @@ set -- "${JD_REMAINING_ARGS[@]}"
 jd_validate_root || exit 1
 
 show_usage() {
-    echo "Usage: jd-mkdir <category> <name> [--id N] [--dry-run]" >&2
+    echo "Usage: jd-mkdir <category|ID> <name> [--id N] [--dry-run]" >&2
     echo "  jd-mkdir 21 \"Chase Bank\"           # Auto-assigns next ID" >&2
     echo "  jd-mkdir 21 \"Chase Bank\" --id 15   # Explicit: 21.15" >&2
+    echo "  jd-mkdir 93.10 \"ninja_blender\"     # Subdir inside existing ID" >&2
     echo "  jd-mkdir 21 \"Chase Bank\" --dry-run # Preview without creating" >&2
     echo "  jd-mkdir 21 \"Name\" --porcelain     # Output full path (for agents)" >&2
 }
@@ -72,30 +74,44 @@ if [[ -z "$category" ]] || [[ -z "$name" ]]; then
     exit 1
 fi
 
-# Validate category format (XX)
-if [[ ! "$category" =~ ^[0-9][0-9]$ ]]; then
-    jd_error "Invalid category format '${category}'. Expected XX (e.g., 21)"
-    exit 1
-fi
-
-# Find the category directory (validates it exists)
-category_dir=$(find_category_dir "$category") || exit 1
-
-# Determine the ID
-if [[ -n "$explicit_id" ]]; then
-    # Validate explicit ID is a number
-    if [[ ! "$explicit_id" =~ ^[0-9]+$ ]]; then
-        jd_error "--id must be a number, got '${explicit_id}'"
+# Branch: subcategory ID (XX.YY) → create a subdirectory inside it
+if [[ "$category" =~ ^[0-9][0-9]\.[0-9]+$ ]]; then
+    if [[ -n "$explicit_id" ]]; then
+        jd_error "--id is not supported when creating a subdirectory inside an existing ID"
         exit 1
     fi
-    id="${category}.${explicit_id}"
+    if [[ "$name" == */* ]] || [[ "$name" == "." ]] || [[ "$name" == ".." ]]; then
+        jd_error "Invalid name: '${name}'"
+        exit 1
+    fi
+    id_dir=$(find_id_dir "$category") || exit 1
+    new_folder="${id_dir}/${name}"
 else
-    # Auto-assign next available ID
-    id=$(next_available_id "$category") || exit 1
-fi
+    # Validate category format (XX)
+    if [[ ! "$category" =~ ^[0-9][0-9]$ ]]; then
+        jd_error "Invalid format '${category}'. Expected XX (e.g., 21) or XX.YY (e.g., 21.10)"
+        exit 1
+    fi
 
-# Construct the new folder path
-new_folder="${category_dir}/${id} ${name}"
+    # Find the category directory (validates it exists)
+    category_dir=$(find_category_dir "$category") || exit 1
+
+    # Determine the ID
+    if [[ -n "$explicit_id" ]]; then
+        # Validate explicit ID is a number
+        if [[ ! "$explicit_id" =~ ^[0-9]+$ ]]; then
+            jd_error "--id must be a number, got '${explicit_id}'"
+            exit 1
+        fi
+        id="${category}.${explicit_id}"
+    else
+        # Auto-assign next available ID
+        id=$(next_available_id "$category") || exit 1
+    fi
+
+    # Construct the new folder path
+    new_folder="${category_dir}/${id} ${name}"
+fi
 
 # Check if it already exists
 if [[ -e "$new_folder" ]]; then
@@ -108,18 +124,18 @@ if [[ "$dry_run" == true ]]; then
     if [[ "$JD_PORCELAIN" == "true" ]]; then
         echo "$new_folder"
     else
-        echo "Would create: ${id} ${name}"
+        echo "Would create: $(basename "$new_folder")"
         echo "  Path: ${new_folder}"
     fi
     exit 0
 fi
 
 # Create the folder
-mkdir -p "$new_folder"
+mkdir "$new_folder"
 chmod 700 "$new_folder"
 
 if [[ "$JD_PORCELAIN" == "true" ]]; then
     echo "$new_folder"
 else
-    jd_success "Created: ${id} ${name}"
+    jd_success "Created: $(basename "$new_folder")"
 fi
