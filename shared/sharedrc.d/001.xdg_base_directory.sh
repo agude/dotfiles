@@ -30,6 +30,14 @@ fi
 [[ -z $XDG_DATA_DIRS ]] && export XDG_DATA_DIRS="/usr/local/share/:/usr/share/"
 [[ -z $XDG_CONFIG_DIRS ]] && export XDG_CONFIG_DIRS="/etc/xdg"
 
+# Flatpak app exports (desktop files, icons, etc.)
+for _flatpak_dir in "/var/lib/flatpak/exports/share" "${HOME}/.local/share/flatpak/exports/share"; do
+    if [[ -d "$_flatpak_dir" ]] && [[ ":${XDG_DATA_DIRS}:" != *":${_flatpak_dir}:"* ]]; then
+        export XDG_DATA_DIRS="${XDG_DATA_DIRS}:${_flatpak_dir}"
+    fi
+done
+unset -v _flatpak_dir
+
 
 # XDG User Directories
 #
