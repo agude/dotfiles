@@ -53,7 +53,7 @@ Plug 'tpope/vim-repeat'
 "=============================================================================
 
 " Tagbar
-Plug 'majutsushi/tagbar'
+Plug 'preservim/tagbar'
 
 " Toggle TagBar
 nnoremap <silent> <Leader>tt :TagbarToggle<CR>

@@ -4,12 +4,11 @@
 <dict>
     <key>Label</key>
     <string>com.user.empty-downloads</string>
-    <key>Program</key>
-    <string>/bin/bash</string>
     <key>ProgramArguments</key>
     <array>
+        <string>/bin/bash</string>
         <string>-c</string>
-        <string>exec $HOME/bin/empty-downloads</string>
+        <string>exec "$HOME"/bin/empty-downloads</string>
     </array>
     <key>RunAtLoad</key>
     <true/>

@@ -5,4 +5,3 @@
 #   llm/gemini/settings.work.json
 
 CLAUDE_SETTINGS_REL="llm/claude/settings.work.json"
-GEMINI_SETTINGS_REL="llm/gemini/settings.work.json"

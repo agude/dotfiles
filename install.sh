@@ -79,7 +79,7 @@ _place_link() {
         else
             # Not ours — back up with epoch timestamp, don't destroy
             local backup
-            backup="${target}.dotfiles-backup.$(date +%s)"
+            backup="${target}.dotfiles-backup.$(date +%s).$$"
             echo "  -> Backing up: $target -> ${backup}"
             run mv "$target" "$backup"
         fi
@@ -133,8 +133,7 @@ any_group_enabled() {
     [[ "$groups" == "*" ]] && return 0
     local g
     for g in $(echo "$groups" | tr ',' ' '); do
-        # trim whitespace
-        g="${g## }"; g="${g%% }"
+        g="${g#"${g%%[! ]*}"}"; g="${g%"${g##*[! ]}"}"
         [[ -n "$g" ]] && install_group "$g" && return 0
     done
     return 1
@@ -398,6 +397,7 @@ if install_group scripts; then
     echo "› Setting up executable scripts in ~/bin..."
     ensure_real_dir "${HOME}/bin"
     for full_path in "$DOTFILES_DIR/bin/"*; do
+        [[ -f "$full_path" ]] || continue
         script_file=${full_path##*/}
         script_name=${script_file%%.*}
         link "${HOME}/bin/${script_name}" "bin/${script_file}"
@@ -431,6 +431,7 @@ if install_group llm; then
     for event_dir in "$DOTFILES_DIR/llm/claude/hooks.d/"*/; do
         [ -d "$event_dir" ] || continue
         event_name=$(basename "$event_dir")
+        [ "$event_name" = "tests" ] && continue
         ensure_real_dir "${COAT_TREE_CONFIG}/${event_name}"
         for hook_script in "$event_dir"*; do
             [ -f "$hook_script" ] || continue
@@ -453,19 +454,18 @@ fi
 # Install git pre-commit hook for the dotfiles repo itself.
 if [[ -d "${DOTFILES_DIR}/.git" ]]; then
     run mkdir -p "${DOTFILES_DIR}/.git/hooks"
-    run cp "${DOTFILES_DIR}/bin/pre-commit.sh" "${DOTFILES_DIR}/.git/hooks/pre-commit"
-    run chmod +x "${DOTFILES_DIR}/.git/hooks/pre-commit"
+    link "${DOTFILES_DIR}/.git/hooks/pre-commit" "bin/pre-commit.sh"
 fi
 
 if install_group vim; then
     if ! $DRY_RUN; then
         if command -v vim &> /dev/null; then
             echo "› Installing Vim plugins..."
-            vim +PlugInstall +qall
+            vim -T dumb -i NONE -c "PlugInstall --sync" -c qall!
         fi
         if command -v nvim &> /dev/null; then
             echo "› Installing Neovim plugins..."
-            nvim +PlugInstall +qall
+            nvim --headless "+PlugInstall --sync" +qa
         fi
     fi
 fi

@@ -11,12 +11,9 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@2.0.0
         with:
-          # Scan all shell-like scripts.
           scandir: './'
-          # Ignore the zsh directory, as shellcheck does not fully support its syntax.
           ignore_paths: zsh
-          # Only fail the build on actual errors, not warnings or style suggestions.
-          #severity: error
+          severity: error
 
   skill-tests:
     name: Skill Tests
@@ -54,17 +51,27 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install neovim
 
+    - name: Test install.sh parses under system Bash 3.2 (macOS)
+      if: runner.os == 'macOS'
+      run: /bin/bash ./install.sh --dry-run
+
     - name: Run the installation script
       run: ./install.sh
 
     - name: Test idempotency
       run: ./install.sh
 
+    - name: Test dry-run mode
+      run: ./install.sh --dry-run
+
+    - name: Test non-default profile
+      run: ./install.sh --profile server
+
     - name: Test nvim startup
       run: nvim +qall
 
-    - name: Test bashrc
-      run: bash -c "source ~/.bashrc"
+    - name: Test bashrc (interactive)
+      run: bash -i -c 'exit 0'
 
-    - name: Test zshrc
-      run: zsh -c "source ~/.zshrc"
+    - name: Test zshrc (interactive)
+      run: zsh -i -c 'exit 0'

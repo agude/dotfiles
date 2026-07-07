@@ -15,7 +15,8 @@ if [[ -d "${HOME}/bin" ]]; then
     if [[ -n "$BASH_VERSION" ]]; then
         shopt -s nullglob
         for dir in "${HOME}/bin"/*/; do
-            PATH="${dir%/}:${PATH}"
+            dir="${dir%/}"
+            [[ ":${PATH}:" != *":${dir}:"* ]] && PATH="${dir}:${PATH}"
         done
         shopt -u nullglob
     elif [[ -n "$ZSH_VERSION" ]]; then

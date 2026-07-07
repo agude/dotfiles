@@ -46,7 +46,12 @@ alias ld='ls -dltrh ./*/ 2>/dev/null'
 alias hs='history | grep'
 
 # Reload shell configuration
-alias reload='source "${HOME}/.${SHELL##*/}rc"'
+# $SHELL is the login shell, not necessarily the running shell.
+if [[ -n "$ZSH_VERSION" ]]; then
+    alias reload='source "${HOME}/.zshrc"'
+elif [[ -n "$BASH_VERSION" ]]; then
+    alias reload='source "${HOME}/.bashrc"'
+fi
 
 # Claude Code with all permissions pre-approved
 alias dclaude='claude --dangerously-skip-permissions'

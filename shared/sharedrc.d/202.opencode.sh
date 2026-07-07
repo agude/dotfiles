@@ -4,7 +4,7 @@
 #
 # Adds ~/.opencode/bin to PATH and provides the `oc` alias.
 
-if [[ -d "${HOME}/.opencode/bin" ]]; then
+if [[ -d "${HOME}/.opencode/bin" ]] && [[ ":${PATH}:" != *":${HOME}/.opencode/bin:"* ]]; then
     PATH="${HOME}/.opencode/bin:${PATH}"
 fi
 

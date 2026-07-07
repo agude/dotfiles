@@ -20,16 +20,12 @@ fi
 
 # --- Size ---
 
-# Number of commands to keep in memory during a session.
-HISTSIZE=10000
-# Maximum number of commands to save in the history file.
-SAVEHIST=10000
+HISTSIZE=100000
+SAVEHIST=100000
 
 # --- Behavior and Formatting ---
 
-# Append to the history file instead of overwriting it.
-setopt APPEND_HISTORY
-# Write to the history file immediately and share history between all running shells.
+setopt INC_APPEND_HISTORY
 # setopt SHARE_HISTORY
 # Add timestamps to history entries.
 setopt EXTENDED_HISTORY

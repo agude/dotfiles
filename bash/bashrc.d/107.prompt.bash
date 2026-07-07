@@ -5,7 +5,7 @@
 
 # --- Color Definitions ---
 # Use tput for terminal-independent color codes.
-if command -v tput >/dev/null && [[ $(tput colors) -ge 8 ]]; then
+if command -v tput >/dev/null && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
     RESET=$(tput sgr0)
     # BOLD=$(tput bold)
     RED=$(tput setaf 1)
