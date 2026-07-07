@@ -52,7 +52,7 @@
     # From https://haacked.com/archive/2014/07/28/github-flow-aliases/
     default = !git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'
     up = !git pull --rebase --prune $@ && git submodule update --init --recursive
-    bclean = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v " ${1-$DEFAULT}$" | xargs git branch -d; }; f"
+    bclean = "!f() { DEFAULT=$(git default); git branch --merged ${1-$DEFAULT} | grep -v \" ${1-$DEFAULT}$\" | xargs git branch -d; }; f"
     bdone = "!f() { DEFAULT=$(git default); git checkout ${1-$DEFAULT} && git up && git bclean ${1-$DEFAULT}; }; f"
     secure-commit = "!f() { for arg in \"$@\"; do if [ \"$arg\" = \"-n\" ] || [ \"$arg\" = \"--no-verify\" ]; then echo \"❌ Security Violation: --no-verify is forbidden.\"; exit 1; fi; done; git commit \"$@\"; }; f"
 
