@@ -454,8 +454,7 @@ fi
 # Install git pre-commit hook for the dotfiles repo itself.
 if [[ -d "${DOTFILES_DIR}/.git" ]]; then
     run mkdir -p "${DOTFILES_DIR}/.git/hooks"
-    run cp "${DOTFILES_DIR}/bin/pre-commit.sh" "${DOTFILES_DIR}/.git/hooks/pre-commit"
-    run chmod +x "${DOTFILES_DIR}/.git/hooks/pre-commit"
+    link "${DOTFILES_DIR}/.git/hooks/pre-commit" "bin/pre-commit.sh"
 fi
 
 if install_group vim; then
