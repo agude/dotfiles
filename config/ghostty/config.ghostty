@@ -1,7 +1,4 @@
 font-family = ""
-font-family = "Ubuntu Mono"
-theme = "iTerm2 Tango Dark"
-
-# Fonts
 font-family = Ubuntu Mono
 font-size = 15
+theme = "iTerm2 Tango Dark"
