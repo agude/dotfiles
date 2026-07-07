@@ -77,9 +77,10 @@ mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
 export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
 mkdir -p "${GIMP2_DIRECTORY}"
 
-# GnuPG
+# GnuPG — gpg requires 700 permissions on its home directory.
 export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
-mkdir -p "${GNUPGHOME}"
+# shellcheck disable=SC2174
+mkdir -p -m 700 "${GNUPGHOME}"
 
 # aspell
 export ASPELL_CONF="per-conf ${XDG_CONFIG_HOME}/aspell/aspell.conf; personal ${XDG_CONFIG_HOME}/aspell/en.pws; repl ${XDG_CONFIG_HOME}/aspell/en.prepl"
