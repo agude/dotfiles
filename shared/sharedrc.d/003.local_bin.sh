@@ -4,6 +4,6 @@
 #
 # Many tools (pip, pipx, Claude Code, etc.) install executables here.
 
-if [[ -d "${HOME}/.local/bin" ]]; then
+if [[ -d "${HOME}/.local/bin" ]] && [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
     PATH="${HOME}/.local/bin:${PATH}"
 fi
