@@ -21,7 +21,7 @@ if [[ -d "${HOME}/bin" ]]; then
         shopt -u nullglob
     elif [[ -n "$ZSH_VERSION" ]]; then
         for dir in "${HOME}/bin"/*(/N); do
-            [[ ":${PATH}:" != *":${dir}:"* ]] && PATH="${dir}:${PATH}"
+            PATH="${dir}:${PATH}"
         done
     fi
 fi
