@@ -7,7 +7,10 @@
 set -euo pipefail
 
 # Collect staged .sh and .bash files, excluding directories we skip in CI.
-mapfile -t files < <(
+files=()
+while IFS= read -r f; do
+    [[ -n "$f" ]] && files+=("$f")
+done < <(
     git diff --cached --name-only --diff-filter=ACM -- '*.sh' '*.bash' |
         grep -vE '^(zsh/|vim/plugged/)' || true
 )

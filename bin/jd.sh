@@ -50,7 +50,10 @@ fi
 query="$1"
 
 # Search using library function
-mapfile -t matches < <(jd_search "$query")
+matches=()
+while IFS= read -r _m; do
+    [[ -n "$_m" ]] && matches+=("$_m")
+done < <(jd_search "$query")
 num_matches=${#matches[@]}
 target_dir=""
 
