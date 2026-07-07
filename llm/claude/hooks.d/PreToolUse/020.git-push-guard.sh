@@ -35,6 +35,11 @@ if [[ -n "$refspec" ]]; then
     [[ -z "$branch" ]] && branch="${refspec%%:*}"
 else
     # No refspec — pushing current branch
+    branch=""
+fi
+
+# Resolve symbolic refs (HEAD, @) to actual branch names
+if [[ -z "$branch" || "$branch" == "HEAD" || "$branch" == "@" ]]; then
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 fi
 
