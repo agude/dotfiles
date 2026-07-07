@@ -16,7 +16,9 @@ zstyle ':vcs_info:git:*' formats       ' %F{red}(%b%u%c)%f'
 zstyle ':vcs_info:git:*' actionformats ' %F{red}(%b|%a%u%c)%f'
 
 # --- precmd: Runs before each prompt is displayed ---
-precmd() {
+autoload -Uz add-zsh-hook
+
+_prompt_precmd() {
   local exit_code=$?
 
   # Set user color based on shared prompt state
@@ -42,6 +44,8 @@ precmd() {
     print -P "%F{red}exit: ${exit_code}%f"
   fi
 }
+
+add-zsh-hook precmd _prompt_precmd
 
 # --- Build the Main PROMPT variable ---
 

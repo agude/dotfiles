@@ -59,8 +59,9 @@ EOF
 
 # --- Allow: common PR and issue workflow ---
 
-# PR operations
-[[ "$COMMAND" =~ gh[[:space:]]+pr[[:space:]]+(create|comment|edit|close|merge|ready|review) ]] && allow "PR workflow."
+# PR operations (merge requires confirmation — it's hard to reverse)
+[[ "$COMMAND" =~ gh[[:space:]]+pr[[:space:]]+merge ]] && ask "PR merge — confirm."
+[[ "$COMMAND" =~ gh[[:space:]]+pr[[:space:]]+(create|comment|edit|close|ready|review) ]] && allow "PR workflow."
 
 # Issue operations
 [[ "$COMMAND" =~ gh[[:space:]]+issue[[:space:]]+(create|comment|edit|close) ]] && allow "Issue workflow."
