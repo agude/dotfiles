@@ -60,7 +60,7 @@ if has('autocmd')
         autocmd!
         " Trigger on the common names for Vim and Neovim config files.
         " 'source %' re-sources the file that was just saved.
-        autocmd BufWritePost .vimrc,init.vim,_vimrc,vimrc,ideavimrc source % | echo "Vim configuration reloaded."
+        autocmd BufWritePost .vimrc,init.vim,_vimrc,vimrc source % | echo "Vim configuration reloaded."
     augroup END
 endif
 
