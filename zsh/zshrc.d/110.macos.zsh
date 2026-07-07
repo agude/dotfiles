@@ -8,11 +8,13 @@
 if [[ "$PLATFORM" == "mac" ]]; then
 
     # Set environment variables for Homebrew-installed packages if brew is available.
-    # This helps compilers and build tools find these libraries.
+    # Single brew --prefix call instead of three (~50-200ms each).
     if type brew &>/dev/null; then
-        export OPENBLAS=$(brew --prefix openblas)
-        export HDF5_DIR=$(brew --prefix hdf5)
-        export LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config
+        _brew_prefix="$(brew --prefix)"
+        export OPENBLAS="${_brew_prefix}/opt/openblas"
+        export HDF5_DIR="${_brew_prefix}/opt/hdf5"
+        export LLVM_CONFIG="${_brew_prefix}/opt/llvm/bin/llvm-config"
+        unset -v _brew_prefix
     fi
 
     # Append macOS-specific compiler flags.
