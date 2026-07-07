@@ -431,6 +431,7 @@ if install_group llm; then
     for event_dir in "$DOTFILES_DIR/llm/claude/hooks.d/"*/; do
         [ -d "$event_dir" ] || continue
         event_name=$(basename "$event_dir")
+        [ "$event_name" = "tests" ] && continue
         ensure_real_dir "${COAT_TREE_CONFIG}/${event_name}"
         for hook_script in "$event_dir"*; do
             [ -f "$hook_script" ] || continue
