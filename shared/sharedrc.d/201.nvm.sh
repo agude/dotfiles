@@ -1,4 +1,4 @@
-# shellcheck shell=bash
+# shellcheck shell=sh
 # NVM (Node Version Manager) — lazy-loaded to avoid ~200-400ms startup cost.
 # Defines stub functions for nvm/node/npm/npx that source nvm on first use.
 
