@@ -51,15 +51,21 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install neovim
 
-    - name: Test install.sh under system Bash 3.2 (macOS)
+    - name: Test install.sh parses under system Bash 3.2 (macOS)
       if: runner.os == 'macOS'
-      run: /bin/bash ./install.sh
+      run: /bin/bash ./install.sh --dry-run
 
     - name: Run the installation script
       run: ./install.sh
 
     - name: Test idempotency
       run: ./install.sh
+
+    - name: Test dry-run mode
+      run: ./install.sh --dry-run
+
+    - name: Test non-default profile
+      run: ./install.sh --profile server
 
     - name: Test nvim startup
       run: nvim +qall
