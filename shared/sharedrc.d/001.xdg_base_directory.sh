@@ -21,7 +21,7 @@ set +u
 
 if [[ "${PLATFORM}" == "mac" ]]; then
     [[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/Library/Caches/org.freedesktop"
-    mkdir -p "${XDG_CACHE_HOME}"
+    [[ -d "${XDG_CACHE_HOME}" ]] || mkdir -p "${XDG_CACHE_HOME}"
 else
     [[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="${HOME}/.cache"
 fi
@@ -71,16 +71,16 @@ export SCREENRC="${XDG_CONFIG_HOME}/screen/screenrc"
 # Jupyter/ipython
 export IPYTHONDIR="${XDG_CONFIG_HOME}/jupyter"
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME}/jupyter"
-mkdir -p "${IPYTHONDIR}" "${JUPYTER_CONFIG_DIR}"
+[[ -d "${IPYTHONDIR}" ]] || mkdir -p "${IPYTHONDIR}"
 
 # Gimp
 export GIMP2_DIRECTORY="${XDG_CONFIG_HOME}/gimp"
-mkdir -p "${GIMP2_DIRECTORY}"
+[[ -d "${GIMP2_DIRECTORY}" ]] || mkdir -p "${GIMP2_DIRECTORY}"
 
 # GnuPG — gpg requires 700 permissions on its home directory.
 export GNUPGHOME="${XDG_CONFIG_HOME}/gnupg"
 # shellcheck disable=SC2174
-mkdir -p -m 700 "${GNUPGHOME}"
+[[ -d "${GNUPGHOME}" ]] || mkdir -p -m 700 "${GNUPGHOME}"
 
 # aspell
 export ASPELL_CONF="per-conf ${XDG_CONFIG_HOME}/aspell/aspell.conf; personal ${XDG_CONFIG_HOME}/aspell/en.pws; repl ${XDG_CONFIG_HOME}/aspell/en.prepl"
