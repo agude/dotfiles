@@ -79,7 +79,7 @@ _place_link() {
         else
             # Not ours — back up with epoch timestamp, don't destroy
             local backup
-            backup="${target}.dotfiles-backup.$(date +%s)"
+            backup="${target}.dotfiles-backup.$(date +%s).$$"
             echo "  -> Backing up: $target -> ${backup}"
             run mv "$target" "$backup"
         fi
@@ -133,8 +133,7 @@ any_group_enabled() {
     [[ "$groups" == "*" ]] && return 0
     local g
     for g in $(echo "$groups" | tr ',' ' '); do
-        # trim whitespace
-        g="${g## }"; g="${g%% }"
+        g="${g#"${g%%[! ]*}"}"; g="${g%"${g##*[! ]}"}"
         [[ -n "$g" ]] && install_group "$g" && return 0
     done
     return 1
@@ -398,6 +397,7 @@ if install_group scripts; then
     echo "› Setting up executable scripts in ~/bin..."
     ensure_real_dir "${HOME}/bin"
     for full_path in "$DOTFILES_DIR/bin/"*; do
+        [[ -f "$full_path" ]] || continue
         script_file=${full_path##*/}
         script_name=${script_file%%.*}
         link "${HOME}/bin/${script_name}" "bin/${script_file}"
