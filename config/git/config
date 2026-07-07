@@ -18,13 +18,14 @@
 
 [merge]
     tool = meld
-    # Only allow fast-forward merges
     ff = only
+    conflictstyle = zdiff3
 
 [push]
     default = simple
     followTags = true
     autoSetupRemote = true
+    useForceIfIncludes = true
 
 [pull]
     rebase = true
@@ -33,9 +34,11 @@
     renames = copies
     mnemonicprefix = true
     algorithm = histogram
+    colorMoved = default
 
 [log]
     date = iso
+    decorate = full
 
 [include]
     path = ~/.gitconfig_local
@@ -46,9 +49,7 @@
     prune = fetch --prune
     undo = reset --mixed HEAD~1
     prune-all = fetch --prune --all
-    # Remove the branch on origin
-    # From https://stackoverflow.com/questions/16740268/git-alias-to-delete-local-and-remote
-    nuke = !sh -c 'git push origin :$1' -
+    nuke = "!f() { git push origin --delete \"$1\"; }; f"
     # From https://haacked.com/archive/2014/07/28/github-flow-aliases/
     default = !git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'
     up = !git pull --rebase --prune $@ && git submodule update --init --recursive
@@ -68,9 +69,7 @@
 
 [rebase]
     autostash = true
-
-[log]
-    decorate = full
+    updateRefs = true
 
 [commit]
     verbose = true
@@ -79,6 +78,12 @@
     defaultBranch = main
 [fetch]
     prune = true
+
+[help]
+    autocorrect = prompt
+
+[column]
+    ui = auto
 
 [rerere]
     enabled = true
