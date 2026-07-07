@@ -461,7 +461,7 @@ if install_group vim; then
     if ! $DRY_RUN; then
         if command -v vim &> /dev/null; then
             echo "› Installing Vim plugins..."
-            vim -es -u ~/.vimrc -i NONE -c "PlugInstall --sync" -c qa
+            vim -T dumb -i NONE -c "PlugInstall --sync" -c qall!
         fi
         if command -v nvim &> /dev/null; then
             echo "› Installing Neovim plugins..."
