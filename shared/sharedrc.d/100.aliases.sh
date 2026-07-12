@@ -61,8 +61,8 @@ alias qclaude='KNOWLEDGE_OBSERVE=0 claude --dangerously-skip-permissions'
 alias opus='claude --model claude-opus-4-6'
 alias dopus='claude --model claude-opus-4-6 --dangerously-skip-permissions'
 # Claude Code pinned to Sonnet 5
-alias sonnet='claude --model claude-sonnet-5'
-alias dsonnet='claude --model claude-sonnet-5 --dangerously-skip-permissions'
+alias sonnet='claude --model claude-sonnet-4-6'
+alias dsonnet='claude --model claude-sonnet-4-6 --dangerously-skip-permissions'
 # Claude Code pinned to Fable 5
 alias fable='claude --model claude-fable-5'
 alias dfable='claude --model claude-fable-5 --dangerously-skip-permissions'
