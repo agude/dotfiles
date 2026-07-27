@@ -49,10 +49,21 @@ ignore = [
 [tool.mypy]
 python_version = "3.10"
 strict = true
+# Required with a src/ layout and no tests/__init__.py: without them mypy
+# resolves tests/test_x.py as top-level `test_x`, so the `tests.*` override
+# below silently never matches. mypy_path stops the package being discovered
+# twice (as src.pkg and pkg), which is a hard error.
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"
 
 [[tool.mypy.overrides]]
 module = "tests.*"
+# Test bodies are the assertion; annotating every fixture buys nothing.
+# disallow_untyped_calls follows it, or typed tests calling untyped helpers
+# re-report the same noise under a different code.
 disallow_untyped_defs = false
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

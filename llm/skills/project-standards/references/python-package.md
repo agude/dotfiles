@@ -57,7 +57,34 @@ Revisit if uv#14946 lands.
 
 Releasing: bump `__version__`, commit, tag `vX.Y.Z`, push the tag, publish a
 GitHub release. `release.yml` runs CI, then publishes to PyPI via trusted
-publishing.
+publishing. Have it verify the tag against `__version__` and fail on a
+mismatch — otherwise a mistyped tag ships a version nobody can reproduce.
+
+### Swapping the build backend
+
+Changing backends alters how artifacts are assembled, so prove it rather
+than assume it. Build before the change, keep the file lists, build after,
+diff them:
+
+```bash
+uv build && unzip -Z1 dist/*.whl | sort > /tmp/before-wheel.txt
+uv build && tar tzf dist/*.tar.gz | sed 's|^[^/]*/||' | sort > /tmp/after-sdist.txt
+```
+
+setuptools → hatchling is safe in practice: the wheel loses only
+`top_level.txt`, which is legacy setuptools metadata. The sdist changes
+more — hatchling ships everything not gitignored, so it picks up `.github/`
+and drops `*.egg-info`. Confirm the sdist still carries every test file, and
+exclude the agent docs, which are noise for anyone installing from source:
+
+```toml
+[tool.hatch.build.targets.sdist]
+exclude = ["AGENTS.md", "CLAUDE.md", "GEMINI.md"]
+```
+
+A backend swap does not need a version bump: it changes neither the code nor
+the declared metadata a consumer resolves against. Land it before a release,
+not as one.
 
 ## Python versions
 
@@ -87,16 +114,31 @@ you end up testing a version you claim not to support.
 
 ## Types
 
-mypy `strict` for the package. Tests get one override:
+mypy `strict` for the package.
+
+**The `tests.*` override does not fire by default.** With a `src/` layout and
+no `tests/__init__.py`, mypy resolves `tests/test_cli.py` as top-level module
+`test_cli`, so a `module = "tests.*"` override matches nothing and every test
+function reports `no-untyped-def`. Three settings are needed together:
 
 ```toml
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
+[tool.mypy]
+strict = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"       # or the package is found twice and mypy refuses to run
 ```
 
-Requiring annotations on every test function buys nothing; the test bodies
-are the assertion.
+Pair `disallow_untyped_calls = false` with `disallow_untyped_defs = false` in
+the override, or typed tests calling untyped helpers re-report the same noise
+under a different code.
+
+**Scope `type-check` to the package when migrating.** Widening it to `tests/`
+on an existing repo usually surfaces real type errors — 26 in
+`wayback-machine-archiver`, mostly fixtures building plain dicts where a
+TypedDict is expected. Fixing those is worthwhile but is its own change, not
+part of a tooling migration. Note the gap in `AGENTS.md` and move on; new
+repos should type-check tests from the start.
 
 ## Tests
 

@@ -21,6 +21,9 @@ format:
     uv run ruff check --fix .
 
 # Type check
+# New repos: include tests/. Migrating an existing repo: start with the
+# package alone — widening to tests usually surfaces real errors that
+# belong in their own change.
 type-check:
     uv run mypy src/PACKAGE/ tests/
 
