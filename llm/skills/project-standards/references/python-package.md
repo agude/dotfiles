@@ -142,9 +142,22 @@ repos should type-check tests from the start.
 
 ## Tests
 
-pytest with coverage gated at 90% for packages. If a package legitimately
-cannot reach 90%, lower the number *and* write the reason next to it rather
-than deleting the gate.
+pytest with coverage gated at 90% for packages.
+
+**When migrating a repo below 90%, set the gate at the current floor**, with a
+comment saying 90 is the target. Writing tests to reach 90 is not part of a
+tooling migration, and setting an unreachable gate just means the first
+commit after the migration is the one that turns it off. A floor ratchets:
+coverage can only go up from there.
+
+```toml
+# The standard is 90; this repo sits at ~84 today. The gate is the current
+# floor so coverage can only ratchet upward, not a blessing of 84.
+addopts = "--cov=package_name --cov-fail-under=83"
+```
+
+Set the number a point or two below the measured value so ordinary variation
+does not fail the build.
 
 Keep the CI smoke test (`uv pip install . && <console-script> --help`). It
 catches packaging errors — a missing `[project.scripts]` entry, a module

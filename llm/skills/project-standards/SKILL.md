@@ -67,9 +67,17 @@ Pick the archetype first; it determines the runner and the reference doc.
 | Archetype | Looks like | Runner | Reference |
 |---|---|---|---|
 | Python package | `pyproject.toml`, `src/`, uv | `just` | `references/python-package.md` |
+| Script collection | loose `*.py`, no `src/`, no suite | `just` | this table's note below |
 | Jekyll site | `_config.yml`, `Gemfile`, Docker | `make` | `references/jekyll-site.md` |
 | Shell / infra | `*.sh`, `tests/*.bats`, playbooks | `just` | `references/shell-repo.md` |
-| Single file / assets | one script, no deps | none | ruff config only, no CI needed |
+| Single file | one script, no deps | none | ruff config only, no CI needed |
+
+**Script collections** get `sync`, `lint`, `format`, `check`, and
+`hooks-install` — and deliberately no `type-check`, `test`, coverage gate, or
+version, because there is no package or suite for them to describe. `check`
+is just `lint`. CI is a single lint job. Say so in `AGENTS.md`, so the
+audit's warnings about the missing mypy and coverage settings read as a shape
+decision rather than neglect.
 
 ## The verb contract
 
@@ -213,6 +221,22 @@ requires-python = ">=3.8"
 
 Every `ignore` entry in a ruff config carries a comment saying why. An
 undocumented deviation is a bug, and the audit script reports it as one.
+
+### Deferring a rule during migration
+
+Some rules cannot be satisfied by tooling work alone. Adding mypy to a
+package that never had it, or reaching a coverage target, means changing
+code — that is a separate project, and bundling it into a migration makes
+both harder to review.
+
+When that happens: **leave the audit failing, and record why in
+`AGENTS.md`.** Do not add a recipe that fails, do not weaken the rule, and
+do not silently drop it. A standing FAIL with a written reason is honest;
+a passing audit that hides the gap is not.
+
+Real examples: `shapez_2_tools` has no `type-check` recipe because
+`mypy --strict` reports 195 errors; `wayback-machine-archiver` scopes
+`type-check` to the package because widening it to tests surfaces 26.
 
 Known standing exceptions:
 
