@@ -147,8 +147,36 @@ action removes a version to track.
 3. Fix in this order — **runner first**, because the hook and CI call it:
    rename recipes to the verb contract → point the hook at `just lint` →
    point CI at the runner → align pins and policy items.
-4. Re-run the audit; every FAIL should be gone or documented as an exception.
-5. Run `just check` and confirm it passes before committing.
+4. **Run `git status` and confirm every new file is actually visible.** See
+   the gitignore trap below.
+5. Re-run the audit; every FAIL should be gone or documented as an exception.
+6. Run `just check` and confirm it passes before committing.
+
+### The gitignore trap
+
+Older repos carry GitHub-template `.gitignore` files with rules like `.*`,
+`bin`, or a bare `CLAUDE.md` from a pre-`AGENTS.md` era. Those silently
+swallow exactly the files a migration adds: `.python-version`,
+`bin/pre-commit.sh`, and the agent-doc symlinks. Everything looks right
+locally and nobody else ever receives the hook.
+
+`git add` warns only for explicitly named paths, so a directory add hides
+it. Check directly, and un-ignore rather than force-add:
+
+```bash
+git check-ignore -v .python-version bin/pre-commit.sh CLAUDE.md
+```
+
+The audit reports this as `hook.tracked` and `python.version`, but only for
+files that already exist — it cannot warn about a file you have not written
+yet.
+
+### Adopting the line length
+
+Repos predating the standard may sit at 88. Widen to 100 and reflow in a
+**separate commit** that touches nothing else, so the formatting churn stays
+reviewable apart from the tooling change. Keep the old width only when the
+reflow would collide with in-flight work; say so in a comment if you do.
 
 Rename recipes with their call sites in the same commit. A justfile whose
 `fmt` became `format` while a hook still calls `just fmt` is worse than the

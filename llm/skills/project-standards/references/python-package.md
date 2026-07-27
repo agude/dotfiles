@@ -39,6 +39,22 @@ via `[tool.hatch.version]`. No `bump-my-version` config, no version string
 duplicated into `pyproject.toml`, no hand-rolled bump script — each of those
 is a second place that can disagree.
 
+Hatchling's default pattern does not match an annotated assignment, so
+`__version__: str = "1.2.3"` needs an explicit one:
+
+```toml
+[tool.hatch.version]
+path = "src/package_name/__init__.py"
+pattern = "^__version__(?::\\s*str)?\\s*=\\s*['\"](?P<version>[^'\"]+)['\"]"
+```
+
+**Why hatchling and not `uv_build`**, given the always-uv rule: `uv_build`
+rejects `dynamic = ["version"]` at build time and supports pure Python only.
+Adopting it would mean either duplicating the version string or moving
+`--version` onto `importlib.metadata`, which fails from a source checkout.
+Astral's own docs point at hatchling when you need more than the basics.
+Revisit if uv#14946 lands.
+
 Releasing: bump `__version__`, commit, tag `vX.Y.Z`, push the tag, publish a
 GitHub release. `release.yml` runs CI, then publishes to PyPI via trusted
 publishing.
@@ -50,6 +66,20 @@ publishing.
 - The matrix runs floor through latest, plus PyPy where the package is pure
   Python and cheap to test there.
 - `.python-version` pins the latest supported version for local work.
+
+**`.python-version` and the CI matrix fight each other.** uv honours the pin
+wherever it finds one, including on the runner, so a matrix that installs
+3.10 through 3.14 will still run every leg on the pinned interpreter — green
+across the board, testing one version, names in the UI implying otherwise.
+Override it per job:
+
+```yaml
+env:
+  UV_PYTHON: ${{ matrix.python-version }}
+```
+
+`uv python install ${{ matrix.python-version }}` alone does not fix this: it
+makes the interpreter available without selecting it.
 
 When a CPython version goes EOL, raise the floor and drop it from the
 matrix in the same commit — a floor that disagrees with the matrix is how

@@ -65,6 +65,9 @@ report() {  # report STATUS CHECK DETAIL
 
 has() { [ -e "$REPO/$1" ]; }
 
+# A file that exists but is gitignored is invisible to everyone else.
+is_ignored() { (cd "$REPO" && git check-ignore -q "$1" 2>/dev/null); }
+
 # Grep a file in the repo, quietly.
 greps() {  # greps FILE PATTERN
     [ -f "$REPO/$1" ] && grep -qE "$2" "$REPO/$1" 2>/dev/null
@@ -192,6 +195,10 @@ check_hook() {
         report FAIL hook.script "$script inlines commands instead of calling the runner"
     fi
 
+    if is_ignored "$script"; then
+        report FAIL hook.tracked "$script is gitignored — nobody else can ever get this hook"
+    fi
+
     if [ -e "$REPO/.git/hooks/pre-commit" ]; then
         report PASS hook.installed "installed in this clone"
     else
@@ -212,17 +219,24 @@ check_isolation() {
         < <(find "$REPO/.github/workflows" -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' \))
     [ ${#files[@]} -gt 0 ] || return
 
-    local pips bare
-    pips=$(grep -lE '(^|[^v] )pip install|uv pip install --system' "${files[@]}" 2>/dev/null \
-        | sed "s|$REPO/||" | tr '\n' ' ')
-    # A Python tool invoked at the start of a recipe/step without uv in front.
-    bare=$(grep -lE '^[[:space:]]*(run: )?(python3?|ruff|mypy|pytest) ' "${files[@]}" 2>/dev/null \
-        | sed "s|$REPO/||" | tr '\n' ' ')
+    local pips="" bare="" f
+    for f in "${files[@]}"; do
+        # Strip comments first: prose about pip or python is not an invocation.
+        local code
+        code=$(sed 's/#.*//' "$f")
+        if grep -qE '(^|[^v] )pip install|uv pip install --system' <<<"$code"; then
+            pips="$pips ${f#"$REPO/"}"
+        fi
+        # A Python tool invoked at the start of a recipe or step, no uv in front.
+        if grep -qE '^[[:space:]]*(run: )?(python3?|ruff|mypy|pytest) ' <<<"$code"; then
+            bare="$bare ${f#"$REPO/"}"
+        fi
+    done
 
     if [ -n "$pips" ]; then
-        report FAIL deps.isolation "pip install / --system in: $pips"
+        report FAIL deps.isolation "pip install / --system in:$pips"
     elif [ -n "$bare" ]; then
-        report FAIL deps.isolation "bare interpreter or tool (no uv run/uvx) in: $bare"
+        report FAIL deps.isolation "bare interpreter or tool (no uv run/uvx) in:$bare"
     else
         report PASS deps.isolation "everything Python runs through uv"
     fi
@@ -301,7 +315,9 @@ check_python() {
         fi
     fi
 
-    if has .python-version; then
+    if has .python-version && is_ignored .python-version; then
+        report FAIL python.version ".python-version exists but is gitignored"
+    elif has .python-version; then
         report PASS python.version "$(tr -d '\n' < "$REPO/.python-version")"
     else
         report WARN python.version "no .python-version"
