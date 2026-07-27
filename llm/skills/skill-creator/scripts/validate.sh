@@ -14,14 +14,24 @@ Usage: validate.sh <skill-directory>
 
 Validate a skill directory against the Agent Skills specification.
 
-Checks:
-  - SKILL.md exists
-  - Frontmatter contains name and description
-  - name matches directory name
-  - name follows naming rules (lowercase, hyphens, 1-64 chars)
-  - description is non-empty and ≤1024 characters
-  - compatibility is ≤500 characters (if present)
-  - SKILL.md is ≤500 lines
+Fails on:
+  - SKILL.md missing
+  - Frontmatter missing name or description
+  - name does not match the directory name
+  - name breaks the naming rules (lowercase, hyphens, 1-64 chars)
+  - XML tags in name or description
+  - description longer than 1024 characters
+  - compatibility longer than 500 characters
+  - SKILL.md longer than 500 lines
+
+Warns on:
+  - Reserved words (claude, anthropic) in name
+  - First- or second-person description
+  - description with no "when to use" signal
+  - description plus when_to_use over the 1536-character listing cap
+  - Unrecognized frontmatter keys
+  - Unexpected top-level entries
+  - scripts/ directory with no ${CLAUDE_SKILL_DIR} line
 EOF
 }
 
@@ -38,6 +48,11 @@ fi
 SKILL_DIR="$1"
 FAILURES=0
 
+# Spec fields plus the Claude Code extensions. Anything else is likely a typo.
+KNOWN_FIELDS="name description license compatibility metadata allowed-tools \
+when_to_use argument-hint arguments disable-model-invocation user-invocable \
+disallowed-tools model effort context agent background hooks paths shell"
+
 check() {
     local label="$1"
     local result="$2"  # "pass" or "fail"
@@ -49,6 +64,26 @@ check() {
         echo "FAIL  $label${detail:+: $detail}"
         FAILURES=$((FAILURES + 1))
     fi
+}
+
+warn() {
+    echo "WARN  $1"
+}
+
+# Read a frontmatter scalar, or print nothing when the field is absent.
+# Handles plain values and YAML folded blocks (>). Literal blocks (|) and
+# quoted multi-line strings are not supported: full YAML parsing in bash is not
+# practical, and those forms are rare in skill frontmatter.
+extract_field() {
+    local key="$1"
+
+    awk -v key="$key" '
+        $0 ~ "^" key ":[ \t]*>" { multi=1; next }
+        $0 ~ "^" key ":[ \t]*.+" { sub("^" key ":[ \t]*", ""); print; found=1; exit }
+        multi && /^[ \t]+/ { sub(/^[ \t]+/, ""); line = line (line ? " " : "") $0; next }
+        multi && !/^[ \t]/ { print line; found=1; exit }
+        END { if (multi && !found) print line }
+    ' <<< "$FRONTMATTER"
 }
 
 # --- SKILL.md exists ---
@@ -64,17 +99,14 @@ check "SKILL.md exists" "pass"
 
 # --- Extract frontmatter ---
 # Frontmatter is between the first two lines matching exactly "---".
-# NOTE: Description parsing below only handles plain scalars and YAML folded
-# block scalars (>). It does not handle literal block scalars (|) or quoted
-# strings. Full YAML parsing in bash isn't practical; these cases are rare in
-# skill frontmatter.
 
 FRONTMATTER=$(awk '/^---$/ { count++; if (count==2) exit; if (count==1) next } count==1 { print }' "$SKILL_MD")
 
 # --- name field ---
 
-NAME_VALUE=$(echo "$FRONTMATTER" | grep -E '^name:\s*' | head -1 | sed 's/^name:\s*//' | xargs)
-DIR_NAME=$(basename "$SKILL_DIR")
+NAME_VALUE=$(extract_field "name" | xargs)
+# Resolve first, so "." and trailing slashes still yield the real directory name.
+DIR_NAME=$(basename "$(cd "$SKILL_DIR" && pwd)")
 
 if [[ -z "$NAME_VALUE" ]]; then
     check "frontmatter has name" "fail" "missing"
@@ -84,6 +116,8 @@ else
     # Naming rules
     if [[ ${#NAME_VALUE} -lt 1 || ${#NAME_VALUE} -gt 64 ]]; then
         check "name length (1-64)" "fail" "got ${#NAME_VALUE} chars"
+    elif [[ "$NAME_VALUE" == *"<"* || "$NAME_VALUE" == *">"* ]]; then
+        check "name has no XML tags" "fail" "'${NAME_VALUE}'"
     elif ! [[ "$NAME_VALUE" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
         check "name format" "fail" "'${NAME_VALUE}' must be lowercase alphanumeric and hyphens"
     elif [[ "$NAME_VALUE" == *--* ]]; then
@@ -98,29 +132,26 @@ else
     else
         check "name matches directory" "pass"
     fi
+
+    # The Skills API rejects these outright; Claude Code does not, so warn only.
+    if [[ "$NAME_VALUE" == *claude* || "$NAME_VALUE" == *anthropic* ]]; then
+        warn "name contains a reserved word (claude/anthropic); the Skills API rejects it"
+    fi
 fi
 
 # --- description field ---
-# Handle both single-line and multi-line (>) YAML descriptions.
-# Detect unsupported literal block scalars (|) and give a targeted error.
 
-if echo "$FRONTMATTER" | grep -qE '^description:\s*\|'; then
+if grep -qE '^description:[[:space:]]*\|' <<< "$FRONTMATTER"; then
     check "frontmatter has description" "fail" \
         "literal block scalars (|) are not supported; use folded (>) or inline instead"
     DESC_VALUE=""
 else
-    DESC_VALUE=$(awk '
-        /^description:\s*>/ { multi=1; next }
-        /^description:\s*.+/ { gsub(/^description:\s*/, ""); print; found=1; exit }
-        multi && /^  / { gsub(/^  /, ""); line = line (line ? " " : "") $0; next }
-        multi && !/^  / { print line; found=1; exit }
-        END { if (multi && !found) print line }
-    ' <<< "$FRONTMATTER")
+    DESC_VALUE=$(extract_field "description")
 fi
 
 if [[ -z "$DESC_VALUE" ]]; then
     # Only report "missing" if we didn't already report a more specific error above.
-    if ! echo "$FRONTMATTER" | grep -qE '^description:'; then
+    if ! grep -qE '^description:' <<< "$FRONTMATTER"; then
         check "frontmatter has description" "fail" "missing"
     fi
 else
@@ -132,11 +163,34 @@ else
     else
         check "description length (≤1024)" "pass"
     fi
+
+    if [[ "$DESC_VALUE" == *"<"* || "$DESC_VALUE" == *">"* ]]; then
+        check "description has no XML tags" "fail" "remove angle brackets"
+    else
+        check "description has no XML tags" "pass"
+    fi
+
+    # The description is injected into the system prompt, where a mixed point
+    # of view degrades matching.
+    if [[ "$DESC_VALUE" =~ ^(I|We|You|Your)[[:space:]\'] ]]; then
+        warn "description is written in first or second person; use third person"
+    fi
+
+    if ! grep -qi 'when' <<< "$DESC_VALUE"; then
+        warn "description does not say when to use the skill"
+    fi
+
+    # Claude Code truncates description plus when_to_use in the skill listing.
+    WHEN_TO_USE_VALUE=$(extract_field "when_to_use")
+    LISTING_LEN=$((DESC_LEN + ${#WHEN_TO_USE_VALUE}))
+    if [[ $LISTING_LEN -gt 1536 ]]; then
+        warn "description plus when_to_use is ${LISTING_LEN} chars; listings truncate at 1536"
+    fi
 fi
 
 # --- compatibility field length (if present) ---
 
-COMPAT_VALUE=$(echo "$FRONTMATTER" | grep -E '^compatibility:\s*' | head -1 | sed 's/^compatibility:\s*//' | xargs)
+COMPAT_VALUE=$(extract_field "compatibility" | xargs)
 if [[ -n "$COMPAT_VALUE" ]]; then
     COMPAT_LEN=${#COMPAT_VALUE}
     if [[ $COMPAT_LEN -gt 500 ]]; then
@@ -145,6 +199,16 @@ if [[ -n "$COMPAT_VALUE" ]]; then
         check "compatibility length (≤500)" "pass"
     fi
 fi
+
+# --- Unrecognized frontmatter keys (warn only) ---
+# Top-level keys only; nested keys under metadata: are indented and skipped.
+
+while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
+    if ! grep -qw -- "$key" <<< "$KNOWN_FIELDS"; then
+        warn "unrecognized frontmatter key: ${key}"
+    fi
+done < <(grep -oE '^[A-Za-z_][A-Za-z0-9_-]*:' <<< "$FRONTMATTER" | tr -d ':' | sort -u)
 
 # --- Line count ---
 
@@ -160,7 +224,7 @@ fi
 if [[ -d "${SKILL_DIR}/scripts" ]]; then
     # shellcheck disable=SC2016
     if ! grep -q '${CLAUDE_SKILL_DIR}' "$SKILL_MD"; then
-        echo "WARN  scripts/ exists but SKILL.md does not contain a \${CLAUDE_SKILL_DIR} line"
+        warn "scripts/ exists but SKILL.md does not contain a \${CLAUDE_SKILL_DIR} line"
     fi
 fi
 
@@ -170,7 +234,7 @@ EXPECTED_PATTERN="^(SKILL\.md|scripts|references|assets|tests|evals|LICENSE\.txt
 while IFS= read -r entry; do
     entry_name=$(basename "$entry")
     if ! [[ "$entry_name" =~ $EXPECTED_PATTERN ]]; then
-        echo "WARN  unexpected top-level entry: ${entry_name}"
+        warn "unexpected top-level entry: ${entry_name}"
     fi
 done < <(find "$SKILL_DIR" -maxdepth 1 -mindepth 1 -exec basename {} \;)
 

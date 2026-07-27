@@ -44,6 +44,12 @@ validate_name() {
         echo "Error: name must not contain consecutive hyphens (--)." >&2
         return 1
     fi
+
+    # Claude Code accepts these, so don't block; the Skills API does not.
+    if [[ "$name" == *claude* || "$name" == *anthropic* ]]; then
+        echo "Warning: '${name}' contains a reserved word (claude/anthropic)." >&2
+        echo "         The Skills API rejects such names." >&2
+    fi
 }
 
 # --- Parse arguments ---

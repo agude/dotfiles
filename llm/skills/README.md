@@ -49,12 +49,20 @@ allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read"  # Optional (experime
 - Best practice 2
 ```
 
+Claude Code implements this spec and adds optional fields of its own —
+`when_to_use`, `disable-model-invocation`, `user-invocable`, `arguments`,
+`model`, `context: fork`, and others. Other clients ignore them. See
+`skill-creator/references/claude-code-skills.md`.
+
 ## Creating a Skill
+
+Use the `skill-creator` skill; it scaffolds, validates, and carries the current
+authoring guidance. Manually:
 
 1. Create a new directory: `mkdir skill-name/`
 2. Create `SKILL.md` with required frontmatter
 3. Add optional `scripts/`, `references/`, or `assets/` as needed
-4. Validate: `skills-ref validate ./skill-name/`
+4. Validate: `bash skill-creator/scripts/validate.sh ./skill-name/`
 
 ## Script Design Pattern: Human vs Agent Mode
 
