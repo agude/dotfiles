@@ -90,7 +90,13 @@ detect_archetype() {
     elif [ -f "$REPO/ansible.cfg" ] || [ -f "$REPO/site.yaml" ]; then
         echo "shell"
     elif [ -f "$REPO/pyproject.toml" ] && grep -q '^\[project\]' "$REPO/pyproject.toml" 2>/dev/null; then
-        echo "python"
+        # No package and no suite means a script collection: it legitimately
+        # has nothing for type-check, test, or a coverage gate to describe.
+        if [ -d "$REPO/src" ] || [ -d "$REPO/tests" ]; then
+            echo "python"
+        else
+            echo "scripts"
+        fi
     elif ls "$REPO"/*.sh >/dev/null 2>&1 || [ -d "$REPO/scripts" ]; then
         echo "shell"
     else
@@ -333,6 +339,24 @@ check_python() {
     fi
 }
 
+check_scripts() {
+    check_runner_verbs "$RUNNER" "" "default sync lint format check hooks-install" \
+        "fmt lint-fix format-check"
+    check_hook "just (lint|check)" "bin/pre-commit.sh"
+
+    if greps pyproject.toml '^\[tool\.ruff\]'; then
+        report PASS lint.config "ruff configured in pyproject.toml"
+    else
+        report FAIL lint.config "no [tool.ruff] in pyproject.toml"
+    fi
+
+    if has uv.lock && greps .gitignore '^uv\.lock'; then
+        report FAIL deps.lock "uv.lock is gitignored"
+    elif has uv.lock; then
+        report PASS deps.lock "uv.lock committed"
+    fi
+}
+
 check_jekyll() {
     check_runner_verbs "$RUNNER" "" "lint-scripts format-scripts" ""
     check_hook "(uv run|make|just)" "_bin/pre-commit.sh" "_scripts/pre-commit-hook.sh"
@@ -358,6 +382,7 @@ check_shell() {
 
 case "$ARCHETYPE" in
     python) check_python; check_isolation; check_ci ;;
+    scripts) check_scripts; check_isolation; check_ci ;;
     jekyll) check_jekyll; check_isolation; check_ci ;;
     shell)  check_shell; check_isolation; check_ci ;;
     *)      report WARN archetype "unrecognised repo shape; only doc checks run" ;;
