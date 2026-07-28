@@ -131,12 +131,17 @@ check_docs() {
         report WARN docs.readme "no README.md"
     fi
 
-    if has LICENSE; then
-        report PASS docs.license "LICENSE present"
-    elif has LICENSE.md; then
-        report WARN docs.license "LICENSE.md — standard spelling is LICENSE"
+    # Licensing is the owner's decision, not a tooling one: the audit reports
+    # what is there and never pushes toward a particular choice, spelling, or
+    # adding one where none exists.
+    local licence=""
+    for candidate in "$REPO"/[Ll][Ii][Cc][Ee][Nn][SsCc]E*; do
+        [ -f "$candidate" ] && { licence=$(basename "$candidate"); break; }
+    done
+    if [ -n "$licence" ]; then
+        report PASS docs.license "$licence"
     else
-        report WARN docs.license "no LICENSE"
+        report PASS docs.license "none — the owner's call"
     fi
 
     if has AGENTS.md; then

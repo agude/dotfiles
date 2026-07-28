@@ -134,7 +134,8 @@ Defaults. Deviating is allowed; deviating silently is not — see
 | Hook | calls `just lint`; installed by `just hooks-install`; **never inlines commands** |
 | CI | jobs call runner verbs; workflow YAML contains no tool knowledge |
 | CI layout | `ci.yml` (`on: workflow_call`) + `tests.yml` (thin caller) + `release.yml` |
-| Docs | `AGENTS.md` canonical, `CLAUDE.md` and `GEMINI.md` symlinked to it; `README.md`; `LICENSE` (no extension) |
+| Docs | `AGENTS.md` canonical, `CLAUDE.md` and `GEMINI.md` symlinked to it; `README.md` |
+| Licence | **New repos: CC0.** Never relicense an existing repo, and never add a licence to one that has none — both are the owner's call, not a tooling decision |
 
 ### Pinned action versions
 
