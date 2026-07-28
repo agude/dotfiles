@@ -212,16 +212,16 @@ repo with no Makefile.
 
 ### Starting a new repo
 
-Copy from `assets/`, then replace every `PACKAGE`/`REPO` placeholder:
+```bash
+bash ${CLAUDE_SKILL_DIR}/scripts/scaffold.sh <dest-dir> <package-name>
+```
 
-| Asset | Goes to |
-|---|---|
-| `assets/justfile` | `justfile` |
-| `assets/pre-commit.sh` | `bin/pre-commit.sh` |
-| `assets/workflows/*.yml` | `.github/workflows/` |
-| `assets/pyproject-tooling.toml` | appended into `pyproject.toml` |
+`package-name` is the Python import name (e.g. `my_package`); the distribution
+name (`my-package`) is derived from it automatically. The script creates the
+full directory tree, copies and substitutes all assets, initializes git, and
+runs `just sync && just hooks-install`.
 
-Then `just sync && just hooks-install && just check`.
+After scaffolding: fill in `AGENTS.md` and `README.md`, then run `just check`.
 
 ### Bumping a tool or action version
 

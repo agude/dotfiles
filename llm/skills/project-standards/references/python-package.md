@@ -17,7 +17,7 @@ repo/
 ├── .python-version                # latest supported
 ├── AGENTS.md                      # CLAUDE.md, GEMINI.md symlink to it
 ├── README.md
-└── LICENSE
+└── LICENSE.md
 ```
 
 ## Dependencies
