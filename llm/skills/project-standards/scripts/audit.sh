@@ -68,6 +68,14 @@ has() { [ -e "$REPO/$1" ]; }
 # A file that exists but is gitignored is invisible to everyone else.
 is_ignored() { (cd "$REPO" && git check-ignore -q "$1" 2>/dev/null); }
 
+# A file may opt out of one check with an inline marker plus a reason:
+#   # project-standards: allow ci-inline — running in a minimal container
+# Permanent, justified exceptions belong here; a rule you merely have not got
+# to yet should stay failing instead.
+allows() {  # allows FILE CHECK
+    grep -q "project-standards: allow $2" "$1" 2>/dev/null
+}
+
 # Grep a file in the repo, quietly.
 greps() {  # greps FILE PATTERN
     [ -f "$REPO/$1" ] && grep -qE "$2" "$REPO/$1" 2>/dev/null
@@ -260,13 +268,21 @@ check_ci() {
 
     # CI must call runner verbs, not tools directly. With no runner there is
     # nothing to call, so say that rather than passing the repo by default.
-    local leaked
-    leaked=$(grep -lE "run:.*(ruff|mypy|pytest|yamllint|shellcheck)" "$dir"/*.y*ml 2>/dev/null \
-        | sed "s|$dir/||" | tr '\n' ' ')
+    local leaked="" waived="" f
+    for f in "$dir"/*.y*ml; do
+        [ -f "$f" ] || continue
+        grep -qE "run:.*(ruff|mypy|pytest|yamllint|shellcheck|bats)" "$f" || continue
+        if allows "$f" "ci-inline"; then
+            waived="$waived ${f#"$dir/"}"
+        else
+            leaked="$leaked ${f#"$dir/"}"
+        fi
+    done
+    [ -n "$waived" ] && report PASS ci.waived "documented ci-inline exception:$waived"
     if [ -z "$RUNNER" ]; then
         report WARN ci.callsrunner "no runner for CI to call"
     elif [ -n "$leaked" ]; then
-        report FAIL ci.callsrunner "tool commands inlined in: $leaked"
+        report FAIL ci.callsrunner "tool commands inlined in:$leaked"
     else
         report PASS ci.callsrunner "steps call runner verbs"
     fi
