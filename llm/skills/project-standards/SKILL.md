@@ -241,6 +241,20 @@ requires-python = ">=3.8"
 Every `ignore` entry in a ruff config carries a comment saying why. An
 undocumented deviation is a bug, and the audit script reports it as one.
 
+### Waiving a rule permanently
+
+A rule that will *never* apply to a file — as opposed to one you have not
+got to yet — gets an inline waiver naming the check and the reason:
+
+```yaml
+# project-standards: allow ci-inline — minimal Alpine container
+```
+
+The audit then reports it as a documented exception instead of a failure.
+Use this sparingly and only for permanent constraints; a standing FAIL that
+nobody intends to fix trains people to ignore the audit entirely, which is
+worse than either outcome.
+
 ### Deferring a rule during migration
 
 Some rules cannot be satisfied by tooling work alone. Adding mypy to a
