@@ -112,6 +112,24 @@ When a CPython version goes EOL, raise the floor and drop it from the
 matrix in the same commit — a floor that disagrees with the matrix is how
 you end up testing a version you claim not to support.
 
+**Never add a version to the matrix without running the suite on it.** A
+matrix entry is a support claim, and adding one during a tooling migration
+is exactly when it goes unverified. Run it first:
+
+```bash
+uv run --python 3.14 pytest -q
+```
+
+This is not hypothetical: adding 3.14 to `shapez_2_tools` alongside its
+migration broke two routing tests that pass on 3.11–3.13. The dependency
+resolved and installed cleanly, so nothing failed until the tests ran.
+Heavy native dependencies (ortools, scipy, numpy) are the usual cause — they
+lag new CPython releases even when a wheel exists.
+
+`.python-version` should name a version the matrix actually covers, latest
+by default. It does not have to be the newest release in existence — only
+one the repo genuinely supports.
+
 ## Types
 
 mypy `strict` for the package.
@@ -177,3 +195,9 @@ a copy of it:
 Every step calls a runner verb. If a CI step contains `ruff`, `mypy`, or
 `pytest` directly, that step is a bug: the developer can no longer reproduce
 CI by running `just check`.
+
+The exception is system packages, which uv cannot install. A Python
+dependency binding to a C library needs its runtime installed on the runner
+before `just sync` — `music-tagger` needs `libdiscid0`, or the `discid`
+import fails at collection time. Keep that as an explicit `apt-get` step and
+say which dependency needs it.

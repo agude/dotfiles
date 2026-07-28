@@ -105,8 +105,15 @@ Rules that keep the contract honest:
 - **`format` is the mutating twin**: `ruff format` then `ruff check --fix`.
 - **No `fmt`, `lint-fix`, or `format-check` recipes.** They fold into the
   two verbs above.
-- **`check` is the full gate** and must equal what CI runs. Never use the
+- **`check` is the full gate** and must cover at least what CI runs, so a
+  green `just check` means a green CI. It may run *more* — a repo whose full
+  suite takes minutes per interpreter can have CI run a fast subset while
+  `check` runs everything locally. It must never run *less*. Never use the
   name for anything else (a syntax check is `syntax-check`).
+- **Standard verbs are a floor, not a replacement.** Keep the repo's own
+  recipes — `just decode`, `just organize`, `just test-fast` — alongside
+  them. The contract says what `lint` must mean, not that a justfile may
+  contain nothing else.
 - Jekyll sites suffix only where Ruby owns the base name:
   `lint-scripts`, `format-scripts`, `test-scripts`.
 
@@ -188,7 +195,19 @@ reflow would collide with in-flight work; say so in a comment if you do.
 
 Rename recipes with their call sites in the same commit. A justfile whose
 `fmt` became `format` while a hook still calls `just fmt` is worse than the
-inconsistency it replaced.
+inconsistency it replaced. Call sites include prose: `AGENTS.md`, the
+README, and design docs all quote recipe names. `grep -rn "just <oldname>"`
+before you finish.
+
+**Check that the CI you are replacing actually worked.** A migration is when
+anyone looks at these files closely, so treat unexplained commands as
+suspect. `calibre-blog-rating-sync` had two jobs running `make build` in a
+repo with no Makefile.
+
+**Replace every placeholder in a copied asset.** The templates use
+`PACKAGE`, which is the distribution name — but a smoke test needs the
+*console script* name, and the two often differ (`photo-org` ships
+`organize-photos`). Grep the copied file for `PACKAGE` before moving on.
 
 ### Starting a new repo
 
