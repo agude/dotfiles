@@ -101,11 +101,27 @@ Examples:
 - `20220829-concord_honda_invoice.pdf`
 
 ### Manuals (93 Manuals and Documentation)
-Each product gets a `snake_case` subfolder. Files inside use short descriptive names:
+Each product gets a `snake_case` subfolder. Related products from the same brand can
+share a folder (e.g., all Coway air purifiers in `coway/`).
+
+Files inside use a descriptive name that identifies the product even if the file escapes
+its folder. Format: `brand-product_name-document_type.pdf`, all lowercase, where `-`
+separates major concepts and `_` separates words within a concept. Include the model
+number as part of the product concept. Append document codes when they help distinguish
+versions.
+
 ```
 93.10 Household Appliances/
-└── coway_ap-1512/
-    └── user_manual.pdf
+└── coway/
+    ├── coway-airmega_300-400_series-manual.pdf
+    ├── coway-airmega_400_400s-one_sheet.pdf
+    ├── coway-ap-1512hh-manual.pdf
+    └── coway-airmega_mighty_ap-1512hh-one_sheet.pdf
+└── lg_wm4000hwa_washer/
+    ├── lg-wm4000hwa_washer-owners_manual-mfl71728908.pdf
+    └── lg-wm4000hwa_washer-spec_sheet-consumer.pdf
+└── ninja_bp401_ultracrush_blender/
+    └── ninja-bp401_ultracrush_blender-owners_guide.pdf
 ```
 
 ### Per-Person Subfolders
