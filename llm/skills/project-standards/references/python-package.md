@@ -189,7 +189,7 @@ a copy of it:
 | File | Trigger | Contents |
 |---|---|---|
 | `ci.yml` | `workflow_call` | the `lint` and `test` jobs |
-| `tests.yml` | push, PR | one job that calls `ci.yml` |
+| `tests.yml` | `on: [push, pull_request]` — all branches, not just main | one job that calls `ci.yml` |
 | `release.yml` | release published | calls `ci.yml`, then publishes |
 
 Every step calls a runner verb. If a CI step contains `ruff`, `mypy`, or

@@ -133,7 +133,7 @@ Defaults. Deviating is allowed; deviating silently is not — see
 | Tests | pytest; `--cov-fail-under=90` for packages, no gate for script collections |
 | Hook | calls `just lint`; installed by `just hooks-install`; **never inlines commands** |
 | CI | jobs call runner verbs; workflow YAML contains no tool knowledge |
-| CI layout | `ci.yml` (`on: workflow_call`) + `tests.yml` (thin caller) + `release.yml` |
+| CI layout | `ci.yml` (`on: workflow_call`) + `tests.yml` (`on: [push, pull_request]`) + `release.yml` |
 | Docs | `AGENTS.md` canonical, `CLAUDE.md` and `GEMINI.md` symlinked to it; `README.md` |
 | Licence | **New repos: CC0.** Never relicense an existing repo, and never add a licence to one that has none — both are the owner's call, not a tooling decision |
 
