@@ -26,7 +26,7 @@ jobs:
       - name: Run Johnny Decimal tests
         run: bats llm/skills/johnny-decimal/tests/
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v9.0.0
       - name: Run PDF skill tests
         run: uv run llm/skills/pdf/tests/run.py
 

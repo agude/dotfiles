@@ -296,7 +296,7 @@ check_ci() {
     local drift
     drift=$( {
         grep -rhoE "actions/checkout@v[0-9]+" "$dir" 2>/dev/null | grep -v "@v7$"
-        grep -rhoE "astral-sh/setup-uv@v?[0-9.]+" "$dir" 2>/dev/null | grep -vE "@v8(\.[0-9.]+)?$"
+        grep -rhoE "astral-sh/setup-uv@v?[0-9.]+" "$dir" 2>/dev/null | grep -vE "@v9\.0\.0$"
         grep -rhoE "actions/setup-python@v[0-9]+" "$dir" 2>/dev/null | grep -v "@v6$"
     } | sort -u | tr '\n' ' ')
     if [ -n "$drift" ]; then
