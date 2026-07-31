@@ -259,8 +259,25 @@ if has('extra_search')
     endif
 endif
 
-" Turn off the mouse
-set mouse=
+" mouse=a makes the terminal send mouse protocol events instead of translating
+" trackpad scroll into arrow-key sequences. All events are then discarded.
+" Trade-off: terminal text selection now requires holding Shift.
+set mouse=a
+let s:mouse_events = ['<ScrollWheelUp>', '<ScrollWheelDown>', '<ScrollWheelLeft>', '<ScrollWheelRight>',
+            \ '<LeftMouse>', '<MiddleMouse>', '<RightMouse>', '<X1Mouse>', '<X2Mouse>',
+            \ '<LeftDrag>', '<MiddleDrag>', '<RightDrag>', '<X1Drag>', '<X2Drag>',
+            \ '<LeftRelease>', '<MiddleRelease>', '<RightRelease>', '<X1Release>', '<X2Release>',
+            \ '<2-LeftMouse>', '<2-MiddleMouse>', '<2-RightMouse>',
+            \ '<3-LeftMouse>', '<3-MiddleMouse>', '<3-RightMouse>',
+            \ '<4-LeftMouse>', '<4-MiddleMouse>', '<4-RightMouse>']
+for s:event in s:mouse_events
+    for s:mod in ['', 'S-', 'C-']
+        let s:mapped = substitute(s:event, '<', '<' . s:mod, '')
+        execute 'noremap ' . s:mapped . ' <Nop>'
+        execute 'inoremap ' . s:mapped . ' <Nop>'
+        execute 'cnoremap ' . s:mapped . ' <Nop>'
+    endfor
+endfor
 
 " Wildmenu settings
 if has('wildmenu')
