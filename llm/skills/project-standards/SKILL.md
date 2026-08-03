@@ -146,7 +146,7 @@ single source of truth.
 |---|---|
 | `actions/checkout` | `v7` |
 | `astral-sh/setup-uv` | `v9.0.0` |
-| `extractions/setup-just` | `v2` |
+| `extractions/setup-just` | `v4` |
 | `actions/setup-python` | `v6` (only when uv isn't managing the interpreter) |
 | `pypa/gh-action-pypi-publish` | `release/v1` |
 
