@@ -212,3 +212,61 @@ procedural tasks (glob loops, conditional logic).
 ### File Permissions
 - Default umask is `077` (files readable only by owner)
 - GNUPGHOME created with explicit `0700` permissions
+
+## Installer Safety
+
+**Never `rm -rf` unknown state — always back up.** `_place_link()` holds the
+validate/backup/replace/symlink logic; `link()` is a thin wrapper prepending
+`DOTFILES_DIR`, and `ext_link()` takes absolute source paths plus an ownership
+prefix, for links into repos outside dotfiles (Knowledge, Wiki).
+
+| Situation | Action |
+|---|---|
+| Symlink already points at the correct target | Skip silently |
+| Symlink points into `$DOTFILES_DIR` but wrong target | Replace |
+| Real file/dir, or a foreign symlink | Back up to `*.dotfiles-backup.<epoch>` |
+| Source file missing from the repo | Warn, skip, do not add to the manifest |
+
+Backups are epoch-timestamped so a re-run cannot clobber a previous one. The
+`ext_link` extraction fixed a real bug: a real *directory* at the target used
+to hit `rm: Is a directory`. Directories get backed up now.
+
+Cleanup removes a symlink only when `readlink` shows it points into
+`$DOTFILES_DIR`, so links owned by other tools are never touched. It runs two
+passes: **dangling** (target deleted from the repo) and **unmanaged** (target
+exists but was not in `MANAGED_LINKS` this run — catches links left behind by
+a profile switch).
+
+## Portability Constraints
+
+- **No `mapfile`.** macOS ships bash 3.2. CI runs `install.sh` under
+  `/bin/bash` 3.2 with `--dry-run` and exercises interactive shells.
+- **Busybox (Synology DSM) lacks `tput` and `mesg`.** Both must be guarded or
+  every SSH login spews errors — `command -v mesg >/dev/null && mesg n`, and
+  the `LESS_TERMCAP` block wrapped in
+  `if command -v tput >/dev/null && [[ $(tput colors) -ge 8 ]]`. **Do not use
+  an early `return` from a sourced file to short-circuit**: shellcheck SC2317
+  flags it as unreachable. Use an `if` block.
+  (The `-sh: mesg: command not found` line from DSM's own `/etc/profile` is
+  out of scope for this repo.)
+- **`vim` resolves to nvim on these machines**, so plugin install is
+  `if nvim / elif vim`; they share config via symlinks. Headless install is
+  `nvim --headless "+PlugInstall --sync" +qa` with stderr suppressed, which
+  kills the "Press 'R' to retry" noise. Real vim rejects `-T`.
+
+## Deliberate — Do Not "Fix"
+
+Things that look like bugs and are not:
+
+- **The bare `claude` command is pinned to a specific model on purpose.**
+  `opus` / `sonnet` / `fable` aliases exist for overrides.
+- **The broad `.*` rule in `.gitignore` stays** until it actually bites.
+- **There are two different agent docs, and reviewers conflate them.** This
+  file (repo root, with `CLAUDE.md` as a symlink to it) documents *this repo*.
+  `llm/AGENTS.md` is a short cross-project commit-style and tone document,
+  symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`. Intentionally
+  separate documents.
+
+**Known limitation:** `010.git-guard.sh` string-matches the full command, so
+blocked-flag text appearing inside a commit message or heredoc triggers it. A
+proper fix needs shell-aware parsing.
