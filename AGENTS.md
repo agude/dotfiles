@@ -121,21 +121,33 @@ All LLM configs live under `llm/`:
 
 #### Shared Agent Context
 - `llm/AGENTS.md` — shared instructions (commit style, tone) for all LLM agents
-- Symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`
+- Symlinked to `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, and
+  `~/.codex/AGENTS.md`
 
 #### Claude Code
 - `llm/claude/settings.json` — user-level settings synced across machines
 - `llm/claude/settings.work.json` — work profile override
 - `llm/claude/statusline-command.sh` — status line script (username, cwd, git
   state, context usage). Wired via `statusLine` key in settings files.
-- `llm/claude/hooks.d/PreToolUse/` — coat-tree hooks:
-  - `010.git-guard.sh` — blocks hook/signing bypass flags
-  - `020.git-push-guard.sh` — blocks force push and push to main
-  - `030.gh-guard.sh` — gates GitHub CLI operations by risk level
+- `llm/claude/hooks.d/` — coat-tree hooks (one subdirectory per event):
+  - `PreToolUse/010.git-guard.sh` — blocks hook/signing bypass flags
+  - `PreToolUse/020.git-push-guard.sh` — blocks force push and push to main
+  - `PreToolUse/030.gh-guard.sh` — gates GitHub CLI operations by risk level
+  - `SessionStart/010.knowledge.sh` — initializes KB session capture, injects context
+  - `UserPromptSubmit/010.knowledge.sh` — appends user prompts to session buffer
+  - `Stop/010.knowledge.sh` — appends assistant responses to session buffer
+  - `SessionEnd/010.knowledge.sh` — flushes session buffer into KB observation
 
 `~/.claude/` is a real directory; only specific files are symlinked. This
 allows external commands, skills, and settings (work-specific, machine-local)
 to coexist. Runtime files stay in `~/.claude/` untracked.
+
+#### Codex CLI
+- `llm/codex/agude.config.toml` — portable preferences, loaded via `--profile agude`
+- `llm/codex/hooks.json` — hook definitions for KB session capture
+- `llm/codex/hooks.d/` — session hook shims (same core API as Claude, JSON protocol)
+- `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
+  project trust and hook state. The `codex` alias injects `--profile agude`.
 
 #### Gemini CLI
 - `llm/gemini/settings.json` — user-level settings
@@ -143,7 +155,7 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
-  `~/.claude/skills/`
+  `~/.claude/skills/` and `~/.codex/skills/`
 - Each skill is a folder with `SKILL.md` plus optional `scripts/`,
   `references/`, `assets/`
 - See `llm/skills/README.md` for the specification

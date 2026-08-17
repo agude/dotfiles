@@ -67,6 +67,9 @@ alias dsonnet='claude --model claude-sonnet-4-6 --dangerously-skip-permissions'
 alias fable='claude --model claude-fable-5'
 alias dfable='claude --model claude-fable-5 --dangerously-skip-permissions'
 
+# Codex CLI with synced profile and session capture enabled
+codex() { KNOWLEDGE_OBSERVE=1 command codex --profile agude "$@"; }
+
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------
