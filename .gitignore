@@ -255,3 +255,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Planning files for agents
+plan.md
+plan2.md
