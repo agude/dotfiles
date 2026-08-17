@@ -151,6 +151,8 @@ expand_vars() {
     s="${s//\$\{CLAUDE_AGENTS_REL\}/$CLAUDE_AGENTS_REL}"
     s="${s//\$\{GEMINI_SETTINGS_REL\}/$GEMINI_SETTINGS_REL}"
     s="${s//\$\{GEMINI_AGENTS_REL\}/$GEMINI_AGENTS_REL}"
+    s="${s//\$\{CODEX_SETTINGS_REL\}/$CODEX_SETTINGS_REL}"
+    s="${s//\$\{CODEX_AGENTS_REL\}/$CODEX_AGENTS_REL}"
     printf '%s' "$s"
 }
 
@@ -423,6 +425,24 @@ if install_group llm; then
         [ -d "$skill_dir" ] || continue
         skill_name=$(basename "$skill_dir")
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+    done
+
+    # Codex skills (same shared skills, second target directory).
+    CODEX_SKILLS_DIR="${HOME}/.codex/skills"
+    ensure_real_dir "$CODEX_SKILLS_DIR"
+    for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
+        [ -d "$skill_dir" ] || continue
+        skill_name=$(basename "$skill_dir")
+        link "${CODEX_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+    done
+
+    # Codex hooks — knowledge base session capture.
+    CODEX_HOOKS_DIR="${HOME}/.codex/hooks.d"
+    ensure_real_dir "$CODEX_HOOKS_DIR"
+    for hook_script in "$DOTFILES_DIR/llm/codex/hooks.d/"*.sh; do
+        [ -f "$hook_script" ] || continue
+        hook_name=$(basename "$hook_script")
+        link "${CODEX_HOOKS_DIR}/${hook_name}" "llm/codex/hooks.d/${hook_name}"
     done
 
     # Coat tree hooks — guard scripts for Claude Code.
