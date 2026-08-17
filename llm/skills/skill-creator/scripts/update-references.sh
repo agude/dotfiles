@@ -8,6 +8,7 @@
 #     through the sitemap
 #   - Anthropic's Claude Code and platform docs, which cover the Claude-only
 #     extensions to the specification
+#   - OpenAI's Codex CLI docs, which cover the Codex-only extensions
 
 set -euo pipefail
 
@@ -15,7 +16,7 @@ usage() {
     cat <<'EOF'
 Usage: update-references.sh
 
-Fetch the latest Agent Skills docs from agentskills.io and Anthropic.
+Fetch the latest Agent Skills docs from agentskills.io, Anthropic, and OpenAI.
 
 Discovers agentskills.io pages through the sitemap, fetches each page's .md
 variant, and adds Anthropic's Claude Code and platform skill docs. Writes
@@ -44,6 +45,11 @@ ANTHROPIC_DOCS=(
     "https://code.claude.com/docs/en/skills.md claude-code-skills.md"
     "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md anthropic-best-practices.md"
     "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview.md anthropic-overview.md"
+)
+
+# OpenAI docs covering Codex CLI skill extensions.
+OPENAI_DOCS=(
+    "https://learn.chatgpt.com/docs/build-skills.md codex-build-skills.md"
 )
 
 mkdir -p "$REF_DIR"
@@ -98,6 +104,12 @@ done
 # --- Anthropic docs ---
 
 for doc in "${ANTHROPIC_DOCS[@]}"; do
+    fetch_doc "${doc% *}" "${doc#* }"
+done
+
+# --- OpenAI docs ---
+
+for doc in "${OPENAI_DOCS[@]}"; do
     fetch_doc "${doc% *}" "${doc#* }"
 done
 

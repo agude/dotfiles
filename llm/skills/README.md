@@ -6,9 +6,11 @@ multiple LLM CLI tools (Claude Code, Goose, etc.).
 ## What are Agent Skills?
 
 Agent Skills are folders of instructions, scripts, and resources that LLM agents
-can discover and use to perform tasks more accurately and efficiently. Unlike
-slash commands (which you invoke explicitly), skills are passive knowledge that
-agents draw on automatically when relevant.
+can discover and use to perform tasks more accurately and efficiently. The
+[Agent Skills spec](https://agentskills.io) is an open standard supported by
+Claude Code, Codex CLI, and others. Unlike slash commands (which you invoke
+explicitly), skills are passive knowledge that agents draw on automatically
+when relevant.
 
 ## Structure
 
@@ -152,8 +154,10 @@ Skills in this directory are automatically available after running:
 ./install.sh
 ```
 
-This symlinks `llm/skills/` to `~/.claude/skills/`, making skills available to:
+This symlinks `llm/skills/` to `~/.claude/skills/` and `~/.codex/skills/`,
+making skills available to:
 - **Claude Code**: Reads `~/.claude/skills/` natively
+- **Codex CLI**: Reads `~/.codex/skills/` natively
 - **Goose**: Also reads `~/.claude/skills/` natively
 
 ## Resources

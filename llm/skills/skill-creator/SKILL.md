@@ -159,6 +159,40 @@ Claude Code does not re-read the file on later turns. Write guidance that must
 hold throughout a task as standing instructions, not one-time steps. Every line
 is a recurring token cost.
 
+## Codex CLI extensions
+
+Codex reads the same `SKILL.md` and honors the portable frontmatter fields.
+Its extensions live in a separate `agents/openai.yaml` file, not in the
+frontmatter. Claude Code ignores this file, so both coexist in the same skill
+directory. Full details in `references/codex-build-skills.md`.
+
+```yaml
+# agents/openai.yaml — optional, Codex-only
+interface:
+  display_name: "User-facing name"
+  short_description: "User-facing description"
+  brand_color: "#3B82F6"
+
+policy:
+  allow_implicit_invocation: false  # default true
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "server-name"
+      transport: "streamable_http"
+      url: "https://example.com/mcp"
+```
+
+| Field | Purpose | Claude Code equivalent |
+|---|---|---|
+| `policy.allow_implicit_invocation` | Suppress auto-triggering | `disable-model-invocation` (inverted) |
+| `interface.display_name` | UI label | `name` field |
+| `dependencies.tools` | MCP server dependencies | (none) |
+
+Most skills need no `agents/openai.yaml`. Add one only when you need
+Codex-specific behavior.
+
 ## Authoring principles
 
 ### Be concise
@@ -343,3 +377,8 @@ Anthropic-specific:
   subagent execution, settings, and troubleshooting
 - `references/anthropic-best-practices.md` — authoring guidance in depth
 - `references/anthropic-overview.md` — architecture, surfaces, and constraints
+
+OpenAI-specific:
+
+- `references/codex-build-skills.md` — Codex skill structure, `agents/openai.yaml`,
+  and invocation policies
