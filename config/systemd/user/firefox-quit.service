@@ -1,14 +1,10 @@
 [Unit]
 Description=Gracefully quit Firefox before shutdown
-DefaultDependencies=no
-Before=shutdown.target reboot.target halt.target
+After=graphical-session.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=/bin/true
-ExecStop=/bin/bash -c 'pid=$(pgrep -o -x firefox-bin) && kill -TERM "$pid" && timeout 10 tail --pid="$pid" -f /dev/null || true'
+ExecStart=/bin/bash -c 'gdbus monitor --system --dest org.freedesktop.login1 --object-path /org/freedesktop/login1 | while read -r line; do case "$line" in *PrepareForShutdown*"true"*) pid=$(pgrep -o -x firefox-bin) && kill -TERM "$pid" && timeout 10 tail --pid="$pid" -f /dev/null; exit 0;; esac; done'
 TimeoutStopSec=15
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
