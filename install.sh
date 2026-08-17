@@ -486,6 +486,19 @@ if install_group gui; then
     fi
 fi
 
+if install_group gui; then
+    if [[ "${PLATFORM}" == "linux" ]] && command -v firefox &> /dev/null; then
+        echo "› Deploying Firefox user.js..."
+        FF_PROFILE_DIR=$(find "${HOME}/.mozilla/firefox" -maxdepth 1 -name "*.default-release" -type d 2>/dev/null | head -1)
+        if [[ -n "${FF_PROFILE_DIR}" ]]; then
+            run cp "${DOTFILES_DIR}/config/firefox/user.js" "${FF_PROFILE_DIR}/user.js"
+            echo "  -> Deployed user.js to ${FF_PROFILE_DIR}"
+        else
+            echo "  -> Skipping: no Firefox profile found."
+        fi
+    fi
+fi
+
 if install_group cleanup; then
     echo "› Deploying cleanup service files..."
     if [[ "${PLATFORM}" == "linux" ]]; then
@@ -496,6 +509,10 @@ if install_group cleanup; then
                    "${SYSTEMD_USER_DIR}/empty-downloads.service"
             echo "  -> Deployed empty-downloads.service"
             echo "  -> Enable with: systemctl --user enable --now empty-downloads.service"
+            run cp "${DOTFILES_DIR}/config/systemd/user/firefox-quit.service" \
+                   "${SYSTEMD_USER_DIR}/firefox-quit.service"
+            echo "  -> Deployed firefox-quit.service"
+            echo "  -> Enable with: systemctl --user enable --now firefox-quit.service"
         fi
     elif [[ "${PLATFORM}" == "mac" ]]; then
         if command -v launchctl &> /dev/null; then
