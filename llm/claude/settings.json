@@ -170,7 +170,7 @@
     "ask": [],
     "defaultMode": "auto"
   },
-  "model": "claude-opus-4-6",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -245,7 +245,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "autoMemoryEnabled": false
+  "skipAutoPermissionPrompt": true
 }
