@@ -17,7 +17,11 @@ if [[ "$PLATFORM" == "mac" ]]; then
         unset -v _brew_prefix
     fi
 
-    # Append macOS-specific compiler flags.
-    export CFLAGS="-falign-functions=8 ${CFLAGS}"
+    # Keep one alignment flag while preserving the order of caller flags.
+    _macos_cflags=(${=CFLAGS})
+    _macos_cflags=(${_macos_cflags:#-falign-functions=8})
+    _macos_cflags=(-falign-functions=8 "${_macos_cflags[@]}")
+    export CFLAGS="${(j: :)_macos_cflags}"
+    unset _macos_cflags
 
 fi
