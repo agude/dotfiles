@@ -112,6 +112,11 @@ run_installer() {
         bash "${FIXTURE_REPOSITORY}/install.sh" "$@"
 }
 
+assert_single_result() {
+    [[ -n "$output" ]]
+    [[ "$output" != *$'\n'* ]]
+}
+
 @test "installer creates the expected link and manifest" {
     run_installer --profile default
 
@@ -140,8 +145,9 @@ run_installer() {
     [[ -L "${TEST_HOME}/.fixture-link" ]]
     run find "$TEST_HOME" -maxdepth 1 -type f -name '.fixture-link.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
-    [[ -n "$output" ]]
-    grep -Fxq 'local' "$output"
+    assert_single_result
+    backup_path="$output"
+    grep -Fxq 'local' "$backup_path"
 }
 
 @test "installer backs up a real directory" {
@@ -154,8 +160,9 @@ run_installer() {
     [[ -L "${TEST_HOME}/.fixture-link" ]]
     run find "$TEST_HOME" -maxdepth 1 -type d -name '.fixture-link.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
-    [[ -n "$output" ]]
-    grep -Fxq 'local' "${output}/marker"
+    assert_single_result
+    backup_path="$output"
+    grep -Fxq 'local' "${backup_path}/marker"
 }
 
 @test "installer backs up a foreign parent symlink" {
@@ -172,8 +179,9 @@ run_installer() {
     grep -Fxq 'foreign' "${foreign_directory}/marker"
     run find "$TEST_HOME" -maxdepth 1 -type l -name '.fixture-dir.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
-    [[ -n "$output" ]]
-    [[ "$(readlink "$output")" == "$foreign_directory" ]]
+    assert_single_result
+    backup_path="$output"
+    [[ "$(readlink "$backup_path")" == "$foreign_directory" ]]
 }
 
 @test "installer replaces a managed parent symlink" {
@@ -212,13 +220,15 @@ run_installer() {
     [[ -L "${systemd_directory}/firefox-quit.service" ]]
     run find "$first_profile" -maxdepth 1 -type f -name 'user.js.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
-    [[ -n "$output" ]]
-    grep -Fxq 'local prefs' "$output"
+    assert_single_result
+    backup_path="$output"
+    grep -Fxq 'local prefs' "$backup_path"
     run find "$systemd_directory" -maxdepth 1 -type f \
         -name 'empty-downloads.service.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
-    [[ -n "$output" ]]
-    grep -Fxq 'local service' "$output"
+    assert_single_result
+    backup_path="$output"
+    grep -Fxq 'local service' "$backup_path"
 }
 
 @test "profile switch removes deployed configuration links" {
@@ -373,6 +383,30 @@ EOF
     run_installer --dry-run --profile default
 
     [[ "$status" -eq 0 ]]
+    [[ ! -e "${TEST_HOME}/.fixture-link" ]]
+    [[ ! -e "${FIXTURE_REPOSITORY}/.active-profile" ]]
+    [[ ! -e "${FIXTURE_REPOSITORY}/.link-manifest" ]]
+}
+
+@test "installer rejects unknown link groups before linking" {
+    printf '${HOME}/.invalid-link | fixture/source | typo\n' >> \
+        "${FIXTURE_REPOSITORY}/links.conf"
+
+    run_installer --profile default
+
+    [[ "$status" -eq 1 ]]
+    [[ "$output" == *"links.conf:4: unknown group 'typo'"* ]]
+    [[ ! -e "${TEST_HOME}/.fixture-link" ]]
+    [[ ! -e "${TEST_HOME}/.invalid-link" ]]
+}
+
+@test "show reports an ephemeral profile without installing" {
+    run_installer --show --profile shell
+
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"Profile: shell"* ]]
+    [[ "$output" == *"  + shell"* ]]
+    [[ "$output" == *"  - vim  (disabled)"* ]]
     [[ ! -e "${TEST_HOME}/.fixture-link" ]]
     [[ ! -e "${FIXTURE_REPOSITORY}/.active-profile" ]]
     [[ ! -e "${FIXTURE_REPOSITORY}/.link-manifest" ]]
