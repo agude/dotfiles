@@ -44,6 +44,30 @@ def test_shell_commands_ignores_heredoc_body() -> None:
     assert commands == [command_guard.ShellCommand("git", ("commit", "-F", "-"))]
 
 
+def test_git_bypass_blocks_expanding_heredoc_substitution() -> None:
+    text = "cat <<EOF\n$(git commit --no-verify -m test)\nEOF"
+
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+def test_git_bypass_allows_literal_heredoc_substitution() -> None:
+    text = "cat <<'EOF'\n$(git commit --no-verify -m test)\nEOF"
+
+    assert not command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+def test_git_bypass_inspects_multiple_heredocs_in_order() -> None:
+    text = (
+        "cat <<'ONE' <<TWO\n"
+        "literal --no-verify text\n"
+        "ONE\n"
+        "$(git commit --no-verify -m test)\n"
+        "TWO"
+    )
+
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
 def test_git_bypass_blocks_continued_option() -> None:
     text = "git commit \\" + "\n--no-verify -m test"
 

@@ -25,6 +25,13 @@ class ShellCommand:
     arguments: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class Heredoc:
+    delimiter: str
+    strips_tabs: bool
+    expands: bool
+
+
 class ShellParseError(ValueError):
     """Raised when a command cannot be analyzed safely."""
 
@@ -146,35 +153,93 @@ def _extract_nested_commands(text: str) -> tuple[str, list[str]]:
     return "".join(outer_text), nested_commands
 
 
-def _heredoc_delimiters(line: str) -> list[tuple[str, bool]]:
-    try:
-        tokens = _tokens(line)
-    except ValueError:
-        return []
+def _read_heredoc_word(line: str, start_index: int) -> tuple[str, bool, int]:
+    delimiter: list[str] = []
+    is_quoted = False
+    quote = ""
+    index = start_index
 
-    delimiters: list[tuple[str, bool]] = []
-    for index, token in enumerate(tokens[:-1]):
-        if token in {"<<", "<<-"}:
-            delimiters.append((tokens[index + 1], token == "<<-"))
+    while index < len(line) and line[index] in {" ", "\t"}:
+        index += 1
+    while index < len(line):
+        character = line[index]
+        if not quote and (character.isspace() or character in ";&|()<>"):
+            break
+        if character == "\\" and quote != "'":
+            is_quoted = True
+            index += 1
+            if index < len(line):
+                delimiter.append(line[index])
+                index += 1
+            continue
+        if character == "'" and quote != '"':
+            is_quoted = True
+            quote = "" if quote == "'" else "'"
+            index += 1
+            continue
+        if character == '"' and quote != "'":
+            is_quoted = True
+            quote = "" if quote == '"' else '"'
+            index += 1
+            continue
+        delimiter.append(character)
+        index += 1
+
+    if quote:
+        raise ShellParseError("Unclosed quote in heredoc delimiter")
+    if not delimiter and not is_quoted:
+        raise ShellParseError("Missing heredoc delimiter")
+    return "".join(delimiter), not is_quoted, index
+
+
+def _heredoc_delimiters(line: str) -> list[Heredoc]:
+    delimiters: list[Heredoc] = []
+    quote = ""
+    index = 0
+
+    while index < len(line):
+        character = line[index]
+        if character == "\\" and quote != "'" and index + 1 < len(line):
+            index += 2
+            continue
+        if character == "'" and quote != '"':
+            quote = "" if quote == "'" else "'"
+            index += 1
+            continue
+        if character == '"' and quote != "'":
+            quote = "" if quote == '"' else '"'
+            index += 1
+            continue
+        if quote or not line.startswith("<<", index) or line.startswith("<<<", index):
+            index += 1
+            continue
+
+        strips_tabs = line.startswith("<<-", index)
+        word_start = index + (3 if strips_tabs else 2)
+        delimiter, expands, index = _read_heredoc_word(line, word_start)
+        delimiters.append(Heredoc(delimiter, strips_tabs, expands))
     return delimiters
 
 
-def _strip_heredoc_bodies(text: str) -> str:
+def _strip_heredoc_bodies(text: str) -> tuple[str, str]:
     kept_lines: list[str] = []
-    pending: list[tuple[str, bool]] = []
+    expandable_lines: list[str] = []
+    pending: list[Heredoc] = []
 
     for line in text.splitlines():
         if pending:
-            delimiter, strip_tabs = pending[0]
-            candidate = line.lstrip("\t") if strip_tabs else line
-            if candidate == delimiter:
+            heredoc = pending[0]
+            candidate = line.lstrip("\t") if heredoc.strips_tabs else line
+            if candidate == heredoc.delimiter:
                 pending.pop(0)
+            elif heredoc.expands:
+                expandable_lines.append(line)
             continue
 
         kept_lines.append(line)
         pending.extend(_heredoc_delimiters(line))
 
-    return "\n".join(kept_lines)
+    return "\n".join(kept_lines), "\n".join(expandable_lines)
 
 
 def _delimit_unquoted_newlines(text: str) -> str:
@@ -255,8 +320,10 @@ def _nested_shell_text(command: ShellCommand) -> str | None:
 
 def shell_commands(text: str) -> list[ShellCommand]:
     continued = _join_continued_lines(text)
-    without_heredocs = _strip_heredoc_bodies(continued)
+    without_heredocs, expandable_heredocs = _strip_heredoc_bodies(continued)
     outer_text, nested_texts = _extract_nested_commands(without_heredocs)
+    _, heredoc_commands = _extract_nested_commands(expandable_heredocs)
+    nested_texts.extend(heredoc_commands)
     prepared = _delimit_unquoted_newlines(outer_text)
     try:
         tokens = _tokens(prepared)
