@@ -1,38 +1,39 @@
-name: Test Install
+name: Check
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
-    name: Lint Shell Scripts
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@2.0.0
-        with:
-          scandir: './'
-          ignore_paths: zsh
-          severity: error
+      - uses: actions/checkout@v7
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq just shellcheck zsh
+      - name: Run static checks
+        run: just lint
 
-  skill-tests:
-    name: Skill Tests
+  tests:
+    name: Tests
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install bats and tree
-        run: sudo apt-get update && sudo apt-get install -y bats tree
-      - name: Run shell tests
-        run: >-
-          bats tests/
-          llm/claude/hooks.d/tests/
-          llm/codex/hooks.d/tests/
-          llm/skills/johnny-decimal/tests/
+      - uses: actions/checkout@v7
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y bats jq just tree zsh
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
-      - name: Run PDF skill tests
-        run: uv run llm/skills/pdf/tests/run.py
+      - name: Run tests
+        run: just test
 
   bash-3-2:
     name: Shell Tests on Bash 3.2
@@ -40,58 +41,30 @@ jobs:
     runs-on: ubuntu-latest
     container: bash:3.2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install test dependencies
-        run: apk add --no-cache bats jq
+        run: apk add --no-cache bats jq just python3 tree zsh
       - name: Run shell tests
-        run: >-
-          bats tests/
-          llm/claude/hooks.d/tests/
-          llm/codex/hooks.d/tests/
-          llm/skills/johnny-decimal/tests/
+        run: just test-shell
 
   install:
-    name: Test Install on ${{ matrix.os }}
+    name: Install on ${{ matrix.os }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Dependencies (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y neovim zsh
-
-    - name: Install Dependencies (macOS)
-      if: runner.os == 'macOS'
-      run: brew install neovim
-
-    - name: Test install.sh parses under system Bash 3.2 (macOS)
-      if: runner.os == 'macOS'
-      run: /bin/bash ./install.sh --dry-run
-
-    - name: Run the installation script
-      run: ./install.sh
-
-    - name: Test idempotency
-      run: ./install.sh
-
-    - name: Test dry-run mode
-      run: ./install.sh --dry-run
-
-    - name: Test non-default profile
-      run: ./install.sh --profile server
-
-    - name: Test nvim startup
-      run: nvim +qall
-
-    - name: Test bashrc (interactive)
-      run: bash -i -c 'exit 0'
-
-    - name: Test zshrc (interactive)
-      run: zsh -i -c 'exit 0'
+      - uses: actions/checkout@v7
+      - name: Install dependencies on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y just neovim zsh
+      - name: Install dependencies on macOS
+        if: runner.os == 'macOS'
+        run: brew install just neovim
+      - name: Parse installer with macOS system Bash
+        if: runner.os == 'macOS'
+        run: /bin/bash ./install.sh --dry-run
+      - name: Run installation smoke test
+        run: just smoke-install

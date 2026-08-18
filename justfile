@@ -49,3 +49,13 @@ test: test-shell test-pdf
 
 # Run the complete local verification gate.
 check: lint test
+
+# Exercise installation in an ephemeral CI home. This mutates HOME.
+smoke-install:
+    ./install.sh
+    ./install.sh
+    ./install.sh --dry-run
+    ./install.sh --profile server
+    nvim --headless +qall
+    bash -i -c 'source "${HOME}/.bashrc"; exit 0'
+    zsh -i -c 'source "${HOME}/.zshrc"; exit 0'
