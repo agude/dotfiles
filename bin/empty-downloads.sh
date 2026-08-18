@@ -17,27 +17,43 @@ set -u
 DOWNLOAD_DIR="${XDG_DOWNLOAD_DIR:-${HOME}/Downloads}"
 
 # --- Safety Checks ---
-# 1. Ensure the path is not empty.
-# 2. Ensure it is not the HOME directory itself.
-# 3. Ensure it is located *within* the HOME directory (starts with "$HOME/").
-if [[ -z "$DOWNLOAD_DIR" || "$DOWNLOAD_DIR" == "$HOME" || "$DOWNLOAD_DIR" != "$HOME/"* ]]; then
+# Reject a leaf symlink rather than deleting through an indirect target.
+if [[ -L "$DOWNLOAD_DIR" ]]; then
     echo "Error: Unsafe DOWNLOAD_DIR detected: '${DOWNLOAD_DIR}'. Aborting." >&2
     exit 1
 fi
 
-# If the directory doesn't exist for some reason, there's nothing to do.
+# A missing directory has no contents to clear.
 if [[ ! -d "$DOWNLOAD_DIR" ]]; then
     echo "Downloads directory not found at '${DOWNLOAD_DIR}', exiting."
     exit 0
 fi
 
+# Resolve both paths before comparing them. A textual "$HOME/" prefix is not
+# sufficient because `..` and intermediate symlinks can escape the home tree.
+home_physical=""
+download_physical=""
+if ! home_physical="$(cd "$HOME" 2>/dev/null && pwd -P)"; then
+    echo "Error: Cannot resolve HOME: '${HOME}'. Aborting." >&2
+    exit 1
+fi
+if ! download_physical="$(cd "$DOWNLOAD_DIR" 2>/dev/null && pwd -P)"; then
+    echo "Error: Cannot resolve DOWNLOAD_DIR: '${DOWNLOAD_DIR}'. Aborting." >&2
+    exit 1
+fi
+
+if [[ -z "$download_physical" || \
+      "$download_physical" == "$home_physical" || \
+      "$download_physical" != "$home_physical/"* ]]; then
+    echo "Error: Unsafe DOWNLOAD_DIR detected: '${DOWNLOAD_DIR}'. Aborting." >&2
+    exit 1
+fi
+
+DOWNLOAD_DIR="$download_physical"
 echo "Clearing contents of '${DOWNLOAD_DIR}'..."
 
-# Use 'find' to delete all contents within the directory.
-# -mindepth 1 is crucial; it tells find to start looking at the items *inside*
-#   the directory, not the directory itself.
-# -delete is an efficient, built-in find action for removing matched files.
-find "${DOWNLOAD_DIR}" -mindepth 1 -delete
+# Do not cross into filesystems mounted beneath Downloads.
+find "${DOWNLOAD_DIR}" -xdev -mindepth 1 -delete
 
 echo "Successfully cleared '${DOWNLOAD_DIR}'."
 
