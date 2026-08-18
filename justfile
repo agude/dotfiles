@@ -40,12 +40,16 @@ lint-python:
 test-shell:
     bats tests/ llm/claude/hooks.d/tests/ llm/codex/hooks.d/tests/ llm/skills/johnny-decimal/tests/
 
+# Run direct Python tests for the shared command guard.
+test-python:
+    uv run tests/test_command_guard.py -q
+
 # Run the PDF skill tests in their declared uv environment.
 test-pdf:
     uv run llm/skills/pdf/tests/run.py
 
 # Run every repository test suite.
-test: test-shell test-pdf
+test: test-shell test-python test-pdf
 
 # Run the complete local verification gate.
 check: lint test
