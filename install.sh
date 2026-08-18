@@ -373,10 +373,11 @@ if [[ "${ACTIVE_PROFILE}" != "default" ]]; then
     source "${PROFILE_OVERLAY}"
 fi
 
-# Set XDG_CONFIG_HOME if the environment doesn't already provide it.
-# The declaration module is safe to source, but the installer only needs this
-# one base path and initializes application directories explicitly below.
-XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+# Source XDG base-directory declarations for XDG_CONFIG_HOME and friends.
+# The declaration module is side-effect-free; directory creation happens
+# explicitly in the install phase below.
+# shellcheck disable=SC1091
+source "${DOTFILES_DIR}/shared/sharedrc.d/001.xdg_base_directory.sh"
 
 # Derive the known-groups list once from default.sh (the source of truth).
 # Reused by group validation, links.conf validation, and --show.
