@@ -51,6 +51,7 @@ EOF
 create_link_map() {
     cat > "${FIXTURE_REPOSITORY}/links.conf" <<'EOF'
 ${HOME}/.fixture-link | fixture/source  | fixture
+${HOME}/.fixture-dir/config | fixture/source | fixture
 ${HOME}/.missing-link | fixture/missing | fixture
 EOF
 }
@@ -105,6 +106,39 @@ run_installer() {
     [[ "$status" -eq 0 ]]
     [[ -n "$output" ]]
     grep -Fxq 'local' "${output}/marker"
+}
+
+@test "installer backs up a foreign parent symlink" {
+    foreign_directory="${TEST_ROOT}/foreign"
+    mkdir "$foreign_directory"
+    printf 'foreign\n' > "${foreign_directory}/marker"
+    ln -s "$foreign_directory" "${TEST_HOME}/.fixture-dir"
+
+    run_installer --profile default
+
+    [[ "$status" -eq 0 ]]
+    [[ -d "${TEST_HOME}/.fixture-dir" ]]
+    [[ ! -L "${TEST_HOME}/.fixture-dir" ]]
+    grep -Fxq 'foreign' "${foreign_directory}/marker"
+    run find "$TEST_HOME" -maxdepth 1 -type l -name '.fixture-dir.dotfiles-backup.*'
+    [[ "$status" -eq 0 ]]
+    [[ -n "$output" ]]
+    [[ "$(readlink "$output")" == "$foreign_directory" ]]
+}
+
+@test "installer replaces a managed parent symlink" {
+    managed_directory="${FIXTURE_REPOSITORY}/fixture/old-parent"
+    mkdir "$managed_directory"
+    ln -s "$managed_directory" "${TEST_HOME}/.fixture-dir"
+
+    run_installer --profile default
+
+    [[ "$status" -eq 0 ]]
+    [[ -d "${TEST_HOME}/.fixture-dir" ]]
+    [[ ! -L "${TEST_HOME}/.fixture-dir" ]]
+    run find "$TEST_HOME" -maxdepth 1 -name '.fixture-dir.dotfiles-backup.*'
+    [[ "$status" -eq 0 ]]
+    [[ -z "$output" ]]
 }
 
 @test "installer excludes missing sources from the manifest" {

@@ -39,6 +39,23 @@ MANAGED_LINKS=()
 # Default before helpers that reference it (run() uses $DRY_RUN).
 DRY_RUN=false
 
+_is_owned_symlink() {
+    local target="$1"
+    local owner_prefix="$2"
+
+    [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${owner_prefix}/"* ]]
+}
+
+_backup_target() {
+    local target="$1"
+    local backup
+
+    backup="${target}.dotfiles-backup.$(date +%s).$$"
+
+    echo "  -> Backing up: $target -> ${backup}"
+    run mv "$target" "$backup"
+}
+
 # Ownership-aware link function.
 # - If the source doesn't exist, warn and skip (don't create dangling symlinks).
 # - If the target is already a correct symlink, skip silently (idempotent).
@@ -72,16 +89,12 @@ _place_link() {
 
     # Something exists that isn't what we want
     if [[ -e "$target" || -L "$target" ]]; then
-        if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${owner_prefix}/"* ]]; then
+        if _is_owned_symlink "$target" "$owner_prefix"; then
             # Our symlink, wrong target — safe to replace
             echo "  -> Updating: $target"
             run rm "$target"
         else
-            # Not ours — back up with epoch timestamp, don't destroy
-            local backup
-            backup="${target}.dotfiles-backup.$(date +%s).$$"
-            echo "  -> Backing up: $target -> ${backup}"
-            run mv "$target" "$backup"
+            _backup_target "$target"
         fi
     fi
 
@@ -103,17 +116,23 @@ link() {
     _place_link "$target" "${DOTFILES_DIR}/${source}" "${DOTFILES_DIR}"
 }
 
-# Create a real directory, removing any existing symlink first.
+# Create a real directory, replacing only symlinks owned by this repository.
 # This is important when transitioning from "symlink the whole directory"
 # to "symlink individual files inside a real directory". Without this guard,
 # mkdir -p silently succeeds on symlinks, and subsequent file creation
 # ends up in the symlink target (often back in this repo).
 ensure_real_dir() {
     local dir="$1"
+
     if [[ -L "$dir" ]]; then
-        echo "  -> Removing symlink to create real directory: $dir"
-        run rm "$dir"
+        if _is_owned_symlink "$dir" "$DOTFILES_DIR"; then
+            echo "  -> Replacing managed symlink with directory: $dir"
+            run rm "$dir"
+        else
+            _backup_target "$dir"
+        fi
     fi
+
     run mkdir -p "$dir"
 }
 
