@@ -35,7 +35,8 @@ The installer:
 - Sources the active profile (`profiles/*.sh`) for group/variable overrides
 - Creates symlinks from `~/.dotfiles/` to appropriate locations in `$HOME`
 - Links custom scripts from `bin/` to `~/bin/` (extensions stripped)
-- Installs Vim/Neovim plugins using vim-plug
+- Initializes mutable application directories without contacting the network
+- Leaves Vim/Neovim plugin installation to `bootstrap-vim-plugins`
 - Cleans up stale symlinks from previous runs
 
 ### Profile System
@@ -53,7 +54,7 @@ paths (e.g., work-specific Claude settings).
 
 Declarative symlink definitions. Format: `target | source | groups`. Variables
 like `${HOME}` and profile-defined variables are expanded at runtime.
-Procedural tasks (plugin install, glob loops) stay in `install.sh`.
+Procedural tasks (directory initialization, glob loops) stay in `install.sh`.
 
 ## Architecture
 
@@ -143,11 +144,13 @@ allows external commands, skills, and settings (work-specific, machine-local)
 to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### Codex CLI
-- `llm/codex/agude.config.toml` — portable preferences, loaded via `--profile agude`
+- `llm/codex/agude.config.toml` — portable template for the `agude` profile
 - `llm/codex/hooks.json` — hook definitions for KB session capture
 - `llm/codex/hooks.d/` — session hook shims (same core API as Claude, JSON protocol)
+- `~/.codex/agude.config.toml` is a real mutable file, created from the template
+  only when absent. Codex writes project trust and hook state into this file.
 - `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
-  project trust and hook state. The `codex` alias injects `--profile agude`.
+  global settings. The `codex` alias injects `--profile agude`.
 
 #### Gemini CLI
 - `llm/gemini/settings.json` — user-level settings
@@ -174,12 +177,12 @@ Scripts symlinked to `~/bin/` without file extensions:
 - `empty-downloads.sh` — safely empties Downloads
 - `rmspace.sh` — renames files replacing spaces with underscores
 - `jd.sh` — Johnny.Decimal directory navigation helper
-- `pre-commit.sh` — ShellCheck pre-commit hook
+- `bootstrap-vim-plugins.sh` — explicit vim-plug download and synchronization
+- `pre-commit.sh` — delegates repository linting to `just lint`
 
 ### CI
-- `.github/workflows/test.yaml` — ShellCheck lint, skill tests (bats, pytest),
-  install test on Ubuntu and macOS (including Bash 3.2), interactive shell
-  smoke tests
+- `.github/workflows/test.yaml` — runs justfile recipes for lint, shell and PDF
+  tests, Bash 3.2 coverage, and Linux/macOS installation smoke tests
 
 ## Modifying Configurations
 
@@ -195,6 +198,7 @@ Scripts symlinked to `~/bin/` without file extensions:
 ### Adding Vim Plugins
 
 Managed with vim-plug in `vim/plug.vim`. Install location: `vim/plugged/`.
+After changing the plugin list, run `bootstrap-vim-plugins`.
 
 ### Adding Agent Skills
 
@@ -214,6 +218,8 @@ procedural tasks (glob loops, conditional logic).
 - Shell aliases: `~/.localaliases` (not tracked)
 - Git config: `~/.gitconfig_local` (auto-included)
 - Claude Code: `~/.claude/settings.local.json` (git-ignored)
+- Codex profile: `~/.codex/agude.config.toml` (local mutable state initialized
+  from the tracked template)
 
 ## Common Patterns
 
@@ -229,8 +235,8 @@ procedural tasks (glob loops, conditional logic).
 
 **Never `rm -rf` unknown state — always back up.** `_place_link()` holds the
 validate/backup/replace/symlink logic; `link()` is a thin wrapper prepending
-`DOTFILES_DIR`, and `ext_link()` takes absolute source paths plus an ownership
-prefix, for links into repos outside dotfiles (Knowledge, Wiki).
+`DOTFILES_DIR`. `ensure_real_dir()` applies the same ownership boundary when a
+real parent directory is required.
 
 | Situation | Action |
 |---|---|
@@ -239,15 +245,13 @@ prefix, for links into repos outside dotfiles (Knowledge, Wiki).
 | Real file/dir, or a foreign symlink | Back up to `*.dotfiles-backup.<epoch>` |
 | Source file missing from the repo | Warn, skip, do not add to the manifest |
 
-Backups are epoch-timestamped so a re-run cannot clobber a previous one. The
-`ext_link` extraction fixed a real bug: a real *directory* at the target used
-to hit `rm: Is a directory`. Directories get backed up now.
+Backups are epoch-timestamped so a re-run cannot clobber a previous one. Real
+directories and foreign parent symlinks are backed up before replacement.
 
 Cleanup removes a symlink only when `readlink` shows it points into
-`$DOTFILES_DIR`, so links owned by other tools are never touched. It runs two
-passes: **dangling** (target deleted from the repo) and **unmanaged** (target
-exists but was not in `MANAGED_LINKS` this run — catches links left behind by
-a profile switch).
+`$DOTFILES_DIR`, so links owned by other tools are never touched. One manifest
+diff removes every previously managed link absent from the current run,
+including deleted sources and links disabled by a profile switch.
 
 ## Portability Constraints
 
@@ -261,10 +265,9 @@ a profile switch).
   flags it as unreachable. Use an `if` block.
   (The `-sh: mesg: command not found` line from DSM's own `/etc/profile` is
   out of scope for this repo.)
-- **`vim` resolves to nvim on these machines**, so plugin install is
-  `if nvim / elif vim`; they share config via symlinks. Headless install is
-  `nvim --headless "+PlugInstall --sync" +qa` with stderr suppressed, which
-  kills the "Press 'R' to retry" noise. Real vim rejects `-T`.
+- **Vim plugin setup is explicit and network-dependent.** Normal installation
+  and editor startup do not download anything. `bootstrap-vim-plugins` chooses
+  Neovim first, then Vim, and runs `PlugInstall --sync`.
 
 ## Deliberate — Do Not "Fix"
 
@@ -278,7 +281,3 @@ Things that look like bugs and are not:
   `llm/AGENTS.md` is a short cross-project commit-style and tone document,
   symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`. Intentionally
   separate documents.
-
-**Known limitation:** `010.git-guard.sh` string-matches the full command, so
-blocked-flag text appearing inside a commit message or heredoc triggers it. A
-proper fix needs shell-aware parsing.
