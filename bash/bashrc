@@ -51,14 +51,18 @@ shopt -s extglob &>/dev/null
 # turn off mail checking
 unset -v MAILCHECK
 
-# turn off flow control keys
-if command -v stty &>/dev/null; then
-    stty -ixon
-fi
+# Terminal controls require a real stdin TTY. Interactive shells can still run
+# without one in CI, editors, and remote command wrappers.
+if [[ -t 0 ]]; then
+    # turn off flow control keys
+    if command -v stty &>/dev/null; then
+        stty -ixon
+    fi
 
-# do not let others write to my terminal
-if command -v mesg >/dev/null 2>&1; then
-    mesg n
+    # do not let others write to my terminal
+    if command -v mesg >/dev/null 2>&1; then
+        mesg n
+    fi
 fi
 
 # make less more friendly for non-text input files, see lesspipe(1)
