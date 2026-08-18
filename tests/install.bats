@@ -34,6 +34,8 @@ setup() {
     printf 'personality = "pragmatic"\n' > "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
     printf 'export PLATFORM=linux\n' > \
         "${FIXTURE_REPOSITORY}/shared/sharedrc.d/000.set_platform.sh"
+    cp "${REPOSITORY_ROOT}/shared/sharedrc.d/001.xdg_base_directory.sh" \
+        "${FIXTURE_REPOSITORY}/shared/sharedrc.d/001.xdg_base_directory.sh"
 }
 
 teardown() {
