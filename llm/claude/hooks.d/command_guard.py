@@ -16,6 +16,7 @@ CONTROL_OPERATORS = {"&", "&&", "(", ")", ";", "|", "||"}
 REDIRECT_OPERATORS = {"<", "<<", "<<-", ">", ">>", "<>"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 PROTECTED_BRANCHES = {"main", "master", "refs/heads/main", "refs/heads/master"}
+NESTED_SHELLS = {"bash", "dash", "ksh", "sh", "zsh"}
 
 
 @dataclass(frozen=True)
@@ -24,11 +25,125 @@ class ShellCommand:
     arguments: tuple[str, ...]
 
 
+class ShellParseError(ValueError):
+    """Raised when a command cannot be analyzed safely."""
+
+
 def _tokens(text: str) -> list[str]:
     lexer = shlex.shlex(text, posix=True, punctuation_chars=";&|()<>")
     lexer.commenters = ""
     lexer.whitespace_split = True
     return list(lexer)
+
+
+def _join_continued_lines(text: str) -> str:
+    result: list[str] = []
+    quote = ""
+    index = 0
+
+    while index < len(text):
+        character = text[index]
+        next_character = text[index + 1] if index + 1 < len(text) else ""
+        if character == "\\" and next_character == "\n" and quote != "'":
+            index += 2
+            continue
+        if character == "\\" and next_character and quote != "'":
+            result.extend((character, next_character))
+            index += 2
+            continue
+        if character == "'" and quote != '"':
+            quote = "" if quote == "'" else "'"
+        elif character == '"' and quote != "'":
+            quote = "" if quote == '"' else '"'
+        result.append(character)
+        index += 1
+
+    return "".join(result)
+
+
+def _find_closing_backtick(text: str, opening_index: int) -> int:
+    index = opening_index + 1
+    while index < len(text):
+        if text[index] == "\\" and index + 1 < len(text):
+            index += 2
+            continue
+        if text[index] == "`":
+            return index
+        index += 1
+    raise ShellParseError("Unclosed backtick substitution")
+
+
+def _find_closing_parenthesis(text: str, opening_index: int) -> int:
+    depth = 1
+    quote = ""
+    index = opening_index + 1
+
+    while index < len(text):
+        character = text[index]
+        if character == "\\" and quote != "'" and index + 1 < len(text):
+            index += 2
+            continue
+        if character == "`" and quote != "'":
+            index = _find_closing_backtick(text, index) + 1
+            continue
+        if character == "'" and quote != '"':
+            quote = "" if quote == "'" else "'"
+        elif character == '"' and quote != "'":
+            quote = "" if quote == '"' else '"'
+        elif not quote and character == "(":
+            depth += 1
+        elif not quote and character == ")":
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+
+    raise ShellParseError("Unclosed parenthesized substitution")
+
+
+def _extract_nested_commands(text: str) -> tuple[str, list[str]]:
+    outer_text: list[str] = []
+    nested_commands: list[str] = []
+    quote = ""
+    index = 0
+
+    while index < len(text):
+        character = text[index]
+        next_character = text[index + 1] if index + 1 < len(text) else ""
+        if character == "\\" and next_character and quote != "'":
+            outer_text.extend((character, next_character))
+            index += 2
+            continue
+        if character == "'" and quote != '"':
+            quote = "" if quote == "'" else "'"
+            outer_text.append(character)
+            index += 1
+            continue
+        if character == '"' and quote != "'":
+            quote = "" if quote == '"' else '"'
+            outer_text.append(character)
+            index += 1
+            continue
+        if character == "`" and quote != "'":
+            closing_index = _find_closing_backtick(text, index)
+            nested_commands.append(text[index + 1 : closing_index])
+            outer_text.append("nested-command")
+            index = closing_index + 1
+            continue
+
+        opens_command = character == "$" and next_character == "("
+        opens_process = not quote and character in {"<", ">"} and next_character == "("
+        if opens_command or opens_process:
+            closing_index = _find_closing_parenthesis(text, index + 1)
+            nested_commands.append(text[index + 2 : closing_index])
+            outer_text.append("nested-command")
+            index = closing_index + 1
+            continue
+
+        outer_text.append(character)
+        index += 1
+
+    return "".join(outer_text), nested_commands
 
 
 def _heredoc_delimiters(line: str) -> list[tuple[str, bool]]:
@@ -123,12 +238,30 @@ def _unwrap_environment(tokens: list[str]) -> list[str]:
     return tokens
 
 
+def _nested_shell_text(command: ShellCommand) -> str | None:
+    if command.executable == "eval":
+        return " ".join(command.arguments) or None
+    if command.executable not in NESTED_SHELLS:
+        return None
+
+    for index, argument in enumerate(command.arguments[:-1]):
+        is_command_option = argument == "-c" or (
+            argument.startswith("-") and not argument.startswith("--") and "c" in argument[1:]
+        )
+        if is_command_option:
+            return command.arguments[index + 1]
+    return None
+
+
 def shell_commands(text: str) -> list[ShellCommand]:
-    prepared = _delimit_unquoted_newlines(_strip_heredoc_bodies(text))
+    continued = _join_continued_lines(text)
+    without_heredocs = _strip_heredoc_bodies(continued)
+    outer_text, nested_texts = _extract_nested_commands(without_heredocs)
+    prepared = _delimit_unquoted_newlines(outer_text)
     try:
         tokens = _tokens(prepared)
-    except ValueError:
-        return []
+    except ValueError as error:
+        raise ShellParseError(str(error)) from error
 
     commands: list[ShellCommand] = []
     segment: list[str] = []
@@ -140,6 +273,12 @@ def shell_commands(text: str) -> list[ShellCommand]:
         if words:
             commands.append(ShellCommand(os.path.basename(words[0]), tuple(words[1:])))
         segment = []
+
+    nested_texts.extend(
+        nested_text for command in commands if (nested_text := _nested_shell_text(command))
+    )
+    for nested_text in nested_texts:
+        commands.extend(shell_commands(nested_text))
     return commands
 
 
@@ -397,15 +536,36 @@ def _emit_decision(decision: str, reason: str) -> None:
 def _input_commands() -> list[ShellCommand]:
     try:
         payload = json.load(sys.stdin)
-    except (json.JSONDecodeError, OSError):
-        return []
-    command = payload.get("tool_input", {}).get("command", "")
-    return shell_commands(command) if isinstance(command, str) else []
+    except (json.JSONDecodeError, OSError) as error:
+        raise ShellParseError("Invalid hook input") from error
+    if not isinstance(payload, dict):
+        raise ShellParseError("Hook input must be an object")
+    tool_input = payload.get("tool_input")
+    if not isinstance(tool_input, dict):
+        raise ShellParseError("Hook input must contain tool_input")
+    command = tool_input.get("command")
+    if not isinstance(command, str):
+        raise ShellParseError("Hook input must contain a command string")
+    return shell_commands(command)
+
+
+def _handle_parse_failure(mode: str) -> int:
+    reason = "Unable to parse shell command safely — confirm manually."
+    if mode == "git-bypass":
+        print(reason, file=sys.stderr)
+        return 2
+    _emit_decision("ask", reason)
+    return 0
 
 
 def main() -> int:
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
-    commands = _input_commands()
+    if mode not in {"gh", "git-bypass", "git-push"}:
+        raise SystemExit(f"Unknown guard mode: {mode}")
+    try:
+        commands = _input_commands()
+    except ShellParseError:
+        return _handle_parse_failure(mode)
     if mode == "git-bypass":
         if git_bypass_blocked(commands):
             print("Don't bypass git hooks.", file=sys.stderr)
@@ -425,7 +585,6 @@ def main() -> int:
         if decision is not None:
             _emit_decision(*decision)
         return 0
-    raise SystemExit(f"Unknown guard mode: {mode}")
 
 
 if __name__ == "__main__":
