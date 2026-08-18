@@ -528,13 +528,17 @@ fi
 if install_group gui; then
     if [[ "${PLATFORM}" == "linux" ]] && command -v firefox &> /dev/null; then
         echo "› Deploying Firefox user.js..."
-        FF_PROFILE_DIR=$(find "${HOME}/.mozilla/firefox" -maxdepth 1 -name "*.default-release" -type d 2>/dev/null | head -1)
-        if [[ -n "${FF_PROFILE_DIR}" ]]; then
-            run cp "${DOTFILES_DIR}/config/firefox/user.js" "${FF_PROFILE_DIR}/user.js"
+        FF_PROFILE_FOUND=false
+        for FF_PROFILE_DIR in "${HOME}/.mozilla/firefox/"*.default-release; do
+            [[ -d "${FF_PROFILE_DIR}" ]] || continue
+            FF_PROFILE_FOUND=true
+            link "${FF_PROFILE_DIR}/user.js" "config/firefox/user.js"
             echo "  -> Deployed user.js to ${FF_PROFILE_DIR}"
-        else
+        done
+        if ! $FF_PROFILE_FOUND; then
             echo "  -> Skipping: no Firefox profile found."
         fi
+        unset FF_PROFILE_DIR FF_PROFILE_FOUND
     fi
 fi
 
@@ -544,12 +548,12 @@ if install_group cleanup; then
         if command -v systemctl &> /dev/null; then
             SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
             ensure_real_dir "${SYSTEMD_USER_DIR}"
-            run cp "${DOTFILES_DIR}/config/systemd/user/empty-downloads.service" \
-                   "${SYSTEMD_USER_DIR}/empty-downloads.service"
+            link "${SYSTEMD_USER_DIR}/empty-downloads.service" \
+                 "config/systemd/user/empty-downloads.service"
             echo "  -> Deployed empty-downloads.service"
             echo "  -> Enable with: systemctl --user enable --now empty-downloads.service"
-            run cp "${DOTFILES_DIR}/config/systemd/user/firefox-quit.service" \
-                   "${SYSTEMD_USER_DIR}/firefox-quit.service"
+            link "${SYSTEMD_USER_DIR}/firefox-quit.service" \
+                 "config/systemd/user/firefox-quit.service"
             echo "  -> Deployed firefox-quit.service"
             echo "  -> Enable with: systemctl --user enable --now firefox-quit.service"
         fi

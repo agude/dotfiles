@@ -5,17 +5,28 @@ setup() {
     TEST_ROOT="$(mktemp -d)"
     FIXTURE_REPOSITORY="${TEST_ROOT}/dotfiles"
     TEST_HOME="${TEST_ROOT}/home"
+    TEST_BIN="${TEST_ROOT}/bin"
 
-    mkdir -p "${FIXTURE_REPOSITORY}/profiles" \
+    mkdir -p "${FIXTURE_REPOSITORY}/config/firefox" \
+             "${FIXTURE_REPOSITORY}/config/systemd/user" \
+             "${FIXTURE_REPOSITORY}/profiles" \
+             "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
              "${FIXTURE_REPOSITORY}/fixture" \
+             "$TEST_BIN" \
              "$TEST_HOME"
     cp "${REPOSITORY_ROOT}/install.sh" "${FIXTURE_REPOSITORY}/install.sh"
     chmod +x "${FIXTURE_REPOSITORY}/install.sh"
 
     create_default_profile
     create_disabled_profile
+    create_deployment_profile
     create_link_map
     printf 'fixture\n' > "${FIXTURE_REPOSITORY}/fixture/source"
+    printf 'user prefs\n' > "${FIXTURE_REPOSITORY}/config/firefox/user.js"
+    printf 'downloads service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/empty-downloads.service"
+    printf 'firefox service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/firefox-quit.service"
+    printf 'export PLATFORM=linux\n' > \
+        "${FIXTURE_REPOSITORY}/shared/sharedrc.d/000.set_platform.sh"
 }
 
 teardown() {
@@ -48,6 +59,13 @@ INSTALL_FIXTURE=false
 EOF
 }
 
+create_deployment_profile() {
+    cat > "${FIXTURE_REPOSITORY}/profiles/deployment.sh" <<'EOF'
+INSTALL_GUI=true
+INSTALL_CLEANUP=true
+EOF
+}
+
 create_link_map() {
     cat > "${FIXTURE_REPOSITORY}/links.conf" <<'EOF'
 ${HOME}/.fixture-link | fixture/source  | fixture
@@ -59,6 +77,7 @@ EOF
 run_installer() {
     run env HOME="$TEST_HOME" \
         XDG_CONFIG_HOME="${TEST_HOME}/.config" \
+        PATH="${TEST_BIN}:${PATH}" \
         bash "${FIXTURE_REPOSITORY}/install.sh" "$@"
 }
 
@@ -139,6 +158,54 @@ run_installer() {
     run find "$TEST_HOME" -maxdepth 1 -name '.fixture-dir.dotfiles-backup.*'
     [[ "$status" -eq 0 ]]
     [[ -z "$output" ]]
+}
+
+@test "installer backs up and manages deployed configuration files" {
+    firefox_root="${TEST_HOME}/.mozilla/firefox"
+    first_profile="${firefox_root}/alpha.default-release"
+    second_profile="${firefox_root}/beta.default-release"
+    systemd_directory="${TEST_HOME}/.config/systemd/user"
+    mkdir -p "$first_profile" "$second_profile" "$systemd_directory"
+    printf 'local prefs\n' > "${first_profile}/user.js"
+    printf 'local service\n' > "${systemd_directory}/empty-downloads.service"
+    printf '#!/usr/bin/env bash\n' > "${TEST_BIN}/firefox"
+    printf '#!/usr/bin/env bash\n' > "${TEST_BIN}/systemctl"
+    chmod +x "${TEST_BIN}/firefox" "${TEST_BIN}/systemctl"
+
+    run_installer --profile deployment
+
+    [[ "$status" -eq 0 ]]
+    [[ -L "${first_profile}/user.js" ]]
+    [[ -L "${second_profile}/user.js" ]]
+    [[ -L "${systemd_directory}/empty-downloads.service" ]]
+    [[ -L "${systemd_directory}/firefox-quit.service" ]]
+    run find "$first_profile" -maxdepth 1 -type f -name 'user.js.dotfiles-backup.*'
+    [[ "$status" -eq 0 ]]
+    [[ -n "$output" ]]
+    grep -Fxq 'local prefs' "$output"
+    run find "$systemd_directory" -maxdepth 1 -type f \
+        -name 'empty-downloads.service.dotfiles-backup.*'
+    [[ "$status" -eq 0 ]]
+    [[ -n "$output" ]]
+    grep -Fxq 'local service' "$output"
+}
+
+@test "profile switch removes deployed configuration links" {
+    firefox_profile="${TEST_HOME}/.mozilla/firefox/alpha.default-release"
+    mkdir -p "$firefox_profile"
+    printf '#!/usr/bin/env bash\n' > "${TEST_BIN}/firefox"
+    printf '#!/usr/bin/env bash\n' > "${TEST_BIN}/systemctl"
+    chmod +x "${TEST_BIN}/firefox" "${TEST_BIN}/systemctl"
+
+    run_installer --profile deployment
+    [[ "$status" -eq 0 ]]
+
+    run_installer --profile default
+
+    [[ "$status" -eq 0 ]]
+    [[ ! -e "${firefox_profile}/user.js" ]]
+    [[ ! -e "${TEST_HOME}/.config/systemd/user/empty-downloads.service" ]]
+    [[ ! -e "${TEST_HOME}/.config/systemd/user/firefox-quit.service" ]]
 }
 
 @test "installer excludes missing sources from the manifest" {
