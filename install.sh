@@ -545,18 +545,6 @@ if [[ -d "${DOTFILES_DIR}/.git" ]]; then
     link "${DOTFILES_DIR}/.git/hooks/pre-commit" "bin/pre-commit.sh"
 fi
 
-if install_group vim; then
-    if ! $DRY_RUN; then
-        if command -v nvim &> /dev/null; then
-            echo "› Installing Neovim plugins..."
-            nvim --headless "+PlugInstall --sync" +qa 2>/dev/null
-        elif command -v vim &> /dev/null; then
-            echo "› Installing Vim plugins..."
-            vim -T dumb -i NONE -c "PlugInstall --sync" -c qall!
-        fi
-    fi
-fi
-
 if install_group gui; then
     echo "› Configuring XDG User Directories..."
     if command -v xdg-user-dirs-update &> /dev/null; then

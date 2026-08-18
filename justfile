@@ -59,3 +59,7 @@ smoke-install:
     nvim --headless +qall
     bash -i -c 'source "${HOME}/.bashrc"; exit 0'
     zsh -i -c 'source "${HOME}/.zshrc"; exit 0'
+
+# Download vim-plug and synchronize editor plugins. This mutates HOME.
+bootstrap-vim-plugins:
+    ./bin/bootstrap-vim-plugins.sh

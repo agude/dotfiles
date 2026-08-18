@@ -21,6 +21,7 @@ setup() {
     create_default_profile
     create_disabled_profile
     create_shell_profile
+    create_vim_profile
     create_codex_profile
     create_deployment_profile
     create_link_map
@@ -66,6 +67,12 @@ EOF
 create_shell_profile() {
     cat > "${FIXTURE_REPOSITORY}/profiles/shell.sh" <<'EOF'
 INSTALL_SHELL=true
+EOF
+}
+
+create_vim_profile() {
+    cat > "${FIXTURE_REPOSITORY}/profiles/vim.sh" <<'EOF'
+INSTALL_VIM=true
 EOF
 }
 
@@ -222,6 +229,29 @@ run_installer() {
     [[ ! -e "${firefox_profile}/user.js" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/empty-downloads.service" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/firefox-quit.service" ]]
+}
+
+@test "normal installation does not run plugin network commands" {
+    export NETWORK_MARKER="${TEST_ROOT}/network-command-ran"
+    cat > "${TEST_BIN}/curl" <<'EOF'
+#!/usr/bin/env bash
+: > "$NETWORK_MARKER"
+EOF
+    cat > "${TEST_BIN}/nvim" <<'EOF'
+#!/usr/bin/env bash
+: > "$NETWORK_MARKER"
+EOF
+    chmod +x "${TEST_BIN}/curl" "${TEST_BIN}/nvim"
+
+    run_installer --profile vim
+
+    [[ "$status" -eq 0 ]]
+    [[ ! -e "$NETWORK_MARKER" ]]
+
+    run_installer
+
+    [[ "$status" -eq 0 ]]
+    [[ ! -e "$NETWORK_MARKER" ]]
 }
 
 @test "installer initializes XDG application directories" {
