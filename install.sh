@@ -173,6 +173,35 @@ install_local_config() {
     run chmod 600 "$target"
 }
 
+# Reject scripts that would map to the same extensionless command name.
+validate_script_names() {
+    local script_file
+    local script_name
+    local existing_index
+    local -a script_names=()
+    local -a script_paths=()
+
+    for script_file in "${DOTFILES_DIR}/bin/"*; do
+        [[ -f "$script_file" ]] || continue
+        script_name="${script_file##*/}"
+        script_name="${script_name%%.*}"
+
+        if [[ ${#script_names[@]} -gt 0 ]]; then
+            for existing_index in "${!script_names[@]}"; do
+                if [[ "${script_names[$existing_index]}" == "$script_name" ]]; then
+                    echo "Error: bin command name collision for '${script_name}':" >&2
+                    echo "  ${script_paths[$existing_index]}" >&2
+                    echo "  ${script_file}" >&2
+                    return 1
+                fi
+            done
+        fi
+
+        script_names+=("$script_name")
+        script_paths+=("$script_file")
+    done
+}
+
 # Check whether an install group is enabled in the active profile.
 # Groups are declared in profiles/default.sh (source of truth) and toggled
 # by overlay profiles.
@@ -423,6 +452,11 @@ fi
 # ============================================================================
 # Phase 4: Install
 # ============================================================================
+
+# Validate procedural inputs before the link map makes any changes.
+if install_group scripts; then
+    validate_script_names
+fi
 
 # --- 4a. Declarative links from links.conf ---
 

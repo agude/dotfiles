@@ -12,6 +12,7 @@ setup() {
              "${FIXTURE_REPOSITORY}/llm/codex" \
              "${FIXTURE_REPOSITORY}/profiles" \
              "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
+             "${FIXTURE_REPOSITORY}/bin" \
              "${FIXTURE_REPOSITORY}/fixture" \
              "$TEST_BIN" \
              "$TEST_HOME"
@@ -22,6 +23,7 @@ setup() {
     create_disabled_profile
     create_shell_profile
     create_vim_profile
+    create_scripts_profile
     create_codex_profile
     create_deployment_profile
     create_link_map
@@ -73,6 +75,12 @@ EOF
 create_vim_profile() {
     cat > "${FIXTURE_REPOSITORY}/profiles/vim.sh" <<'EOF'
 INSTALL_VIM=true
+EOF
+}
+
+create_scripts_profile() {
+    cat > "${FIXTURE_REPOSITORY}/profiles/scripts.sh" <<'EOF'
+INSTALL_SCRIPTS=true
 EOF
 }
 
@@ -229,6 +237,20 @@ run_installer() {
     [[ ! -e "${firefox_profile}/user.js" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/empty-downloads.service" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/firefox-quit.service" ]]
+}
+
+@test "installer rejects extensionless script name collisions before linking" {
+    printf '#!/usr/bin/env bash\n' > "${FIXTURE_REPOSITORY}/bin/report.sh"
+    printf '#!/usr/bin/env python3\n' > "${FIXTURE_REPOSITORY}/bin/report.py"
+
+    run_installer --profile scripts
+
+    [[ "$status" -ne 0 ]]
+    [[ "$output" == *"bin command name collision for 'report'"* ]]
+    [[ "$output" == *"report.sh"* ]]
+    [[ "$output" == *"report.py"* ]]
+    [[ ! -e "${TEST_HOME}/.fixture-link" ]]
+    [[ ! -e "${TEST_HOME}/bin/report" ]]
 }
 
 @test "normal installation does not run plugin network commands" {
