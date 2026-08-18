@@ -9,6 +9,7 @@ setup() {
 
     mkdir -p "${FIXTURE_REPOSITORY}/config/firefox" \
              "${FIXTURE_REPOSITORY}/config/systemd/user" \
+             "${FIXTURE_REPOSITORY}/llm/codex" \
              "${FIXTURE_REPOSITORY}/profiles" \
              "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
              "${FIXTURE_REPOSITORY}/fixture" \
@@ -19,12 +20,14 @@ setup() {
 
     create_default_profile
     create_disabled_profile
+    create_codex_profile
     create_deployment_profile
     create_link_map
     printf 'fixture\n' > "${FIXTURE_REPOSITORY}/fixture/source"
     printf 'user prefs\n' > "${FIXTURE_REPOSITORY}/config/firefox/user.js"
     printf 'downloads service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/empty-downloads.service"
     printf 'firefox service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/firefox-quit.service"
+    printf 'personality = "pragmatic"\n' > "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
     printf 'export PLATFORM=linux\n' > \
         "${FIXTURE_REPOSITORY}/shared/sharedrc.d/000.set_platform.sh"
 }
@@ -56,6 +59,12 @@ EOF
 create_disabled_profile() {
     cat > "${FIXTURE_REPOSITORY}/profiles/disabled.sh" <<'EOF'
 INSTALL_FIXTURE=false
+EOF
+}
+
+create_codex_profile() {
+    cat > "${FIXTURE_REPOSITORY}/profiles/codex.sh" <<'EOF'
+INSTALL_LLM=true
 EOF
 }
 
@@ -206,6 +215,49 @@ run_installer() {
     [[ ! -e "${firefox_profile}/user.js" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/empty-downloads.service" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/firefox-quit.service" ]]
+}
+
+@test "installer creates a mutable local Codex profile" {
+    run_installer --profile codex
+
+    local_profile="${TEST_HOME}/.codex/agude.config.toml"
+    [[ "$status" -eq 0 ]]
+    [[ -f "$local_profile" ]]
+    [[ ! -L "$local_profile" ]]
+    grep -Fxq 'personality = "pragmatic"' "$local_profile"
+}
+
+@test "installer preserves existing local Codex state" {
+    run_installer --profile codex
+    [[ "$status" -eq 0 ]]
+    local_profile="${TEST_HOME}/.codex/agude.config.toml"
+    printf '\n[projects."/test"]\ntrust_level = "trusted"\n' >> "$local_profile"
+
+    run_installer
+
+    [[ "$status" -eq 0 ]]
+    grep -Fxq '[projects."/test"]' "$local_profile"
+}
+
+@test "installer migrates a managed Codex profile symlink" {
+    local_profile="${TEST_HOME}/.codex/agude.config.toml"
+    mkdir -p "${TEST_HOME}/.codex"
+    printf '\n[hooks.state]\n' >> "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
+    ln -s "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml" "$local_profile"
+
+    run_installer --profile codex
+
+    [[ "$status" -eq 0 ]]
+    [[ -f "$local_profile" ]]
+    [[ ! -L "$local_profile" ]]
+    grep -Fxq '[hooks.state]' "$local_profile"
+    if stat -f '%Lp' "$local_profile" >/dev/null 2>&1; then
+        run stat -f '%Lp' "$local_profile"
+    else
+        run stat -c '%a' "$local_profile"
+    fi
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == "600" ]]
 }
 
 @test "installer excludes missing sources from the manifest" {

@@ -136,6 +136,43 @@ ensure_real_dir() {
     run mkdir -p "$dir"
 }
 
+# Install a mutable configuration as a local file rather than a repository
+# symlink. Existing real files remain under the application's control.
+install_local_config() {
+    local target="$1"
+    local source_path="$2"
+    local migration_path
+
+    if [[ ! -f "$source_path" ]]; then
+        echo "  -> Warning: config template does not exist, skipping: $source_path" >&2
+        return 0
+    fi
+
+    if [[ -L "$target" ]]; then
+        if ! _is_owned_symlink "$target" "$DOTFILES_DIR"; then
+            echo "  -> Warning: foreign config symlink exists, skipping: $target" >&2
+            return 0
+        fi
+
+        migration_path="${target}.dotfiles-migration.$(date +%s).$$"
+        echo "  -> Migrating managed config symlink to local file: $target"
+        run cp -p "$target" "$migration_path"
+        run rm "$target"
+        run mv "$migration_path" "$target"
+        run chmod 600 "$target"
+        return 0
+    fi
+
+    if [[ -e "$target" ]]; then
+        return 0
+    fi
+
+    ensure_real_dir "$(dirname "$target")"
+    echo "  -> Installing local config: $source_path -> $target"
+    run cp "$source_path" "$target"
+    run chmod 600 "$target"
+}
+
 # Check whether an install group is enabled in the active profile.
 # Groups are declared in profiles/default.sh (source of truth) and toggled
 # by overlay profiles.
@@ -170,7 +207,6 @@ expand_vars() {
     s="${s//\$\{CLAUDE_AGENTS_REL\}/$CLAUDE_AGENTS_REL}"
     s="${s//\$\{GEMINI_SETTINGS_REL\}/$GEMINI_SETTINGS_REL}"
     s="${s//\$\{GEMINI_AGENTS_REL\}/$GEMINI_AGENTS_REL}"
-    s="${s//\$\{CODEX_SETTINGS_REL\}/$CODEX_SETTINGS_REL}"
     s="${s//\$\{CODEX_AGENTS_REL\}/$CODEX_AGENTS_REL}"
     printf '%s' "$s"
 }
@@ -463,6 +499,10 @@ if install_group llm; then
         hook_name=$(basename "$hook_script")
         link "${CODEX_HOOKS_DIR}/${hook_name}" "llm/codex/hooks.d/${hook_name}"
     done
+
+    # Codex writes trust and hook state into the selected profile.
+    install_local_config "${HOME}/.codex/agude.config.toml" \
+        "${DOTFILES_DIR}/llm/codex/agude.config.toml"
 
     # Coat tree hooks — guard scripts for Claude Code.
     # The coat-tree binary is installed separately; hooks go into XDG config.
