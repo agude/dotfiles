@@ -3,7 +3,8 @@
 HOOK="$BATS_TEST_DIRNAME/../PreToolUse/010.git-guard.sh"
 
 run_hook() {
-    printf '{"tool_input":{"command":"%s"}}' "$1" | bash "$HOOK"
+    jq -cn --arg command "$1" '{tool_input: {command: $command}}' |
+        bash "$HOOK"
 }
 
 # --- Should block ---
@@ -53,6 +54,16 @@ run_hook() {
     [ "$status" -eq 2 ]
 }
 
+@test "blocks bypass after an environment prefix" {
+    run run_hook "env CI=1 git commit --no-verify -m test"
+    [ "$status" -eq 2 ]
+}
+
+@test "blocks bypass in a chained command" {
+    run run_hook "printf ready && git commit --no-verify -m test"
+    [ "$status" -eq 2 ]
+}
+
 # --- Should allow ---
 
 @test "allows git log -n 5" {
@@ -82,5 +93,16 @@ run_hook() {
 
 @test "allows git diff" {
     run run_hook "git diff HEAD"
+    [ "$status" -eq 0 ]
+}
+
+@test "allows bypass text inside a commit message" {
+    run run_hook "git commit -m 'Document --no-verify behavior'"
+    [ "$status" -eq 0 ]
+}
+
+@test "allows bypass text inside a heredoc body" {
+    command=$'git commit -F - <<\'EOF\'\nDocument --no-verify behavior\nEOF'
+    run run_hook "$command"
     [ "$status" -eq 0 ]
 }

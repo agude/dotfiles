@@ -525,6 +525,8 @@ if install_group llm; then
             link "${COAT_TREE_CONFIG}/${event_name}/${hook_name}" "llm/claude/hooks.d/${event_name}/${hook_name}"
         done
     done
+    link "${COAT_TREE_CONFIG}/command_guard.py" \
+        "llm/claude/hooks.d/command_guard.py"
     # Johnny Decimal scripts into ~/bin (needs scripts group too).
     if install_group scripts; then
         ensure_real_dir "${HOME}/bin/johnny-decimal"

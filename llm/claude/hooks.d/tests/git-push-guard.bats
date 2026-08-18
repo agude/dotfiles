@@ -3,7 +3,8 @@
 HOOK="$BATS_TEST_DIRNAME/../PreToolUse/020.git-push-guard.sh"
 
 run_hook() {
-    printf '{"tool_input":{"command":"%s"}}' "$1" | bash "$HOOK"
+    jq -cn --arg command "$1" '{tool_input: {command: $command}}' |
+        bash "$HOOK"
 }
 
 deny_reason() {
@@ -61,6 +62,31 @@ decision() {
     [ "$(decision)" = "deny" ]
 }
 
+@test "blocks force push through a plus refspec" {
+    run run_hook "git push origin +feature:feature"
+    [ "$(decision)" = "deny" ]
+}
+
+@test "blocks fully qualified main destination" {
+    run run_hook "git push origin feature:refs/heads/main"
+    [ "$(decision)" = "deny" ]
+}
+
+@test "blocks fully qualified master destination" {
+    run run_hook "git push origin HEAD:refs/heads/master"
+    [ "$(decision)" = "deny" ]
+}
+
+@test "blocks main push after an environment prefix" {
+    run run_hook "env CI=1 git push origin feature:main"
+    [ "$(decision)" = "deny" ]
+}
+
+@test "blocks force push in a chained command" {
+    run run_hook "printf ready && git push origin +feature:feature"
+    [ "$(decision)" = "deny" ]
+}
+
 # --- Should allow ---
 
 @test "allows push to feature branch" {
@@ -77,6 +103,11 @@ decision() {
     run run_hook "git push"
     [ "$(decision)" = "allow" ]
     unset -f git
+}
+
+@test "allows fully qualified feature destination" {
+    run run_hook "git push origin feature:refs/heads/feature"
+    [ "$(decision)" = "allow" ]
 }
 
 @test "ignores non-push git commands" {
