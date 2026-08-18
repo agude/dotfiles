@@ -6,6 +6,7 @@
 # and the agent-agnostic core session scripts in the Knowledge repo.
 
 export HOOKS_DIR="$BATS_TEST_DIRNAME/.."
+export REPOSITORY_ROOT="$BATS_TEST_DIRNAME/../../../.."
 
 setup() {
     export TEST_CONTENT_DIR="$(mktemp -d)"
@@ -17,19 +18,7 @@ setup() {
     # CLAUDE_ENV_FILE: Claude Code writes env vars here to propagate them.
     export CLAUDE_ENV_FILE="$(mktemp)"
 
-    # Init git repo (needed for observe/commit)
-    git -C "$TEST_CONTENT_DIR" init -q
-    git -C "$TEST_CONTENT_DIR" config user.email "test@test.com"
-    git -C "$TEST_CONTENT_DIR" config user.name "Test"
-    touch "$TEST_CONTENT_DIR/.gitkeep"
-    git -C "$TEST_CONTENT_DIR" add .gitkeep
-    git -C "$TEST_CONTENT_DIR" commit -q -m "init"
-
-    # KNOWLEDGE_BASE must point to the Knowledge repo root.
-    if [[ -z "${KNOWLEDGE_BASE:-}" ]] || [[ ! -d "$KNOWLEDGE_BASE/scripts" ]]; then
-        skip "KNOWLEDGE_BASE not set or missing scripts/"
-    fi
-    export KNOWLEDGE_BASE
+    export KNOWLEDGE_BASE="${REPOSITORY_ROOT}/tests/fixtures/knowledge"
 }
 
 teardown() {

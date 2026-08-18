@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eu
+
+session_file="$1"
+[[ -f "$session_file" ]] || exit 0
+
+message_count="$(wc -l < "$session_file")"
+if [[ "$message_count" -ge 4 ]]; then
+    pending_directory="${KB_CONTENT_DIR}/observations/pending"
+    observation_name="$(basename "$session_file" .jsonl)-$$.md"
+    mkdir -p "$pending_directory"
+    printf '%s\n' '# Test observation' > "${pending_directory}/${observation_name}"
+fi
+
+rm -f "$session_file"
