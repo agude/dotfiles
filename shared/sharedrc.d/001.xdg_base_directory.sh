@@ -97,8 +97,15 @@ export GTK2_RC_FILES="${XDG_CONFIG_HOME}"/gtk-2.0/gtkrc
 # mypy
 export MYPY_CACHE_DIR="${XDG_CACHE_HOME}"/mypy
 
-# ripgrep
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}"/ripgrep/config
+# ripgrep supports an optional config file but fails every invocation when the
+# configured path does not exist. Preserve explicit overrides from the caller.
+_ripgrep_config="${XDG_CONFIG_HOME}/ripgrep/config"
+if [[ -f "$_ripgrep_config" ]]; then
+    export RIPGREP_CONFIG_PATH="$_ripgrep_config"
+elif [[ "$RIPGREP_CONFIG_PATH" == "$_ripgrep_config" ]]; then
+    unset RIPGREP_CONFIG_PATH
+fi
+unset -v _ripgrep_config
 
 # Ansible
 # See https://github.com/ansible/ansible/pull/76114
