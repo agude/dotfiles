@@ -87,5 +87,3 @@
 
 [rerere]
     enabled = true
-[safe]
-	directory = /mnt/win/c/Users/agude/AppData/LocalLow/tobspr Games/shapez 2/blueprints
