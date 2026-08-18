@@ -24,11 +24,14 @@ use Bash 4+ features including:
 ## Installation
 
 ```bash
-./install.sh                   # default profile
-./install.sh --profile work    # work profile
-./install.sh --dry-run         # preview changes
-./install.sh --show            # show active profile and enabled groups
+just install                   # default profile
+just install --profile work    # work profile
+just install --dry-run         # preview changes
+just install --show            # show active profile and enabled groups
+just bootstrap                 # install + editor plugins
 ```
+
+On a fresh machine without `just`, run `./install.sh` directly.
 
 The installer:
 - Reads `links.conf` for declarative symlink definitions
@@ -181,8 +184,8 @@ Scripts symlinked to `~/bin/` without file extensions:
 - `pre-commit.sh` — delegates repository linting to `just lint`
 
 ### CI
-- `.github/workflows/test.yaml` — runs justfile recipes for lint, shell and PDF
-  tests, Bash 3.2 coverage, and Linux/macOS installation smoke tests
+- `.github/workflows/test.yaml` — runs justfile recipes for lint, unit tests,
+  Bash 3.2 shell tests, and Linux/macOS integration tests (`just test-integration`)
 
 ## Modifying Configurations
 

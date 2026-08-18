@@ -33,7 +33,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
       - name: Run tests
-        run: just test
+        run: just test-shell test-python test-pdf
 
   bash-3-2:
     name: Shell Tests on Bash 3.2
@@ -67,4 +67,4 @@ jobs:
         if: runner.os == 'macOS'
         run: /bin/bash ./install.sh --dry-run
       - name: Run installation smoke test
-        run: just smoke-install
+        run: just test-integration
