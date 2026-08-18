@@ -160,7 +160,10 @@ build_tree_args() {
 target_dir=$(resolve_target "$TARGET") || exit 1
 
 # Build tree arguments
-mapfile -t tree_args < <(build_tree_args)
+tree_args=()
+while IFS= read -r tree_arg; do
+    tree_args+=("$tree_arg")
+done < <(build_tree_args)
 
 # Run tree
-tree "${tree_args[@]}" "$target_dir"
+tree "${tree_args[@]+"${tree_args[@]}"}" "$target_dir"

@@ -21,7 +21,7 @@ source "${SCRIPT_DIR}/jd-lib.sh"
 
 # Parse common args (--porcelain)
 jd_parse_common_args "$@"
-set -- "${JD_REMAINING_ARGS[@]}"
+set -- "${JD_REMAINING_ARGS[@]+"${JD_REMAINING_ARGS[@]}"}"
 
 # Validate JD_ROOT exists
 jd_validate_root || exit 1
@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-set -- "${args[@]}"
+set -- "${args[@]+"${args[@]}"}"
 
 show_usage() {
     echo "Usage: jd-move [options] <source...> <ID>" >&2

@@ -63,7 +63,7 @@ jd_is_interactive() {
 }
 
 # Parse common arguments (--porcelain, --help)
-# Usage: jd_parse_common_args "$@"; set -- "${JD_REMAINING_ARGS[@]}"
+# Usage: jd_parse_common_args "$@"; set -- "${JD_REMAINING_ARGS[@]+"${JD_REMAINING_ARGS[@]}"}"
 #
 # After calling, check JD_HELP_REQUESTED and call your script's show_usage if set.
 JD_REMAINING_ARGS=()

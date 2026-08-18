@@ -18,7 +18,7 @@ source "${SCRIPT_DIR}/jd-lib.sh"
 
 # Parse common args (--porcelain, --help)
 jd_parse_common_args "$@"
-set -- "${JD_REMAINING_ARGS[@]}"
+set -- "${JD_REMAINING_ARGS[@]+"${JD_REMAINING_ARGS[@]}"}"
 
 show_usage() {
     echo "Usage: jd-inbox [options] <source...>" >&2
@@ -45,4 +45,5 @@ if [[ "$JD_PORCELAIN" == "true" ]]; then
     porcelain_flag=(--porcelain)
 fi
 
-exec "${SCRIPT_DIR}/jd-move.sh" "${porcelain_flag[@]}" "$@" 00.01
+exec "${SCRIPT_DIR}/jd-move.sh" \
+    "${porcelain_flag[@]+"${porcelain_flag[@]}"}" "$@" 00.01
