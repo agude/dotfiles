@@ -200,7 +200,7 @@ def git_bypass_blocked(commands: list[ShellCommand]) -> bool:
 
 def _current_branch() -> str:
     result = subprocess.run(
-        ["bash", "-c", "git rev-parse --abbrev-ref HEAD"],
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
         check=False,
         capture_output=True,
         text=True,

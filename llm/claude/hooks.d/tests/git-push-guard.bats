@@ -2,9 +2,29 @@
 
 HOOK="$BATS_TEST_DIRNAME/../PreToolUse/020.git-push-guard.sh"
 
+setup() {
+    TEST_ROOT="$(mktemp -d)"
+    TEST_BIN="${TEST_ROOT}/bin"
+    mkdir "$TEST_BIN"
+}
+
+teardown() {
+    rm -rf "$TEST_ROOT"
+}
+
+simulate_current_branch() {
+    local branch="$1"
+    cat > "${TEST_BIN}/git" <<EOF
+#!/usr/bin/env bash
+[[ "\$*" == "rev-parse --abbrev-ref HEAD" ]] || exit 2
+printf '%s\n' '$branch'
+EOF
+    chmod +x "${TEST_BIN}/git"
+}
+
 run_hook() {
     jq -cn --arg command "$1" '{tool_input: {command: $command}}' |
-        bash "$HOOK"
+        env PATH="${TEST_BIN}:${PATH}" bash "$HOOK"
 }
 
 deny_reason() {
@@ -33,28 +53,21 @@ decision() {
 }
 
 @test "blocks push to main (no refspec, on main)" {
-    # Mock git rev-parse to return "main"
-    git() { echo "main"; }
-    export -f git
+    simulate_current_branch main
     run run_hook "git push origin"
     [ "$(decision)" = "deny" ]
-    unset -f git
 }
 
 @test "blocks push to master (no refspec, on master)" {
-    git() { echo "master"; }
-    export -f git
+    simulate_current_branch master
     run run_hook "git push origin"
     [ "$(decision)" = "deny" ]
-    unset -f git
 }
 
 @test "blocks git push origin HEAD when on main" {
-    git() { echo "main"; }
-    export -f git
+    simulate_current_branch main
     run run_hook "git push origin HEAD"
     [ "$(decision)" = "deny" ]
-    unset -f git
 }
 
 @test "blocks git push origin main" {
@@ -90,19 +103,15 @@ decision() {
 # --- Should allow ---
 
 @test "allows push to feature branch" {
-    git() { echo "feature-branch"; }
-    export -f git
+    simulate_current_branch feature-branch
     run run_hook "git push origin feature-branch"
     [ "$(decision)" = "allow" ]
-    unset -f git
 }
 
 @test "allows push with no remote (feature branch)" {
-    git() { echo "my-feature"; }
-    export -f git
+    simulate_current_branch my-feature
     run run_hook "git push"
     [ "$(decision)" = "allow" ]
-    unset -f git
 }
 
 @test "allows fully qualified feature destination" {
