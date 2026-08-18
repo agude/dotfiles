@@ -24,4 +24,7 @@ export HISTTIMEFORMAT="[%F %T] "
 
 # Add history entries immediately, not on exit
 # http://superuser.com/questions/20900/bash-history-loss
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+case ";${PROMPT_COMMAND-};" in
+    *";history -a;"*|*"; history -a;"*) ;;
+    *) PROMPT_COMMAND="history -a${PROMPT_COMMAND:+; $PROMPT_COMMAND}" ;;
+esac
