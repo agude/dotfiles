@@ -20,6 +20,7 @@ setup() {
 
     create_default_profile
     create_disabled_profile
+    create_shell_profile
     create_codex_profile
     create_deployment_profile
     create_link_map
@@ -59,6 +60,12 @@ EOF
 create_disabled_profile() {
     cat > "${FIXTURE_REPOSITORY}/profiles/disabled.sh" <<'EOF'
 INSTALL_FIXTURE=false
+EOF
+}
+
+create_shell_profile() {
+    cat > "${FIXTURE_REPOSITORY}/profiles/shell.sh" <<'EOF'
+INSTALL_SHELL=true
 EOF
 }
 
@@ -215,6 +222,32 @@ run_installer() {
     [[ ! -e "${firefox_profile}/user.js" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/empty-downloads.service" ]]
     [[ ! -e "${TEST_HOME}/.config/systemd/user/firefox-quit.service" ]]
+}
+
+@test "installer initializes XDG application directories" {
+    run_installer --profile shell
+
+    [[ "$status" -eq 0 ]]
+    [[ -d "${TEST_HOME}/.config/jupyter" ]]
+    [[ -d "${TEST_HOME}/.config/gimp" ]]
+    [[ -d "${TEST_HOME}/.config/gnupg" ]]
+
+    if stat -f '%Lp' "${TEST_HOME}/.config/gnupg" >/dev/null 2>&1; then
+        run stat -f '%Lp' "${TEST_HOME}/.config/gnupg"
+    else
+        run stat -c '%a' "${TEST_HOME}/.config/gnupg"
+    fi
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == "700" ]]
+}
+
+@test "dry-run does not initialize XDG application directories" {
+    run_installer --dry-run --profile shell
+
+    [[ "$status" -eq 0 ]]
+    [[ ! -e "${TEST_HOME}/.config/jupyter" ]]
+    [[ ! -e "${TEST_HOME}/.config/gimp" ]]
+    [[ ! -e "${TEST_HOME}/.config/gnupg" ]]
 }
 
 @test "installer creates a mutable local Codex profile" {

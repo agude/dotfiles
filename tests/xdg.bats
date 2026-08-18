@@ -18,6 +18,55 @@ run_xdg() {
         _ "$XDG_SCRIPT"
 }
 
+@test "XDG declarations do not create directories" {
+    run env -u RIPGREP_CONFIG_PATH \
+        HOME="$TEST_HOME" \
+        PLATFORM=linux \
+        XDG_CONFIG_HOME="${TEST_HOME}/.config" \
+        bash -c 'source "$1"; find "$HOME" -mindepth 1 -print -quit' \
+        _ "$XDG_SCRIPT"
+
+    [[ "$status" -eq 0 ]]
+    [[ -z "$output" ]]
+}
+
+@test "Bash and Zsh receive identical XDG declarations" {
+    run env \
+        -u XDG_CACHE_HOME \
+        -u XDG_DATA_HOME \
+        -u XDG_STATE_HOME \
+        -u RIPGREP_CONFIG_PATH \
+        HOME="$TEST_HOME" \
+        PLATFORM=linux \
+        XDG_CONFIG_HOME="${TEST_HOME}/.config" \
+        bash -c '
+            source "$1"
+            printf "%s\n" "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" \
+                "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$IPYTHONDIR" \
+                "$GIMP2_DIRECTORY" "$GNUPGHOME"
+        ' _ "$XDG_SCRIPT"
+    [[ "$status" -eq 0 ]]
+    bash_output="$output"
+
+    run env \
+        -u XDG_CACHE_HOME \
+        -u XDG_DATA_HOME \
+        -u XDG_STATE_HOME \
+        -u RIPGREP_CONFIG_PATH \
+        HOME="$TEST_HOME" \
+        PLATFORM=linux \
+        XDG_CONFIG_HOME="${TEST_HOME}/.config" \
+        zsh -f -c '
+            source "$1"
+            printf "%s\n" "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" \
+                "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$IPYTHONDIR" \
+                "$GIMP2_DIRECTORY" "$GNUPGHOME"
+        ' _ "$XDG_SCRIPT"
+
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == "$bash_output" ]]
+}
+
 @test "shell startup leaves missing ripgrep config unset" {
     run_xdg
 

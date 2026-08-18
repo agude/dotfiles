@@ -346,9 +346,8 @@ if [[ "${ACTIVE_PROFILE}" != "default" ]]; then
 fi
 
 # Set XDG_CONFIG_HOME if the environment doesn't already provide it.
-# We intentionally avoid sourcing 001.xdg_base_directory.sh here — that file
-# is designed for interactive shells and has side effects (mkdir for Jupyter,
-# Gimp, GnuPG, etc.) that install.sh should not trigger.
+# The declaration module is safe to source, but the installer only needs this
+# one base path and initializes application directories explicitly below.
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 
 # Derive the known-groups list once from default.sh (the source of truth).
@@ -449,6 +448,14 @@ while IFS='|' read -r target source groups; do
 done < "$LINKS_FILE"
 
 # --- 4b. Procedural installs (glob loops, runtime setup) ---
+
+if install_group shell; then
+    echo "› Initializing application directories..."
+    ensure_real_dir "${XDG_CONFIG_HOME}/jupyter"
+    ensure_real_dir "${XDG_CONFIG_HOME}/gimp"
+    ensure_real_dir "${XDG_CONFIG_HOME}/gnupg"
+    run chmod 700 "${XDG_CONFIG_HOME}/gnupg"
+fi
 
 if install_group scripts; then
     echo "› Setting up executable scripts in ~/bin..."
