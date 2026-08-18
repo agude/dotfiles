@@ -345,6 +345,21 @@ EOF
     [[ "$output" == "600" ]]
 }
 
+@test "installer preserves a foreign Codex profile symlink" {
+    foreign_profile="${TEST_ROOT}/foreign-codex-profile.toml"
+    local_profile="${TEST_HOME}/.codex/agude.config.toml"
+    mkdir -p "${TEST_HOME}/.codex"
+    printf 'foreign = true\n' > "$foreign_profile"
+    ln -s "$foreign_profile" "$local_profile"
+
+    run_installer --profile codex
+
+    [[ "$status" -eq 0 ]]
+    [[ -L "$local_profile" ]]
+    [[ "$(readlink "$local_profile")" == "$foreign_profile" ]]
+    [[ "$output" == *"foreign config symlink exists, skipping"* ]]
+}
+
 @test "installer excludes missing sources from the manifest" {
     run_installer --profile default
 

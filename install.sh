@@ -157,9 +157,8 @@ install_local_config() {
         migration_path="${target}.dotfiles-migration.$(date +%s).$$"
         echo "  -> Migrating managed config symlink to local file: $target"
         run cp -p "$target" "$migration_path"
-        run rm "$target"
+        run chmod 600 "$migration_path"
         run mv "$migration_path" "$target"
-        run chmod 600 "$target"
         return 0
     fi
 
