@@ -155,6 +155,23 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 - `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
   global settings. The `codex` alias injects `--profile agude`.
 
+#### OpenCode
+- `llm/opencode/opencode.json` — global config (providers, models)
+- `llm/opencode/plugin/knowledge.ts` — TypeScript plugin for KB session capture
+- `~/.config/opencode/` follows XDG layout; `opencode.json` is symlinked,
+  the plugin is symlinked into `~/.config/opencode/plugin/` (auto-discovered)
+- Capture defaults to on; `KNOWLEDGE_OBSERVE=0 opencode` opts out. The plugin
+  is the single gate — there is deliberately no shell wrapper setting the
+  variable, so launches that skip `sharedrc.d` still capture.
+- Subagents are child sessions (`parentID` set) and are deliberately not
+  captured, matching the Claude rule of one transcript per conversation.
+- **Permission keys differ in shape.** `read`, `edit`, `glob`, `grep`, `list`,
+  `bash`, `task`, `external_directory`, `lsp`, and `skill` accept either a bare
+  action or a `{pattern: action}` map. `webfetch`, `websearch`, `todowrite`,
+  `question`, and `doom_loop` accept only a bare `allow`/`ask`/`deny` — a
+  pattern map there makes OpenCode refuse to start. `just lint-opencode`
+  catches it.
+
 #### Gemini CLI
 - `llm/gemini/settings.json` — user-level settings
 - `~/.gemini/` follows the same selective-symlink pattern as `~/.claude/`
@@ -186,6 +203,11 @@ Scripts symlinked to `~/bin/` without file extensions:
 ### CI
 - `.github/workflows/test.yaml` — runs justfile recipes for lint, unit tests,
   Bash 3.2 shell tests, and Linux/macOS integration tests (`just test-integration`)
+- `just lint-opencode` validates `llm/opencode/opencode.json` with the locally
+  installed OpenCode (`opencode debug config --pure`) rather than a vendored
+  schema, so it can never drift from the binary in use. It prints a skip line
+  and passes when OpenCode is absent, which is the CI case; the pre-commit
+  hook is where it actually bites.
 
 ## Modifying Configurations
 

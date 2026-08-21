@@ -10,6 +10,7 @@ setup() {
     mkdir -p "${FIXTURE_REPOSITORY}/config/firefox" \
              "${FIXTURE_REPOSITORY}/config/systemd/user" \
              "${FIXTURE_REPOSITORY}/llm/codex" \
+             "${FIXTURE_REPOSITORY}/llm/opencode/plugin" \
              "${FIXTURE_REPOSITORY}/profiles" \
              "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
              "${FIXTURE_REPOSITORY}/bin" \
@@ -32,6 +33,8 @@ setup() {
     printf 'downloads service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/empty-downloads.service"
     printf 'firefox service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/firefox-quit.service"
     printf 'personality = "pragmatic"\n' > "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
+    printf 'export default {}\n' > \
+        "${FIXTURE_REPOSITORY}/llm/opencode/plugin/knowledge.ts"
     printf 'export PLATFORM=linux\n' > \
         "${FIXTURE_REPOSITORY}/shared/sharedrc.d/000.set_platform.sh"
     cp "${REPOSITORY_ROOT}/shared/sharedrc.d/001.xdg_base_directory.sh" \
@@ -322,6 +325,15 @@ EOF
     [[ -f "$local_profile" ]]
     [[ ! -L "$local_profile" ]]
     grep -Fxq 'personality = "pragmatic"' "$local_profile"
+}
+
+@test "installer links OpenCode plugins into the config plugin directory" {
+    run_installer --profile codex
+
+    plugin="${TEST_HOME}/.config/opencode/plugin/knowledge.ts"
+    [[ "$status" -eq 0 ]]
+    [[ -L "$plugin" ]]
+    [[ "$(readlink "$plugin")" == "${FIXTURE_REPOSITORY}/llm/opencode/plugin/knowledge.ts" ]]
 }
 
 @test "installer preserves existing local Codex state" {

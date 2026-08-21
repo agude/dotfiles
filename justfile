@@ -14,7 +14,7 @@ bootstrap *ARGS:
     ./bin/bootstrap-vim-plugins.sh
 
 # Run every static check.
-lint: lint-shell lint-zsh lint-data lint-python
+lint: lint-shell lint-zsh lint-data lint-python lint-opencode
 
 # Check tracked Bash and shared shell modules.
 lint-shell:
@@ -44,6 +44,40 @@ lint-data:
     while IFS= read -r file; do
         jq empty "$file"
     done < <(git ls-files '*.json')
+
+# Validate the OpenCode config against the installed OpenCode.
+#
+# OpenCode's own validator is the only source of truth that cannot drift from
+# the binary in use: permission keys differ in shape (bash takes a pattern map,
+# webfetch takes a bare action), and a vendored schema would eventually reject
+# valid configs. Skipped when OpenCode is not installed, so CI stays green.
+lint-opencode CONFIG="llm/opencode/opencode.json":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    binary="$(command -v opencode || true)"
+    if [[ -z "$binary" ]] && [[ -x "${HOME}/.opencode/bin/opencode" ]]; then
+        binary="${HOME}/.opencode/bin/opencode"
+    fi
+    if [[ -z "$binary" ]]; then
+        echo "lint-opencode: opencode not installed, skipping {{CONFIG}}"
+        exit 0
+    fi
+    config="$(cd "$(dirname '{{CONFIG}}')" && pwd)/$(basename '{{CONFIG}}')"
+    root="$(mktemp -d)"
+    trap 'rm -rf "$root"' EXIT
+    mkdir -p "$root/config/opencode" "$root/project"
+    cp "$config" "$root/config/opencode/opencode.json"
+    # An empty project directory and a scratch XDG root keep the real user and
+    # project configs out of the merge; --pure keeps plugins from loading.
+    cd "$root/project"
+    if ! XDG_CONFIG_HOME="$root/config" \
+         XDG_DATA_HOME="$root/data" \
+         XDG_CACHE_HOME="$root/cache" \
+         XDG_STATE_HOME="$root/state" \
+         "$binary" debug config --pure > /dev/null; then
+        echo "lint-opencode: {{CONFIG}} is rejected by opencode $("$binary" --version)" >&2
+        exit 1
+    fi
 
 # Parse Python without writing bytecode caches.
 lint-python:
