@@ -300,6 +300,18 @@ Things that look like bugs and are not:
 
 - **The bare `claude` command is pinned to a specific model on purpose.**
   `opus` / `sonnet` / `fable` aliases exist for overrides.
+- **OpenCode's bash permission is allow-by-default on purpose.** `"*": "allow"`
+  with an `ask` tier (rm, chmod, chown, git reset --hard, git clean, gh pr
+  merge) and a `deny` tier is deliberate, not an oversight. The previous
+  ask-by-default allowlist prompted constantly because OpenCode evaluates
+  every sub-command of a pipeline separately — `cat x | head` checks `cat x`
+  *and* a bare `head`, and `$(id -u)` is checked on its own — so an allowlist
+  has to cover bare forms and every pipeline sink. Splitting also means denies
+  still fire inside `foo && rm -rf x`.
+- **`permission.external_directory` deliberately has no `"*"` key.** Rules are
+  last-match-wins, and OpenCode appends automatic allowances for skill
+  directories before the user config. A catch-all `"*": "ask"` there overrides
+  them and re-prompts for every skill.
 - **The broad `.*` rule in `.gitignore` stays** until it actually bites.
 - **There are two different agent docs, and reviewers conflate them.** This
   file (repo root, with `CLAUDE.md` as a symlink to it) documents *this repo*.
