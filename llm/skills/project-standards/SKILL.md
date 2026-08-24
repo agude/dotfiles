@@ -70,6 +70,7 @@ Pick the archetype first; it determines the runner and the reference doc.
 | Script collection | loose `*.py`, no `src/`, no suite | `just` | this table's note below |
 | Jekyll site | `_config.yml`, `Gemfile`, Docker | `make` | `references/jekyll-site.md` |
 | Shell / infra | `*.sh`, `tests/*.bats`, playbooks | `just` | `references/shell-repo.md` |
+| Google Apps Script | `src/appsscript.json`, Apps Script JavaScript | none by default | `references/apps-script.md` |
 | Single file | one script, no deps | none | ruff config only, no CI needed |
 
 **Script collections** get `sync`, `lint`, `format`, `check`, and
@@ -78,6 +79,12 @@ version, because there is no package or suite for them to describe. `check`
 is just `lint`. CI is a single lint job. Say so in `AGENTS.md`, so the
 audit's warnings about the missing mypy and coverage settings read as a shape
 decision rather than neglect.
+
+**Google Apps Script** projects execute inside a bound Google Workspace file.
+They start without a local runner or CI: runtime tests run from the Apps
+Script editor. Add `clasp`, a `justfile`, and CI only after configuring a
+real Apps Script project and credentials; an unexecutable recipe is worse
+than no recipe.
 
 ## The verb contract
 
@@ -168,6 +175,10 @@ action removes a version to track.
 5. Re-run the audit; every FAIL should be gone or documented as an exception.
 6. Run `just check` and confirm it passes before committing.
 
+For Google Apps Script projects, run the project's documented Apps Script test
+entry point in the bound project instead of `just check` until `clasp` is
+configured.
+
 ### The gitignore trap
 
 Older repos carry GitHub-template `.gitignore` files with rules like `.*`,
@@ -222,6 +233,18 @@ full directory tree, copies and substitutes all assets, initializes git, and
 runs `just sync && just hooks-install`.
 
 After scaffolding: fill in `AGENTS.md` and `README.md`, then run `just check`.
+
+### Starting a Google Apps Script repo
+
+```bash
+bash ${CLAUDE_SKILL_DIR}/scripts/scaffold-apps-script.sh <dest-dir> <project-name>
+```
+
+The scaffold creates a source layout compatible with a future `clasp`
+workflow, anonymized-fixture guidance, and CC0 licensing. It deliberately
+does not install Node.js, configure a script ID, or create CI. Open the target
+Google Sheet, select **Extensions → Apps Script**, and copy the JavaScript
+files from `src/` into the bound project before adding runtime behavior.
 
 ### Bumping a tool or action version
 
@@ -299,6 +322,8 @@ Read the one matching the archetype before making changes:
 
 - `references/python-package.md` — uv, hatchling, mypy, pytest, matrix,
   release flow.
+- `references/apps-script.md` — bound-script layout, fixtures, tests, and
+  optional clasp workflow.
 - `references/jekyll-site.md` — make targets, Docker patterns, ruff scoping
   for `_scripts/`, why these hooks auto-fix.
 - `references/shell-repo.md` — shellcheck, bats, Bash 3.2 coverage,

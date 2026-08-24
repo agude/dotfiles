@@ -97,6 +97,8 @@ detect_archetype() {
         echo "jekyll"
     elif [ -f "$REPO/ansible.cfg" ] || [ -f "$REPO/site.yaml" ]; then
         echo "shell"
+    elif [ -f "$REPO/appsscript.json" ] || [ -f "$REPO/src/appsscript.json" ]; then
+        echo "apps-script"
     elif [ -f "$REPO/pyproject.toml" ] && grep -q '^\[project\]' "$REPO/pyproject.toml" 2>/dev/null; then
         # No package and no suite means a script collection: it legitimately
         # has nothing for type-check, test, or a coverage gate to describe.
@@ -400,6 +402,61 @@ check_shell() {
     check_hook "just (lint|check)" "bin/pre-commit.sh"
 }
 
+check_apps_script() {
+    local manifest=""
+    for candidate in src/appsscript.json appsscript.json; do
+        if has "$candidate"; then
+            manifest="$candidate"
+            break
+        fi
+    done
+
+    if [ -n "$manifest" ]; then
+        report PASS apps-script.manifest "$manifest"
+        if greps "$manifest" '"runtimeVersion"[[:space:]]*:[[:space:]]*"V8"'; then
+            report PASS apps-script.runtime "V8 configured"
+        else
+            report WARN apps-script.runtime "no V8 runtime declaration"
+        fi
+    else
+        report FAIL apps-script.manifest "no appsscript.json"
+    fi
+
+    local source_dir="."
+    [ -d "$REPO/src" ] && source_dir="src"
+    if find "$REPO/$source_dir" -maxdepth 1 -type f \( -name '*.js' -o -name '*.gs' \) | grep -q .; then
+        report PASS apps-script.source "$source_dir contains Apps Script source"
+    else
+        report WARN apps-script.source "no .js or .gs source in $source_dir"
+    fi
+
+    if [ -d "$REPO/fixtures" ]; then
+        report PASS apps-script.fixtures "fixtures directory present"
+    else
+        report WARN apps-script.fixtures "no fixtures directory; use anonymized examples when needed"
+    fi
+
+    if greps .gitignore '^\.clasp\.json$' && greps .gitignore '^\.clasprc\.json$'; then
+        report PASS apps-script.credentials "clasp credentials are ignored"
+    else
+        report WARN apps-script.credentials "ignore .clasp.json and .clasprc.json before configuring clasp"
+    fi
+
+    local tracked_credentials=""
+    if [ -d "$REPO/.git" ]; then
+        tracked_credentials=$(cd "$REPO" && git ls-files -- .clasp.json .clasprc.json 2>/dev/null)
+    fi
+    if [ -n "$tracked_credentials" ]; then
+        report FAIL apps-script.credentials "tracked credential files: $(tr '\n' ' ' <<<"$tracked_credentials")"
+    fi
+
+    if greps AGENTS.md 'run[A-Za-z0-9]*Tests'; then
+        report PASS apps-script.tests "AGENTS.md documents an Apps Script test entry point"
+    else
+        report WARN apps-script.tests "document the Apps Script test entry point in AGENTS.md"
+    fi
+}
+
 # --- run ------------------------------------------------------------------
 
 case "$ARCHETYPE" in
@@ -407,6 +464,7 @@ case "$ARCHETYPE" in
     scripts) check_scripts; check_isolation; check_ci ;;
     jekyll) check_jekyll; check_isolation; check_ci ;;
     shell)  check_shell; check_isolation; check_ci ;;
+    apps-script) check_apps_script ;;
     *)      report WARN archetype "unrecognised repo shape; only doc checks run" ;;
 esac
 check_docs
