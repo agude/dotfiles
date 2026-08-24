@@ -53,22 +53,20 @@ elif [[ -n "$BASH_VERSION" ]]; then
     alias reload='source "${HOME}/.bashrc"'
 fi
 
-# Claude Code with all permissions pre-approved
-alias dclaude='claude --dangerously-skip-permissions'
 # Claude Code with all permissions, no knowledge-base observation
 alias qclaude='KNOWLEDGE_OBSERVE=0 claude --dangerously-skip-permissions'
 # Claude Code pinned to Opus 4.6
 alias opus='claude --model claude-opus-4-6'
-alias dopus='claude --model claude-opus-4-6 --dangerously-skip-permissions'
 # Claude Code pinned to Sonnet 5
 alias sonnet='claude --model claude-sonnet-4-6'
-alias dsonnet='claude --model claude-sonnet-4-6 --dangerously-skip-permissions'
 # Claude Code pinned to Fable 5
 alias fable='claude --model claude-fable-5'
-alias dfable='claude --model claude-fable-5 --dangerously-skip-permissions'
 
 # Codex CLI with synced profile and session capture enabled
 codex() { KNOWLEDGE_OBSERVE=1 command codex --profile agude "$@"; }
+alias luna='codex --model gpt-5.6-luna'
+alias terra='codex --model gpt-5.6-terra'
+alias sol='codex --model gpt-5.6-sol'
 
 # ------------------------------------------------------------------------------
 # Functions
