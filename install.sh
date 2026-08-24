@@ -530,13 +530,15 @@ if install_group llm; then
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
-    # Codex skills (same shared skills, second target directory).
-    CODEX_SKILLS_DIR="${HOME}/.codex/skills"
-    ensure_real_dir "$CODEX_SKILLS_DIR"
+    # Cross-harness skills. Codex, Pi, and OpenCode all discover
+    # ~/.agents/skills natively; Claude Code does not and keeps its own
+    # directory below.
+    AGENTS_SKILLS_DIR="${HOME}/.agents/skills"
+    ensure_real_dir "$AGENTS_SKILLS_DIR"
     for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
         [ -d "$skill_dir" ] || continue
         skill_name=$(basename "$skill_dir")
-        link "${CODEX_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+        link "${AGENTS_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
     # Codex hooks — knowledge base session capture.

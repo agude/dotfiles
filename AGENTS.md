@@ -183,7 +183,10 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
-  `~/.claude/skills/` and `~/.codex/skills/`
+  `~/.claude/skills/` and `~/.agents/skills/`
+- `~/.agents/skills/` is the cross-harness location: Codex, Pi, and OpenCode
+  discover it natively. Claude Code only reads `~/.claude/skills`, so both
+  targets are linked.
 - Each skill is a folder with `SKILL.md` plus optional `scripts/`,
   `references/`, `assets/`
 - See `llm/skills/README.md` for the specification
