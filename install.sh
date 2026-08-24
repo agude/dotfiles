@@ -236,6 +236,7 @@ expand_vars() {
     s="${s//\$\{GEMINI_SETTINGS_REL\}/$GEMINI_SETTINGS_REL}"
     s="${s//\$\{GEMINI_AGENTS_REL\}/$GEMINI_AGENTS_REL}"
     s="${s//\$\{CODEX_AGENTS_REL\}/$CODEX_AGENTS_REL}"
+    s="${s//\$\{PI_AGENTS_REL\}/$PI_AGENTS_REL}"
     printf '%s' "$s"
 }
 

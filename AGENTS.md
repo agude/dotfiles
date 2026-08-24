@@ -125,8 +125,8 @@ All LLM configs live under `llm/`:
 
 #### Shared Agent Context
 - `llm/AGENTS.md` — shared instructions (commit style, tone) for all LLM agents
-- Symlinked to `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, and
-  `~/.codex/AGENTS.md`
+- Symlinked to `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`,
+  `~/.codex/AGENTS.md`, and `~/.pi/agent/AGENTS.md`
 
 #### Claude Code
 - `llm/claude/settings.json` — user-level settings synced across machines
