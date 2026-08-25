@@ -163,8 +163,13 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 #### OpenCode
 - `llm/opencode/opencode.json` — global config (providers, models)
 - `llm/opencode/plugin/knowledge.ts` — TypeScript plugin for KB session capture
-- `~/.config/opencode/` follows XDG layout; `opencode.json` is symlinked,
-  the plugin is symlinked into `~/.config/opencode/plugin/` (auto-discovered)
+- `~/.config/opencode/AGENTS.md` is symlinked to `llm/AGENTS.md` as the global
+  instruction file.
+- `~/.config/opencode/opencode.json` follows the XDG layout and is symlinked
+  from the repository; the plugin is symlinked into
+  `~/.config/opencode/plugin/` (auto-discovered).
+- `~/.agents/skills/` is the native cross-harness global skills directory;
+  shared skills are linked there by the installer.
 - Capture defaults to on; `KNOWLEDGE_OBSERVE=0 opencode` opts out. The plugin
   is the single gate — there is deliberately no shell wrapper setting the
   variable, so launches that skip `sharedrc.d` still capture.
