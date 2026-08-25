@@ -504,6 +504,12 @@ fi
 
 if install_group llm; then
     echo "› Setting up LLM tool configurations..."
+
+    # Johnny.Decimal owns this local mutable config. Seed it once from the
+    # portable template; preserve later edits made by the user or tools.
+    install_local_config "${XDG_CONFIG_HOME}/johnnydecimal/config.json" \
+        "${DOTFILES_DIR}/llm/johnnydecimal/config.json"
+
     # Claude custom commands (individual symlinks so external commands coexist).
     COMMANDS_DIR="${HOME}/.claude/commands"
     ensure_real_dir "$COMMANDS_DIR"

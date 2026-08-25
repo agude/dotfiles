@@ -13,7 +13,17 @@
 set -euo pipefail
 
 # --- Load shared library ---
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [[ -L "$SCRIPT_PATH" ]]; do
+    SCRIPT_DIRECTORY="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_TARGET="$(readlink "$SCRIPT_PATH")"
+    if [[ "$SCRIPT_TARGET" = /* ]]; then
+        SCRIPT_PATH="$SCRIPT_TARGET"
+    else
+        SCRIPT_PATH="${SCRIPT_DIRECTORY}/${SCRIPT_TARGET}"
+    fi
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
 # shellcheck source=/dev/null
 source "${SCRIPT_DIR}/jd-lib.sh"
 

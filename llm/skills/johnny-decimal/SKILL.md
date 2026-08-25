@@ -1,206 +1,45 @@
 ---
 name: johnny-decimal
 description: >
-  Organize, file, find, and manage documents in a Johnny Decimal system at
-  ~/Documents. Use this skill when the user needs to file a document, sort
-  scanned papers, find where something belongs, create a new folder or
-  subcategory, take notes about a JD item, or clean out an inbox. Also use
-  when the user mentions ~/Documents, a JD ID like "21.10", or asks where to
-  put a file --- even if they don't say "Johnny Decimal" explicitly.
-compatibility: Requires bash and tree. Optional: fzf for interactive browsing.
-allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Bash(ls:*) Bash(mv:*) Bash(jd:*) Read"
+  Organizes, files, finds, and documents items in the user's local
+  Johnny.Decimal system. Use when the user needs to file a document, sort
+  scans, find an ID or file, decide where something belongs, create a
+  subcategory, or update a JDex note.
+compatibility: "Requires bash. The tree command is required for full tree output; fzf is optional."
+allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Bash(ls:*) Bash(jd:*) Read"
 ---
 
-# Johnny Decimal File Organization
+# Local Johnny.Decimal System
 
-**Skill base directory:** `${CLAUDE_SKILL_DIR}`
+This is a local, plain-file Johnny.Decimal system. This `SKILL.md` is the
+entry point; load only the layer needed for the task:
 
-This skill helps you work with the Johnny Decimal (JD) file system located at
-`~/Documents` (or `$XDG_DOCUMENTS_DIR`).
+| Layer | Read when | Reference |
+| --- | --- | --- |
+| JD reference | Explaining JD structure, notation, or general principles | `references/johnnydecimal-reference.md` |
+| JDex policy | Working with the user's index, filing rules, or local decisions | `references/jdex.md` |
+| JD tools | Searching, reading, creating, moving, or renaming files and notes | `references/jd-tools.md` |
 
-## Quick Reference
+For a filing operation, read the JDex and tools layers. For naming or a
+specific placement decision, also read `references/FILING-GUIDE.md` and
+`references/NAMING.md`. Read the local JDex `overview.md` and `flowchart.md`
+when the current structure or filing decision is unclear.
 
-The system has 10 areas:
+## Operating boundaries
 
-| Area | Purpose |
-|------|---------|
-| 00-09 System | Meta-management (inbox, templates, scripts, archive) |
-| 10-19 Personal | People (Self, Spouse, Kids, Parents, Friends, Pets) |
-| 20-29 Finances | Banks, investments, credit, taxes, insurance |
-| 30-39 Home and Property | Homes, vehicles, major assets |
-| 40-49 Career and Education | Education, research, employers |
-| 50-59 Health and Wellness | General health resources (not personal records) |
-| 60-69 Hobbies and Recreation | Games, computing, creative works, travel |
-| 70-79 Legal and Records | Legal documents and archival records |
-| 80-89 Household and Services | Services, products, utilities, meals |
-| 90-99 Reference | Library, research, manuals, datasets |
+- The filesystem and JDex are local sources of truth.
+- Do not replace local rules with generic JD assumptions.
+- Do not use a hosted Johnny.Decimal service as a prerequisite.
+- Treat actual documents and notes about those documents as different things.
+- Use the bundled scripts for filesystem changes and follow their agent-mode
+  output requirements.
+- Preserve existing user changes and naming conventions.
 
-## Structure Format
+## Quick routing
 
-```
-XX-XX Area Name/           # Area (decade range)
-└── XX Category Name/      # Category (two digits)
-    └── XX.YY Subcategory/ # Subcategory (ID)
-```
-
-Example path:
-```
-~/Documents/20-29 Finances/21 Banks/21.10 Example Bank/
-```
-
-## Key Principles
-
-1. **One place for everything** - Each item has exactly one correct location
-2. **Person-first for personal records** - A spouse's health records go in
-   `12 Spouse`, not `50 Health`
-3. **Purpose determines area** - A bill goes in `27 Bills`, not with the service
-   provider
-4. **JDex is the brain** - Notes and decisions live in `00.00 JDex for System`
-
-## Finding Where Things Go
-
-Before filing, consult:
-- **Flowchart**: `00-09 System/00 System/00.00 JDex for System/flowchart.md`
-- **Full structure**: `00-09 System/00 System/00.00 JDex for System/overview.md`
-
-Or use your judgment with the filing hierarchy:
-1. Is it about a specific person? → `10-19 Personal` under their folder
-2. Is it about yourself specifically? → `11 Self`
-3. Otherwise, match by purpose → Areas 20-99
-
-## Notes System
-
-Notes about JD items live as markdown files in the JDex:
-```
-00-09 System/00 System/00.00 JDex for System/
-├── overview.md      # System structure documentation
-├── flowchart.md     # Filing decision tree
-├── 31.14.md         # Notes about current home
-├── 21.10.md         # Notes about a bank account
-└── ...
-```
-
-Use `jd-note` to add timestamped entries to these files.
-
-## Naming Conventions
-
-**Folders:**
-- Areas: `XX-XX Name` (e.g., `20-29 Finances`)
-- Categories: `XX Name` (e.g., `21 Banks`)
-- Subcategories: `XX.YY Name` (e.g., `21.10 Example Bank`)
-
-**Files:**
-- Date-prefixed for transient items: `20241227_statement.pdf` (YYYYMMDD, no hyphens)
-- Descriptive for permanent items: `policy_declaration.pdf`
-- Statements: `statements/YYYY/MM.pdf` or `cc_MM.pdf` for credit cards
-
-## Available Scripts
-
-Scripts are located in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking:
-
-| Script | Purpose |
-|--------|---------|
-| `${CLAUDE_SKILL_DIR}/scripts/jd-search.sh <query>` | Search for JD folders by name or ID fragment (case-insensitive) |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-list.sh [ID]` | List contents of an area, category, or ID |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh [-L depth] [ID]` | Show directory structure using tree |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh <filename>` | Check if filename follows conventions |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh <category> <name>` | Create a new subcategory folder (auto-numbers) |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-inbox.sh <source...>` | Move files to the inbox (`00.01`). Shorthand for `jd-move <source...> 00.01`. |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-move.sh <source...> <ID> [--name <new_name>] [--subdir <path>]` | Move files to a JD location. Supports globs (e.g., `*.pdf 00.01`). `--name` renames (single source only). `--subdir` targets a subdirectory within the ID. |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-note.sh [ID] [text]` | Add a timestamped note (browse if no ID given) |
-| `${CLAUDE_SKILL_DIR}/scripts/jd-read.sh [ID] [--edit]` | Display notes for an ID (browse if no ID given) |
-
-Also available: `jd <query>` for navigation (in `~/bin/`).
-
-Some bash commands, like `mv` are not allowed by your settings in the folder,
-so use the scripts.
-
-### Interactive Features
-
-When run by a human (not an agent), these commands have interactive modes:
-
-- `jd-note` (no args) - Hierarchical browse (Area → Category → ID), then opens editor
-- `jd-note <ID>` (without text) - Opens editor to write a note
-- `jd-read` (no args) - Hierarchical browse (Area → Category → ID), then displays notes
-- `jd-read --edit` (no args) - Hierarchical browse, then opens editor
-- `jd-read <ID> --edit` - Opens the note file for editing
-
-All properly handle TTY redirection for compatibility with any editor.
-
-## Agent Usage (--porcelain)
-
-All scripts support a `--porcelain` flag for machine-readable output:
-
-```bash
-${CLAUDE_SKILL_DIR}/scripts/jd-search.sh bank --porcelain             # Find folders matching "bank"
-${CLAUDE_SKILL_DIR}/scripts/jd-inbox.sh scan.pdf --porcelain         # Move to inbox (00.01)
-${CLAUDE_SKILL_DIR}/scripts/jd-list.sh 21 --porcelain                # Full paths, no colors
-${CLAUDE_SKILL_DIR}/scripts/jd-tree.sh -L3 --porcelain               # Full structure, no colors
-${CLAUDE_SKILL_DIR}/scripts/jd-mkdir.sh 21 "Name" --porcelain        # Outputs created path
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --porcelain                             # Outputs destination path
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh *.pdf 00.01 --porcelain                                # Move multiple files
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 21.10 --name renamed.pdf --porcelain          # Move and rename
-${CLAUDE_SKILL_DIR}/scripts/jd-move.sh file.pdf 91.10 --subdir Bolos/covers --porcelain       # Move into subdir
-${CLAUDE_SKILL_DIR}/scripts/jd-note.sh 21.10 "text" --porcelain      # Adds note (text required)
-${CLAUDE_SKILL_DIR}/scripts/jd-read.sh 21.10 --porcelain             # Outputs note file path
-${CLAUDE_SKILL_DIR}/scripts/jd-validate.sh file.pdf --porcelain      # Machine-readable validation
-```
-
-When using these scripts as an agent:
-- **Always use `--porcelain`** for reliable parsing
-- Paths are absolute and suitable for further operations
-- Errors go to stderr with exit code 1
-- `jd-note` **requires text argument** in agent mode (no editor)
-- `jd-read --edit` is **not available** in agent mode (requires TTY)
-- All scripts auto-detect agent mode when stdout/stdin are not TTYs
-
-## Safety Rules
-
-- Scripts will **refuse to overwrite** existing files
-- Scripts **validate paths** before operations
-- Always **confirm destructive operations** with the user
-- When uncertain about filing location, **ask** rather than guess
-
-## Gotchas
-
-- **Person-first filing**: A spouse's medical records go in `12 Spouse`, not
-  `50 Health`. A child's school docs go in `13 Kids`, not `40 Education`.
-  Always check if the item belongs to a specific person before filing by topic.
-- **Purpose over provider**: A utility bill goes in `27 Bills`, not with the
-  utility company in `80 Services`. File by purpose, not by the entity that
-  sent it.
-- **Scan-date filenames are never final**: Files in the inbox (`00.01`) are
-  named by scan date (e.g., `20260127.pdf`). Always rename before filing.
-- **JDex notes vs. filed documents**: Notes *about* a JD item go in the JDex
-  (`00.00`). The *actual documents* go in the item's folder.
-- **`--porcelain` is required in agent mode**: Without it, scripts may output
-  colored/truncated paths that are unreliable for further operations.
-- **ScanSnap PDFs may be upside down**: When the ScanSnap scans directly to the
-  NAS, pages often come out rotated 180°. After filing, check orientation and
-  fix with `pdftk input.pdf cat 1-endsouth output rotated.pdf`.
-
-## Filing Inbox Documents
-
-Files in the inbox (`00.01`) are typically scanned documents named by scan date
-(e.g., `20260127.pdf`). When filing them:
-
-1. **Read the file** to determine what it is
-2. **Decide where it goes** using the flowchart and overview
-3. **`ls` the target directory** to learn its naming conventions
-4. **Choose the final filename** to match the existing pattern --- see `${CLAUDE_SKILL_DIR}/references/NAMING.md`
-5. **Move and rename in one step** using `jd-move <file> <ID> --name <new_name>`
-
-The scan-date filename is never the final name. Always rename during the move.
-
-## When to Explore
-
-If you need current structure details not covered here, read:
-1. `overview.md` in the JDex for full category breakdown
-2. `flowchart.md` in the JDex for filing decisions
-3. Use `${CLAUDE_SKILL_DIR}/scripts/jd-list.sh` to see what exists in a location
-
-## References
-
-For more detailed guidance, use the Read tool to load:
-- `${CLAUDE_SKILL_DIR}/references/FILING-GUIDE.md` - Detailed filing decisions and examples
-- `${CLAUDE_SKILL_DIR}/references/NAMING.md` - File and folder naming conventions
+1. Identify whether the request is about JD concepts, the local JDex, or an
+   operation on files and notes.
+2. Read the corresponding layer reference.
+3. For filing, inspect the source and target before changing anything.
+4. Use `--porcelain` for agent-mode script calls.
+5. Report the resulting path or note file and any unresolved ambiguity.

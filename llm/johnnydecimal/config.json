@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "root": "${XDG_DOCUMENTS_DIR}",
+  "jdex": "${XDG_DOCUMENTS_DIR}/00-09 System/00 System/00.00 JDex for System"
+}

@@ -155,6 +155,11 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 - `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
   global settings. The `codex` alias injects `--profile agude`.
 
+#### Johnny.Decimal
+- `llm/johnnydecimal/config.json` — portable configuration template
+- `${XDG_CONFIG_HOME}/johnnydecimal/config.json` — mutable local configuration,
+  initialized once by `install.sh`
+
 #### OpenCode
 - `llm/opencode/opencode.json` — global config (providers, models)
 - `llm/opencode/plugin/knowledge.ts` — TypeScript plugin for KB session capture

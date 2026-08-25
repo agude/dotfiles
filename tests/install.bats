@@ -10,6 +10,7 @@ setup() {
     mkdir -p "${FIXTURE_REPOSITORY}/config/firefox" \
              "${FIXTURE_REPOSITORY}/config/systemd/user" \
              "${FIXTURE_REPOSITORY}/llm/codex" \
+             "${FIXTURE_REPOSITORY}/llm/johnnydecimal" \
              "${FIXTURE_REPOSITORY}/llm/opencode/plugin" \
              "${FIXTURE_REPOSITORY}/profiles" \
              "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
@@ -33,6 +34,8 @@ setup() {
     printf 'downloads service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/empty-downloads.service"
     printf 'firefox service\n' > "${FIXTURE_REPOSITORY}/config/systemd/user/firefox-quit.service"
     printf 'personality = "pragmatic"\n' > "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
+    cp "${REPOSITORY_ROOT}/llm/johnnydecimal/config.json" \
+        "${FIXTURE_REPOSITORY}/llm/johnnydecimal/config.json"
     printf 'export default {}\n' > \
         "${FIXTURE_REPOSITORY}/llm/opencode/plugin/knowledge.ts"
     printf 'export PLATFORM=linux\n' > \
@@ -325,6 +328,17 @@ EOF
     [[ -f "$local_profile" ]]
     [[ ! -L "$local_profile" ]]
     grep -Fxq 'personality = "pragmatic"' "$local_profile"
+}
+
+@test "installer creates a mutable local Johnny Decimal config" {
+    run_installer --profile codex
+
+    local_config="${TEST_HOME}/.config/johnnydecimal/config.json"
+    [[ "$status" -eq 0 ]]
+    [[ -f "$local_config" ]]
+    [[ ! -L "$local_config" ]]
+    grep -Fxq '  "version": 1,' "$local_config"
+    grep -Fq '"root": "${XDG_DOCUMENTS_DIR}"' "$local_config"
 }
 
 @test "installer links OpenCode plugins into the config plugin directory" {

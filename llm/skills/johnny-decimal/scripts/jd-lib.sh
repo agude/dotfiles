@@ -14,9 +14,62 @@
 #
 #   Call jd_parse_common_args "$@" early, then use JD_PORCELAIN to check mode.
 
-# --- Configuration (exported for use by scripts that source this library) ---
-export JD_ROOT="${JD_ROOT:-${XDG_DOCUMENTS_DIR:-${HOME}/Documents}}"
-export JDEX_PATH="${JD_ROOT}/00-09 System/00 System/00.00 JDex for System"
+# --- Configuration ---
+#
+# Explicit JD_ROOT and JDEX_PATH values remain the highest-priority overrides.
+# Otherwise, read the local XDG configuration file and fall back to the
+# conventional Documents/JDex layout.
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
+XDG_DOCUMENTS_DIR="${XDG_DOCUMENTS_DIR:-${HOME}/Documents}"
+export JD_CONFIG="${JD_CONFIG:-${XDG_CONFIG_HOME}/johnnydecimal/config.json}"
+
+# Expand only the path variables supported by the local config template. Do
+# not use eval: config files are data, not shell programs.
+jd_expand_config_path() {
+    local path="$1"
+
+    path="${path//\$\{HOME\}/$HOME}"
+    path="${path//\$HOME/$HOME}"
+    path="${path//\$\{XDG_DOCUMENTS_DIR\}/$XDG_DOCUMENTS_DIR}"
+    path="${path//\$XDG_DOCUMENTS_DIR/$XDG_DOCUMENTS_DIR}"
+    path="${path//\$\{XDG_CONFIG_HOME\}/$XDG_CONFIG_HOME}"
+    path="${path//\$XDG_CONFIG_HOME/$XDG_CONFIG_HOME}"
+
+    printf '%s\n' "$path"
+}
+
+# Read a simple top-level JSON string property. The local config intentionally
+# has a small, portable schema; jq is not required.
+jd_read_config_value() {
+    local key="$1"
+    local config_path="$2"
+
+    sed -nE "s/^[[:space:]]*\"${key}\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*$/\1/p" \
+        "$config_path" | head -n 1
+}
+
+jd_load_config() {
+    local config_root=""
+    local config_jdex=""
+
+    [[ -f "$JD_CONFIG" ]] || return 0
+
+    config_root=$(jd_read_config_value root "$JD_CONFIG")
+    config_jdex=$(jd_read_config_value jdex "$JD_CONFIG")
+
+    if [[ -z "${JD_ROOT:-}" && -n "$config_root" ]]; then
+        JD_ROOT=$(jd_expand_config_path "$config_root")
+    fi
+
+    if [[ -z "${JDEX_PATH:-}" && -n "$config_jdex" ]]; then
+        JDEX_PATH=$(jd_expand_config_path "$config_jdex")
+    fi
+}
+
+jd_load_config
+
+export JD_ROOT="${JD_ROOT:-$XDG_DOCUMENTS_DIR}"
+export JDEX_PATH="${JDEX_PATH:-${JD_ROOT}/00-09 System/00 System/00.00 JDex for System}"
 
 # Validate that JD_ROOT exists and is a directory
 # Call this early in scripts after sourcing the library
