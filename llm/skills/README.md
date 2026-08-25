@@ -154,11 +154,12 @@ Skills in this directory are automatically available after running:
 ./install.sh
 ```
 
-This symlinks `llm/skills/` to `~/.claude/skills/` and `~/.codex/skills/`,
-making skills available to:
+This creates skill symlinks from `llm/skills/` to the native global skill
+directories, making skills available to:
 - **Claude Code**: Reads `~/.claude/skills/` natively
-- **Codex CLI**: Reads `~/.codex/skills/` natively
-- **Goose**: Also reads `~/.claude/skills/` natively
+- **Codex CLI**: Reads `~/.agents/skills/` natively
+- **OpenCode**: Reads `~/.agents/skills/` natively
+- **Pi**: Reads `~/.agents/skills/` natively
 
 ## Resources
 
