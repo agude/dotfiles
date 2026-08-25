@@ -80,6 +80,9 @@ export default function (pi: ExtensionAPI) {
 	// session_shutdown and a fresh instance starts a fresh buffer.
 	let bufferFile: string | undefined
 	let sessionId = randomUUID()
+	// Agent retries and branch replays can fire message_end for the same
+	// message more than once; record what we have already appended.
+	const appendedMessages = new Set<string>()
 	// Cached for the life of the process on purpose: Claude Code injects KB
 	// context once at SessionStart, and re-reading per turn would let the
 	// instructions change underneath a running conversation.
@@ -128,6 +131,11 @@ export default function (pi: ExtensionAPI) {
 		try {
 			const { role } = event.message
 			if (role !== "user" && role !== "assistant") return
+			// Messages carry no id; the timestamp is stable across the retry
+			// replays that re-fire this event for the same message.
+			const key = `${role}:${event.message.timestamp}`
+			if (appendedMessages.has(key)) return
+			appendedMessages.add(key)
 			// Text only, like the Claude and Codex shims: the transcript records
 			// the conversation, not the tool traffic.
 			const text = extractText(event.message.content)
