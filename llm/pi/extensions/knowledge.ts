@@ -106,7 +106,7 @@ export default function (pi: ExtensionAPI) {
 	async function appendMessage(role: "user" | "assistant", message: string): Promise<void> {
 		if (!OBSERVE || !message) return
 		if (!bufferFor()) await initSession()
-		const file = bufferFor()
+		const file = bufferFile
 		if (!file) return
 		await run(kbScript("session-append"), [
 			"--file",
@@ -133,7 +133,9 @@ export default function (pi: ExtensionAPI) {
 			if (role !== "user" && role !== "assistant") return
 			// Messages carry no id; the timestamp is stable across the retry
 			// replays that re-fire this event for the same message.
-			const key = `${role}:${event.message.timestamp}`
+			const timestamp = event.message.timestamp
+			if (timestamp === undefined) return
+			const key = `${role}:${timestamp}`
 			if (appendedMessages.has(key)) return
 			appendedMessages.add(key)
 			// Text only, like the Claude and Codex shims: the transcript records

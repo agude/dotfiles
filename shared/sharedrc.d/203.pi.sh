@@ -8,6 +8,8 @@
 
 _pi_bin="${HOME}/.local/share/pi-node/current/bin"
 if [[ -d "$_pi_bin" ]] && [[ ":${PATH}:" != *":${_pi_bin}:"* ]]; then
-    PATH="${_pi_bin}:${PATH}"
+    # Append rather than prepend: the dir bundles node/npm/npx/corepack and
+    # must not shadow any other Node toolchain.
+    PATH="${PATH}:${_pi_bin}"
 fi
 unset _pi_bin
