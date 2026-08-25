@@ -125,8 +125,8 @@ All LLM configs live under `llm/`:
 
 #### Shared Agent Context
 - `llm/AGENTS.md` — shared instructions (commit style, tone) for all LLM agents
-- Symlinked to `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`,
-  `~/.codex/AGENTS.md`, and `~/.pi/agent/AGENTS.md`
+- Symlinked to `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`,
+  and `~/.pi/agent/AGENTS.md`
 
 #### Claude Code
 - `llm/claude/settings.json` — user-level settings synced across machines
@@ -176,10 +176,6 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   `question`, and `doom_loop` accept only a bare `allow`/`ask`/`deny` — a
   pattern map there makes OpenCode refuse to start. `just lint-opencode`
   catches it.
-
-#### Gemini CLI
-- `llm/gemini/settings.json` — user-level settings
-- `~/.gemini/` follows the same selective-symlink pattern as `~/.claude/`
 
 #### Pi coding agent
 - `llm/pi/settings.json` — template for `~/.pi/agent/settings.json`,
@@ -340,5 +336,5 @@ Things that look like bugs and are not:
 - **There are two different agent docs, and reviewers conflate them.** This
   file (repo root, with `CLAUDE.md` as a symlink to it) documents *this repo*.
   `llm/AGENTS.md` is a short cross-project commit-style and tone document,
-  symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`. Intentionally
+  symlinked to `~/.claude/CLAUDE.md`. Intentionally
   separate documents.

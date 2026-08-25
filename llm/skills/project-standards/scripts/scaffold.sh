@@ -118,7 +118,7 @@ build/
 .venv/
 GITIGNORE
 
-msg "AGENTS.md (CLAUDE.md + GEMINI.md symlinked)"
+msg "AGENTS.md (CLAUDE.md symlinked)"
 cat > AGENTS.md <<AGENTS
 # AGENTS.md
 
@@ -148,7 +148,6 @@ Python package (see the project-standards skill, \`references/python-package.md\
 None.
 AGENTS
 ln -sf AGENTS.md CLAUDE.md
-ln -sf AGENTS.md GEMINI.md
 
 msg "README.md"
 printf '# %s\n' "$REPO" > README.md

@@ -15,7 +15,7 @@ repo/
 ├── pyproject.toml
 ├── uv.lock                        # committed
 ├── .python-version                # latest supported
-├── AGENTS.md                      # CLAUDE.md, GEMINI.md symlink to it
+├── AGENTS.md                      # CLAUDE.md symlink to it
 ├── README.md
 └── LICENSE.md
 ```
@@ -79,7 +79,7 @@ exclude the agent docs, which are noise for anyone installing from source:
 
 ```toml
 [tool.hatch.build.targets.sdist]
-exclude = ["AGENTS.md", "CLAUDE.md", "GEMINI.md"]
+exclude = ["AGENTS.md", "CLAUDE.md"]
 ```
 
 A backend swap does not need a version bump: it changes neither the code nor

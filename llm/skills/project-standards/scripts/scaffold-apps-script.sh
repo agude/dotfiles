@@ -89,7 +89,7 @@ cat > .gitignore <<'GITIGNORE'
 output.csv
 GITIGNORE
 
-msg "AGENTS.md (CLAUDE.md + GEMINI.md symlinked)"
+msg "AGENTS.md (CLAUDE.md symlinked)"
 cat > AGENTS.md <<'AGENTS'
 # Repository Guidelines
 
@@ -109,7 +109,6 @@ Do not commit Google Form exports, generated receipts, `.clasp.json`, or
 `.clasprc.json`.
 AGENTS
 ln -sf AGENTS.md CLAUDE.md
-ln -sf AGENTS.md GEMINI.md
 
 msg "README.md"
 {

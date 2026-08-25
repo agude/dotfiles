@@ -33,7 +33,5 @@ INSTALL_CLEANUP=true
 # Override these in machine-specific profiles to swap config variants.
 CLAUDE_SETTINGS_REL="llm/claude/settings.json"
 CLAUDE_AGENTS_REL="llm/AGENTS.md"
-GEMINI_SETTINGS_REL="llm/gemini/settings.json"
-GEMINI_AGENTS_REL="llm/AGENTS.md"
 CODEX_AGENTS_REL="llm/AGENTS.md"
 PI_AGENTS_REL="llm/AGENTS.md"
