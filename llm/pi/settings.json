@@ -1,0 +1,5 @@
+{
+  "$comment": "Template for ~/.pi/agent/settings.json. Installed copy-once by install.sh; Pi owns the file afterwards (trust decisions, /settings writes).",
+  "defaultProjectTrust": "ask",
+  "enableInstallTelemetry": false
+}

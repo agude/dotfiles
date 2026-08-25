@@ -181,6 +181,22 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 - `llm/gemini/settings.json` — user-level settings
 - `~/.gemini/` follows the same selective-symlink pattern as `~/.claude/`
 
+#### Pi coding agent
+- `llm/pi/settings.json` — template for `~/.pi/agent/settings.json`,
+  installed copy-once; Pi owns the file afterwards (trust decisions,
+  `/settings` writes)
+- `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
+  glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
+- `~/.pi/agent/AGENTS.md` is symlinked to the shared instructions; Pi also
+  reads project `AGENTS.md`/`CLAUDE.md`
+- Config dir is hardcoded to `~/.pi/agent` — no XDG support. Keep it
+  canonical rather than exporting `PI_CODING_AGENT_DIR`: launches that skip
+  `sharedrc.d` would silently fork state into `~/.pi`.
+- PATH comes from `shared/sharedrc.d/203.pi.sh`, which follows pi's
+  version-agnostic `~/.local/share/pi-node/current` symlink
+- Capture gates and semantics match the OpenCode plugin: on unless
+  `KNOWLEDGE_OBSERVE=0`; context injection ignores the variable
+
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
   `~/.claude/skills/` and `~/.agents/skills/`

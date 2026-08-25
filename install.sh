@@ -554,6 +554,20 @@ if install_group llm; then
     install_local_config "${HOME}/.codex/agude.config.toml" \
         "${DOTFILES_DIR}/llm/codex/agude.config.toml"
 
+    # Pi writes auth, trust decisions, and /settings changes into its agent
+    # directory; the settings file is initialized once from the template.
+    install_local_config "${HOME}/.pi/agent/settings.json" \
+        "${DOTFILES_DIR}/llm/pi/settings.json"
+
+    # Pi extensions — knowledge base session capture.
+    PI_EXTENSIONS_DIR="${HOME}/.pi/agent/extensions"
+    ensure_real_dir "$PI_EXTENSIONS_DIR"
+    for ext_file in "$DOTFILES_DIR/llm/pi/extensions/"*.ts; do
+        [ -f "$ext_file" ] || continue
+        ext_name=${ext_file##*/}
+        link "${PI_EXTENSIONS_DIR}/${ext_name}" "llm/pi/extensions/${ext_name}"
+    done
+
     # Coat tree hooks — guard scripts for Claude Code.
     # The coat-tree binary is installed separately; hooks go into XDG config.
     COAT_TREE_CONFIG="${XDG_CONFIG_HOME}/coat-tree/hooks.d"
