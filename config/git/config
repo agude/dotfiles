@@ -80,7 +80,7 @@
     prune = true
 
 [help]
-    autocorrect = prompt
+    autocorrect = never
 
 [column]
     ui = auto
