@@ -125,8 +125,8 @@ All LLM configs live under `llm/`:
 
 #### Shared Agent Context
 - `llm/AGENTS.md` — shared instructions (commit style, tone) for all LLM agents
-- Symlinked to `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, and
-  `~/.codex/AGENTS.md`
+- Symlinked to `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`,
+  and `~/.pi/agent/AGENTS.md`
 
 #### Claude Code
 - `llm/claude/settings.json` — user-level settings synced across machines
@@ -163,8 +163,13 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 #### OpenCode
 - `llm/opencode/opencode.json` — global config (providers, models)
 - `llm/opencode/plugin/knowledge.ts` — TypeScript plugin for KB session capture
-- `~/.config/opencode/` follows XDG layout; `opencode.json` is symlinked,
-  the plugin is symlinked into `~/.config/opencode/plugin/` (auto-discovered)
+- `~/.config/opencode/AGENTS.md` is symlinked to `llm/AGENTS.md` as the global
+  instruction file.
+- `~/.config/opencode/opencode.json` follows the XDG layout and is symlinked
+  from the repository; the plugin is symlinked into
+  `~/.config/opencode/plugin/` (auto-discovered).
+- `~/.agents/skills/` is the native cross-harness global skills directory;
+  shared skills are linked there by the installer.
 - Capture defaults to on; `KNOWLEDGE_OBSERVE=0 opencode` opts out. The plugin
   is the single gate — there is deliberately no shell wrapper setting the
   variable, so launches that skip `sharedrc.d` still capture.
@@ -177,13 +182,28 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   pattern map there makes OpenCode refuse to start. `just lint-opencode`
   catches it.
 
-#### Gemini CLI
-- `llm/gemini/settings.json` — user-level settings
-- `~/.gemini/` follows the same selective-symlink pattern as `~/.claude/`
+#### Pi coding agent
+- `llm/pi/settings.json` — template for `~/.pi/agent/settings.json`,
+  installed copy-once; Pi owns the file afterwards (trust decisions,
+  `/settings` writes)
+- `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
+  glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
+- `~/.pi/agent/AGENTS.md` is symlinked to the shared instructions; Pi also
+  reads project `AGENTS.md`/`CLAUDE.md`
+- Config dir is hardcoded to `~/.pi/agent` — no XDG support. Keep it
+  canonical rather than exporting `PI_CODING_AGENT_DIR`: launches that skip
+  `sharedrc.d` would silently fork state into `~/.pi`.
+- PATH comes from `shared/sharedrc.d/203.pi.sh`, which follows pi's
+  version-agnostic `~/.local/share/pi-node/current` symlink
+- Capture gates and semantics match the OpenCode plugin: on unless
+  `KNOWLEDGE_OBSERVE=0`; context injection ignores the variable
 
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
-  `~/.claude/skills/` and `~/.codex/skills/`
+  `~/.claude/skills/` and `~/.agents/skills/`
+- `~/.agents/skills/` is the cross-harness location: Codex, Pi, and OpenCode
+  discover it natively. Claude Code only reads `~/.claude/skills`, so both
+  targets are linked.
 - Each skill is a folder with `SKILL.md` plus optional `scripts/`,
   `references/`, `assets/`
 - See `llm/skills/README.md` for the specification
@@ -321,5 +341,5 @@ Things that look like bugs and are not:
 - **There are two different agent docs, and reviewers conflate them.** This
   file (repo root, with `CLAUDE.md` as a symlink to it) documents *this repo*.
   `llm/AGENTS.md` is a short cross-project commit-style and tone document,
-  symlinked to `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`. Intentionally
+  symlinked to `~/.claude/CLAUDE.md`. Intentionally
   separate documents.

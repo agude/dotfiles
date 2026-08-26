@@ -61,10 +61,9 @@ INSTALL_FIXTURE=true
 
 CLAUDE_SETTINGS_REL=""
 CLAUDE_AGENTS_REL=""
-GEMINI_SETTINGS_REL=""
-GEMINI_AGENTS_REL=""
 CODEX_SETTINGS_REL=""
 CODEX_AGENTS_REL=""
+PI_AGENTS_REL=""
 EOF
 }
 
@@ -110,6 +109,7 @@ create_link_map() {
 ${HOME}/.fixture-link | fixture/source  | fixture
 ${HOME}/.fixture-dir/config | fixture/source | fixture
 ${HOME}/.missing-link | fixture/missing | fixture
+${XDG_CONFIG_HOME}/opencode/AGENTS.md | llm/AGENTS.md | llm
 EOF
 }
 
@@ -423,7 +423,7 @@ EOF
     run_installer --profile default
 
     [[ "$status" -eq 1 ]]
-    [[ "$output" == *"links.conf:4: unknown group 'typo'"* ]]
+    [[ "$output" == *"links.conf:5: unknown group 'typo'"* ]]
     [[ ! -e "${TEST_HOME}/.fixture-link" ]]
     [[ ! -e "${TEST_HOME}/.invalid-link" ]]
 }
@@ -450,4 +450,49 @@ EOF
     [[ "$status" -eq 0 ]]
     [[ ! -e "${TEST_HOME}/.fixture-link" ]]
     [[ "$(<"${FIXTURE_REPOSITORY}/.active-profile")" == "disabled" ]]
+}
+
+@test "installer links OpenCode global instructions" {
+    printf 'shared instructions\n' > "${FIXTURE_REPOSITORY}/llm/AGENTS.md"
+    run_installer --profile codex
+
+    instructions="${TEST_HOME}/.config/opencode/AGENTS.md"
+    [[ "$status" -eq 0 ]]
+    [[ -L "$instructions" ]]
+    [[ "$(readlink "$instructions")" == "${FIXTURE_REPOSITORY}/llm/AGENTS.md" ]]
+}
+
+@test "installer initializes Pi settings and links the knowledge extension" {
+    mkdir -p "${FIXTURE_REPOSITORY}/llm/pi/extensions"
+    cp "${REPOSITORY_ROOT}/llm/pi/settings.json" \
+        "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
+    cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
+        "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
+    run_installer --profile codex
+
+    settings="${TEST_HOME}/.pi/agent/settings.json"
+    extension="${TEST_HOME}/.pi/agent/extensions/knowledge.ts"
+    [[ "$status" -eq 0 ]]
+    [[ -f "$settings" ]]
+    [[ ! -L "$settings" ]]
+    grep -Fq '"defaultModel": "stealth/ox-alpha"' "$settings"
+    [[ -L "$extension" ]]
+    [[ "$(readlink "$extension")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts" ]]
+}
+
+@test "installer preserves existing local Pi settings" {
+    mkdir -p "${FIXTURE_REPOSITORY}/llm/pi/extensions"
+    cp "${REPOSITORY_ROOT}/llm/pi/settings.json" \
+        "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
+    cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
+        "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
+    run_installer --profile codex
+    [[ "$status" -eq 0 ]]
+    settings="${TEST_HOME}/.pi/agent/settings.json"
+    printf '\n  "localSetting": true\n' >> "$settings"
+
+    run_installer
+
+    [[ "$status" -eq 0 ]]
+    grep -Fq '"localSetting": true' "$settings"
 }

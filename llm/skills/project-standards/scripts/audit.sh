@@ -148,11 +148,9 @@ check_docs() {
 
     if has AGENTS.md; then
         local detail="AGENTS.md canonical"
-        for f in CLAUDE.md GEMINI.md; do
-            if has "$f" && [ ! -L "$REPO/$f" ]; then
-                detail="$detail; $f is a real file, not a symlink"
-            fi
-        done
+        if has CLAUDE.md && [ ! -L "$REPO/CLAUDE.md" ]; then
+            detail="$detail; CLAUDE.md is a real file, not a symlink"
+        fi
         case "$detail" in
             *symlink*) report WARN docs.agents "$detail" ;;
             *) report PASS docs.agents "$detail" ;;

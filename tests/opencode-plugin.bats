@@ -33,7 +33,9 @@ setup() {
 
 teardown() {
     stop_server
-    [[ -n "${TEST_ROOT:-}" ]] && rm -rf "$TEST_ROOT"
+    if [[ -n "${TEST_ROOT:-}" ]]; then
+        rm -rf "$TEST_ROOT"
+    fi
 }
 
 # Stub scripts record their arguments instead of touching the real knowledge

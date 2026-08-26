@@ -233,9 +233,8 @@ expand_vars() {
     s="${s//\$\{XDG_CONFIG_HOME\}/$XDG_CONFIG_HOME}"
     s="${s//\$\{CLAUDE_SETTINGS_REL\}/$CLAUDE_SETTINGS_REL}"
     s="${s//\$\{CLAUDE_AGENTS_REL\}/$CLAUDE_AGENTS_REL}"
-    s="${s//\$\{GEMINI_SETTINGS_REL\}/$GEMINI_SETTINGS_REL}"
-    s="${s//\$\{GEMINI_AGENTS_REL\}/$GEMINI_AGENTS_REL}"
     s="${s//\$\{CODEX_AGENTS_REL\}/$CODEX_AGENTS_REL}"
+    s="${s//\$\{PI_AGENTS_REL\}/$PI_AGENTS_REL}"
     printf '%s' "$s"
 }
 
@@ -529,13 +528,15 @@ if install_group llm; then
         link "${SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
-    # Codex skills (same shared skills, second target directory).
-    CODEX_SKILLS_DIR="${HOME}/.codex/skills"
-    ensure_real_dir "$CODEX_SKILLS_DIR"
+    # Cross-harness skills. Codex, Pi, and OpenCode all discover
+    # ~/.agents/skills natively; Claude Code does not and keeps its own
+    # directory below.
+    AGENTS_SKILLS_DIR="${HOME}/.agents/skills"
+    ensure_real_dir "$AGENTS_SKILLS_DIR"
     for skill_dir in "$DOTFILES_DIR/llm/skills/"*/; do
         [ -d "$skill_dir" ] || continue
         skill_name=$(basename "$skill_dir")
-        link "${CODEX_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
+        link "${AGENTS_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
     # Codex hooks — knowledge base session capture.
@@ -550,6 +551,20 @@ if install_group llm; then
     # Codex writes trust and hook state into the selected profile.
     install_local_config "${HOME}/.codex/agude.config.toml" \
         "${DOTFILES_DIR}/llm/codex/agude.config.toml"
+
+    # Pi writes auth, trust decisions, and /settings changes into its agent
+    # directory; the settings file is initialized once from the template.
+    install_local_config "${HOME}/.pi/agent/settings.json" \
+        "${DOTFILES_DIR}/llm/pi/settings.json"
+
+    # Pi extensions — knowledge base session capture.
+    PI_EXTENSIONS_DIR="${HOME}/.pi/agent/extensions"
+    ensure_real_dir "$PI_EXTENSIONS_DIR"
+    for ext_file in "$DOTFILES_DIR/llm/pi/extensions/"*.ts; do
+        [ -f "$ext_file" ] || continue
+        ext_name=${ext_file##*/}
+        link "${PI_EXTENSIONS_DIR}/${ext_name}" "llm/pi/extensions/${ext_name}"
+    done
 
     # Coat tree hooks — guard scripts for Claude Code.
     # The coat-tree binary is installed separately; hooks go into XDG config.
