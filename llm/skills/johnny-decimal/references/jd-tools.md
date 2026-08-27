@@ -6,7 +6,7 @@ filesystem commands.
 
 ## Commands
 
-All scripts are in `${CLAUDE_SKILL_DIR}/scripts/`.
+All scripts are in `scripts/` relative to the skill directory.
 
 | Command | Purpose |
 | --- | --- |
