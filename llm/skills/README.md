@@ -21,7 +21,8 @@ skill-name/
 ├── SKILL.md              # Required: frontmatter + instructions
 ├── scripts/              # Optional: executable code
 ├── references/           # Optional: supporting docs (loaded on demand)
-└── assets/               # Optional: templates, images, data
+├── assets/               # Optional: templates, images, data
+└── agents/               # Optional: client-specific metadata
 ```
 
 ## SKILL.md Format
@@ -33,7 +34,7 @@ description: ...          # Required: 1-1024 chars, what/when to use
 license: ...              # Optional
 compatibility: ...        # Optional: env requirements
 metadata: {}              # Optional: key-value pairs
-allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read"  # Optional (experimental)
+allowed-tools: "tool names" # Optional, experimental; support varies by client
 ---
 
 # Skill Name

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scaffold.sh — Create a new Agent Skills directory structure.
 #
-# Usage: scaffold.sh <name> [--scripts] [--references] [--assets]
+# Usage: scaffold.sh <name> [--scripts] [--references] [--assets] [--codex]
 #
 # Creates a skill directory with a SKILL.md stub and optional subdirectories.
 # The directory is created relative to the current working directory.
@@ -21,6 +21,7 @@ Options:
   --scripts     Create a scripts/ subdirectory
   --references  Create a references/ subdirectory
   --assets      Create an assets/ subdirectory
+  --codex       Create an optional agents/openai.yaml metadata file
   --dir <path>  Parent directory to create the skill in (default: $PWD)
   --help        Show this help message
 EOF
@@ -45,7 +46,7 @@ validate_name() {
         return 1
     fi
 
-    # Claude Code accepts these, so don't block; the Skills API does not.
+    # The portable Skills specification reserves these words.
     if [[ "$name" == *claude* || "$name" == *anthropic* ]]; then
         echo "Warning: '${name}' contains a reserved word (claude/anthropic)." >&2
         echo "         The Skills API rejects such names." >&2
@@ -63,6 +64,7 @@ NAME=""
 MAKE_SCRIPTS=false
 MAKE_REFERENCES=false
 MAKE_ASSETS=false
+MAKE_CODEX=false
 PARENT_DIR=""
 
 while [[ $# -gt 0 ]]; do
@@ -70,6 +72,7 @@ while [[ $# -gt 0 ]]; do
         --scripts)    MAKE_SCRIPTS=true;    shift ;;
         --references) MAKE_REFERENCES=true; shift ;;
         --assets)     MAKE_ASSETS=true;     shift ;;
+        --codex)      MAKE_CODEX=true;      shift ;;
         --dir)
             if [[ $# -lt 2 ]]; then
                 echo "Error: --dir requires a path argument." >&2
@@ -120,12 +123,6 @@ fi
 
 mkdir -p "$SKILL_DIR"
 
-if $MAKE_SCRIPTS; then
-    BASEDIR_LINE=$'\n**Skill base directory:** `${CLAUDE_SKILL_DIR}`\n'
-else
-    BASEDIR_LINE=""
-fi
-
 cat > "${SKILL_DIR}/SKILL.md" <<STUB
 ---
 name: ${NAME}
@@ -133,12 +130,20 @@ description: TODO — describe what this skill does and when to use it.
 ---
 
 # ${TITLE}
-${BASEDIR_LINE}
 TODO: Write skill instructions here.
 STUB
 
 $MAKE_SCRIPTS    && mkdir -p "${SKILL_DIR}/scripts"
 $MAKE_REFERENCES && mkdir -p "${SKILL_DIR}/references"
 $MAKE_ASSETS     && mkdir -p "${SKILL_DIR}/assets"
+
+if $MAKE_CODEX; then
+    mkdir -p "${SKILL_DIR}/agents"
+    cat > "${SKILL_DIR}/agents/openai.yaml" <<CODEX_METADATA
+interface:
+  display_name: "${TITLE}"
+  short_description: "TODO — describe this skill in one sentence."
+CODEX_METADATA
+fi
 
 echo "Created skill: $(cd "$SKILL_DIR" && pwd)"

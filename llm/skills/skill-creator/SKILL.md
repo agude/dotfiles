@@ -6,15 +6,13 @@ description: >
   reusable skill, scaffold a skill directory, write or review a SKILL.md, or
   validate an existing skill against the spec.
 compatibility: Requires bash. curl needed for update-references.
-allowed-tools: "Bash(bash ${CLAUDE_SKILL_DIR}/scripts/:*) Read Write Edit"
 ---
 
 # Skill Creator
 
-**Skill base directory:** `${CLAUDE_SKILL_DIR}`
-
-Create Agent Skills that conform to the agentskills.io specification and to
-Anthropic's authoring guidance.
+Create Agent Skills that conform to the agentskills.io specification. Client-
+specific extensions are documented separately and must not leak into the
+portable core.
 
 ## Workflow
 
@@ -37,7 +35,8 @@ skill-name/
 ├── SKILL.md          # Required
 ├── scripts/          # Optional: executable code
 ├── references/       # Optional: documentation loaded on demand
-└── assets/           # Optional: templates, images, data files
+├── assets/           # Optional: templates, images, data files
+└── agents/           # Optional: client-specific metadata
 ```
 
 ### Frontmatter (portable fields)
@@ -51,7 +50,7 @@ These work in every Agent Skills client.
 | `license` | No | License name or bundled license file |
 | `compatibility` | No | ≤500 chars. Environment requirements. Most skills omit it |
 | `metadata` | No | Arbitrary string key-value map |
-| `allowed-tools` | No | Space-separated pre-approved tools (experimental) |
+| `allowed-tools` | No | Space-separated tool hints (experimental; client support varies) |
 
 ### Naming rules
 
@@ -74,9 +73,8 @@ is what the agent matches a request against. Get it right before anything else.
   mixed point of view degrades matching.
 - **What plus when.** Name the capability, then the triggers: file types,
   tool names, and the phrases a user would actually type.
-- **Key use case first.** Claude Code truncates the combined
-  `description` + `when_to_use` text at 1,536 characters in the skill listing,
-  and shortens it further when many skills are installed.
+- **Key use case first.** Some clients truncate skill descriptions in their
+  listings, especially when many skills are installed.
 - **Be specific.** "Helps with documents" matches nothing reliably.
 
 Good:
@@ -270,7 +268,7 @@ Inline metadata lets `uv run` handle dependencies with no manual install:
 # ///
 ```
 
-Invoke with `uv run ${CLAUDE_SKILL_DIR}/scripts/myscript.py`.
+Invoke with `uv run scripts/myscript.py` from the skill directory.
 
 ### Human vs agent mode (`--porcelain`)
 
@@ -286,25 +284,25 @@ See `llm/skills/README.md` for the full pattern. Summary:
 
 ## Available scripts
 
-Scripts are in `${CLAUDE_SKILL_DIR}/scripts/`. Use the full path when invoking.
+Scripts are in `scripts/`. Refer to them with paths relative to the skill
+directory so the instructions remain portable.
 
 | Script | Purpose |
 |--------|---------|
 | `scaffold.sh` | Create a new skill directory with SKILL.md stub |
 | `validate.sh` | Validate a skill directory against the spec |
-| `update-references.sh` | Refetch the vendored spec and Anthropic docs |
+| `update-references.sh` | Refetch the vendored specification and client docs |
 
 ### scaffold.sh
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/scaffold.sh <name> [--scripts] [--references] [--assets] [--dir <path>]
+bash scripts/scaffold.sh <name> [--scripts] [--references] [--assets] [--codex] [--dir <path>]
 ```
 
 Creates a skill directory (in `--dir`, or the current working directory) with:
 - A `SKILL.md` containing valid frontmatter and a body placeholder
-- A `**Skill base directory:** \`${CLAUDE_SKILL_DIR}\`` line in the stub (only
-  when `--scripts` is passed)
-- Optional `scripts/`, `references/`, `assets/` subdirectories
+- Optional `scripts/`, `references/`, and `assets/` subdirectories
+- An optional `agents/openai.yaml` file when `--codex` is passed
 
 The name is validated against the naming rules first. Exits non-zero if the
 name is invalid or the directory already exists.
@@ -312,7 +310,7 @@ name is invalid or the directory already exists.
 ### validate.sh
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/validate.sh <skill-directory>
+bash scripts/validate.sh [--client <name>] <skill-directory>
 ```
 
 Fails on: missing SKILL.md; missing `name` or `description`; `name` not
@@ -321,20 +319,20 @@ matching the directory; malformed `name`; XML tags in `name` or `description`;
 500 lines.
 
 Warns on: reserved words in `name`; first- or second-person `description`;
-a `description` with no "when to use" signal; `description` plus `when_to_use`
-over the 1,536-char listing cap; unrecognized frontmatter keys; unexpected
-top-level entries; a `scripts/` directory with no `${CLAUDE_SKILL_DIR}` line.
+a `description` with no "when to use" signal; unrecognized frontmatter keys;
+unexpected top-level entries; and Claude-only frontmatter when the client is
+not `claude`. The Claude client also checks its listing-length convention.
 
 Prints PASS/FAIL/WARN per check. Exits 0 if all checks pass, 1 if any fail.
 
 ### update-references.sh
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/update-references.sh
+bash scripts/update-references.sh
 ```
 
-Refetches the agentskills.io spec pages and Anthropic's skill docs into
-`${CLAUDE_SKILL_DIR}/references/`, and records the date in `.last-updated`.
+Refetches the agentskills.io spec pages and client documentation into
+`references/`, and records the date in `.last-updated`.
 Only files it vendored (tracked in `.vendored`) are pruned; hand-written
 reference files are left alone. Run it periodically.
 
@@ -358,7 +356,7 @@ and the full iteration loop.
 ## References
 
 Read these with the Read tool as needed. Check
-`${CLAUDE_SKILL_DIR}/references/.last-updated` for freshness and run
+`references/.last-updated` for freshness and run
 `update-references.sh` to refresh.
 
 Portable specification (agentskills.io):

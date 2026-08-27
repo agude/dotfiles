@@ -10,7 +10,7 @@ set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: validate.sh <skill-directory>
+Usage: validate.sh [--client <name>] <skill-directory>
 
 Validate a skill directory against the Agent Skills specification.
 
@@ -28,30 +28,76 @@ Warns on:
   - Reserved words (claude, anthropic) in name
   - First- or second-person description
   - description with no "when to use" signal
-  - description plus when_to_use over the 1536-character listing cap
   - Unrecognized frontmatter keys
   - Unexpected top-level entries
-  - scripts/ directory with no ${CLAUDE_SKILL_DIR} line
+
+With --client claude, also warns when description plus when_to_use exceeds
+Claude Code's 1536-character listing cap. Other client names validate the
+portable core until client-specific checks are added.
+
+Options:
+  --client <name>
+                Validate client-specific extensions for one harness.
+                The default is portable.
 EOF
 }
 
-if [[ "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
-fi
+CLIENT="portable"
+SKILL_DIR=""
 
-if [[ $# -lt 1 ]]; then
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --client)
+            if [[ $# -lt 2 ]]; then
+                echo "Error: --client requires a harness name." >&2
+                exit 1
+            fi
+            CLIENT="$2"
+            shift 2
+            ;;
+        --help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "Error: unknown option: $1" >&2
+            exit 1
+            ;;
+        *)
+            if [[ -n "$SKILL_DIR" ]]; then
+                echo "Error: unexpected argument: $1" >&2
+                exit 1
+            fi
+            SKILL_DIR="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$SKILL_DIR" ]]; then
     usage >&2
     exit 1
 fi
 
-SKILL_DIR="$1"
 FAILURES=0
 
-# Spec fields plus the Claude Code extensions. Anything else is likely a typo.
-KNOWN_FIELDS="name description license compatibility metadata allowed-tools \
+# Portable fields from the Agent Skills specification. allowed-tools is
+# experimental and client support varies; it is not an authorization boundary.
+PORTABLE_FIELDS="name description license compatibility metadata allowed-tools"
+
+# Claude Code extensions are recognized so the portable validator can report a
+# useful client-specific warning instead of treating them as a typo.
+CLAUDE_FIELDS="\
 when_to_use argument-hint arguments disable-model-invocation user-invocable \
 disallowed-tools model effort context agent background hooks paths shell"
+
+KNOWN_FIELDS="${PORTABLE_FIELDS} ${CLAUDE_FIELDS}"
+
+is_field_in_list() {
+    local field="$1"
+    local field_list="$2"
+    grep -qw -- "$field" <<< "$field_list"
+}
 
 check() {
     local label="$1"
@@ -133,7 +179,7 @@ else
         check "name matches directory" "pass"
     fi
 
-    # The Skills API rejects these outright; Claude Code does not, so warn only.
+    # Reserved words are a portable-spec warning, not a client-specific error.
     if [[ "$NAME_VALUE" == *claude* || "$NAME_VALUE" == *anthropic* ]]; then
         warn "name contains a reserved word (claude/anthropic); the Skills API rejects it"
     fi
@@ -180,11 +226,13 @@ else
         warn "description does not say when to use the skill"
     fi
 
-    # Claude Code truncates description plus when_to_use in the skill listing.
-    WHEN_TO_USE_VALUE=$(extract_field "when_to_use")
-    LISTING_LEN=$((DESC_LEN + ${#WHEN_TO_USE_VALUE}))
-    if [[ $LISTING_LEN -gt 1536 ]]; then
-        warn "description plus when_to_use is ${LISTING_LEN} chars; listings truncate at 1536"
+    if [[ "$CLIENT" == "claude" ]]; then
+        # Claude Code truncates description plus when_to_use in its listing.
+        WHEN_TO_USE_VALUE=$(extract_field "when_to_use")
+        LISTING_LEN=$((DESC_LEN + ${#WHEN_TO_USE_VALUE}))
+        if [[ $LISTING_LEN -gt 1536 ]]; then
+            warn "description plus when_to_use is ${LISTING_LEN} chars; Claude listings truncate at 1536"
+        fi
     fi
 fi
 
@@ -205,8 +253,10 @@ fi
 
 while IFS= read -r key; do
     [[ -n "$key" ]] || continue
-    if ! grep -qw -- "$key" <<< "$KNOWN_FIELDS"; then
+    if ! is_field_in_list "$key" "$KNOWN_FIELDS"; then
         warn "unrecognized frontmatter key: ${key}"
+    elif [[ "$CLIENT" != "claude" ]] && is_field_in_list "$key" "$CLAUDE_FIELDS"; then
+        warn "Claude Code-only frontmatter key: ${key} (use --client claude)"
     fi
 done < <(grep -oE '^[A-Za-z_][A-Za-z0-9_-]*:' <<< "$FRONTMATTER" | tr -d ':' | sort -u)
 
@@ -219,18 +269,9 @@ else
     check "SKILL.md ≤500 lines" "pass"
 fi
 
-# --- ${CLAUDE_SKILL_DIR} line when scripts/ exists (warn only) ---
-
-if [[ -d "${SKILL_DIR}/scripts" ]]; then
-    # shellcheck disable=SC2016
-    if ! grep -q '${CLAUDE_SKILL_DIR}' "$SKILL_MD"; then
-        warn "scripts/ exists but SKILL.md does not contain a \${CLAUDE_SKILL_DIR} line"
-    fi
-fi
-
 # --- Unexpected top-level entries (warn only) ---
 
-EXPECTED_PATTERN="^(SKILL\.md|scripts|references|assets|tests|evals|LICENSE\.txt|LICENSE|\.claude)$"
+EXPECTED_PATTERN="^(SKILL\.md|scripts|references|assets|agents|tests|evals|LICENSE\.txt|LICENSE|\.claude)$"
 while IFS= read -r entry; do
     entry_name=$(basename "$entry")
     if ! [[ "$entry_name" =~ $EXPECTED_PATTERN ]]; then
