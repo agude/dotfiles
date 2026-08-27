@@ -91,7 +91,7 @@ Model behavior is nondeterministic — the same query might trigger the skill on
 
 A should-trigger query passes if its trigger rate is above a threshold (0.5 is a reasonable default). A should-not-trigger query passes if its trigger rate is below that threshold.
 
-With 20 queries at 3 runs each, that's 60 invocations. You'll want to script this. Here's the general structure — replace the `claude` invocation and detection logic in `check_triggered` with whatever your agent client provides:
+With 20 queries at 3 runs each, that's 60 invocations. You'll want to script this. Use a harness adapter for the invocation and detection logic:
 
 ```bash theme={null}
 #!/bin/bash
@@ -99,15 +99,14 @@ QUERIES_FILE="${1:?Usage: $0 <queries.json>}"
 SKILL_NAME="my-skill"
 RUNS=3
 
-# This example uses Claude Code's JSON output to check for Skill tool calls.
-# Replace this function with detection logic for your agent client.
-# Should return 0 (success) if the skill was invoked, 1 otherwise.
+# Replace this function with detection logic for the selected harness.
+# Return 0 if the skill was invoked, 1 otherwise.
+# Define run_harness and detect_skill_invocation in a harness adapter before
+# using this loop.
 check_triggered() {
   local query="$1"
-  claude -p "$query" --output-format json 2>/dev/null \
-    | jq -e --arg skill "$SKILL_NAME" \
-      'any(.messages[].content[]; .type == "tool_use" and .name == "Skill" and .input.skill == $skill)' \
-      > /dev/null 2>&1
+  run_harness "$query" > run.json
+  detect_skill_invocation run.json "$SKILL_NAME"
 }
 
 count=$(jq length "$QUERIES_FILE")
@@ -163,7 +162,9 @@ If you're using a script like the one [above](#running-multiple-times), you can 
 Five iterations is usually enough. If performance isn't improving, the issue may be with the queries (too easy, too hard, or poorly labeled) rather than the description.
 
 <Tip>
-  The [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator) Skill automates this loop end-to-end: it splits the eval set, evaluates trigger rates in parallel, proposes description improvements using Claude, and generates a live HTML report you can watch as it runs.
+  An implementation may automate this loop end-to-end, but the harness
+  invocation and skill-detection adapter must remain separate from the eval
+  set and scoring logic.
 </Tip>
 
 ## Applying the result

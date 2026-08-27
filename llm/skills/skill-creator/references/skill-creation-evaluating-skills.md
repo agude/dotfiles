@@ -87,7 +87,11 @@ The main file you author by hand is `evals/evals.json`. The other JSON files (`g
 
 ### Spawning runs
 
-Each eval run should start with a clean context — no leftover state from previous runs or from the skill development process. This ensures the agent follows only what the `SKILL.md` tells it. In environments that support subagents (Claude Code, for example), this isolation comes naturally: each child task starts fresh. Without subagents, use a separate session for each run.
+Each eval run should start with a clean harness session — no leftover state
+from previous runs or from the skill development process. This ensures the
+agent follows only what the `SKILL.md` tells it. Use the harness's isolated
+run facility when available; otherwise start a separate session or process
+for each run.
 
 For each run, provide:
 
@@ -122,9 +126,10 @@ Timing data lets you compare how much time and tokens the skill costs relative t
 }
 ```
 
-<Tip>
-  In Claude Code, when a subagent task finishes, the [task completion notification](https://platform.claude.com/docs/en/agent-sdk/typescript#sdk-task-notification-message) includes `total_tokens` and `duration_ms`. Save these values immediately — they aren't persisted anywhere else.
-</Tip>
+Record timing and token data using the harness's native run metadata when it is
+available. Normalize the result into `timing.json` with `total_tokens` and
+`duration_ms`; do not assume that another harness emits the same event or JSON
+shape.
 
 ## Writing assertions
 
@@ -296,5 +301,7 @@ The most effective way to turn these signals into skill improvements is to give 
 Stop when you're satisfied with the results, feedback is consistently empty, or you're no longer seeing meaningful improvement between iterations.
 
 <Tip>
-  The [`skill-creator`](https://github.com/anthropics/skills/tree/main/skills/skill-creator) Skill automates much of this workflow — running evals, grading assertions, aggregating benchmarks, and presenting results for human review.
+  A skill-authoring tool can automate running evals, grading assertions,
+  aggregating benchmarks, and presenting results for human review. Keep the
+  harness adapter separate from the portable eval format.
 </Tip>
