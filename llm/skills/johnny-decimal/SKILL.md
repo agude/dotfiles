@@ -6,7 +6,6 @@ description: >
   scans, find an ID or file, decide where something belongs, create a
   subcategory, or update a JDex note.
 compatibility: "Requires bash. The tree command is required for full tree output; fzf is optional."
-allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Bash(ls:*) Bash(jd:*) Read"
 ---
 
 # Local Johnny.Decimal System

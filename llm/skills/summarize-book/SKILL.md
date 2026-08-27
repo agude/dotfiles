@@ -9,7 +9,6 @@ description: >-
 compatibility: >-
   Requires uv and Python 3.11+. AZW3/MOBI conversion requires calibre
   (ebook-convert). EPUB extraction uses Python only (no extra deps).
-allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read Write Agent"
 ---
 
 # Summarize Book
@@ -18,7 +17,7 @@ allowed-tools: "Bash(${CLAUDE_SKILL_DIR}/scripts/:*) Read Write Agent"
 
 ```bash
 # 1. Extract ebook to chapter markdown files
-uv run ${CLAUDE_SKILL_DIR}/scripts/extract_ebook.py book.epub -d chapters/
+uv run scripts/extract_ebook.py book.epub -d chapters/
 
 # 2. Summarize (the agent orchestrates this — see Workflow below)
 ```
@@ -30,7 +29,7 @@ uv run ${CLAUDE_SKILL_DIR}/scripts/extract_ebook.py book.epub -d chapters/
 Run the extraction script on the ebook file:
 
 ```bash
-uv run ${CLAUDE_SKILL_DIR}/scripts/extract_ebook.py book.epub -d chapters/
+uv run scripts/extract_ebook.py book.epub -d chapters/
 ```
 
 This produces one markdown file per chapter in the output directory, named
