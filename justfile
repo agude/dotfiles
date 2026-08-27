@@ -88,7 +88,7 @@ test: test-shell test-python test-pdf test-integration
 
 # Run shell-based regression suites.
 test-shell:
-    bats tests/ llm/claude/hooks.d/tests/ llm/codex/hooks.d/tests/ llm/skills/johnny-decimal/tests/
+    bats tests/ llm/claude/hooks.d/tests/ llm/codex/hooks.d/tests/ llm/skills/johnny-decimal/tests/ llm/skills/skill-creator/tests/
 
 # Run Python tests for the shared command guard.
 test-python:
