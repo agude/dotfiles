@@ -209,7 +209,7 @@ task.py add "Write component tests" --parent 02-newsletter-signup-frontend
 
 Result:
 ```
-.claude/tasks/
+.agent/tasks/
   01-newsletter-signup-backend/
     00-index.md
     01-create-subscribers-table-migration.md

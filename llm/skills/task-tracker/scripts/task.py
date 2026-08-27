@@ -2,7 +2,7 @@
 """
 Task tracker for LLM context preservation.
 
-Stores tasks as markdown files in .claude/tasks/ directory.
+Stores tasks as markdown files in .agent/tasks/ directory.
 All output is JSON for machine consumption.
 """
 
@@ -17,6 +17,7 @@ from pathlib import Path
 
 from task_fs import (
     TASKS_DIR,
+    LEGACY_TASKS_DIR,
     INDEX_FILE,
     VALID_STATUSES,
     Task,
@@ -75,8 +76,30 @@ def cmd_init(args: argparse.Namespace) -> None:
     if tasks_dir.exists():
         output_error(f"{tasks_dir} already exists")
 
+    legacy_tasks_dir = Path.cwd() / LEGACY_TASKS_DIR
+    if legacy_tasks_dir.exists():
+        output_error(
+            f"Found legacy task directory {legacy_tasks_dir}. "
+            "Run 'task.py migrate' or continue using the existing tasks."
+        )
+
     tasks_dir.mkdir(parents=True)
     output_success({"message": f"Created {tasks_dir}", "path": str(tasks_dir)})
+
+
+def cmd_migrate(args: argparse.Namespace) -> None:
+    """Move legacy task storage to the neutral directory."""
+    source = Path.cwd() / LEGACY_TASKS_DIR
+    destination = Path.cwd() / TASKS_DIR
+
+    if not source.is_dir():
+        output_error(f"No legacy task directory found at {source}")
+    if destination.exists():
+        output_error(f"Destination task directory already exists: {destination}")
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    source.rename(destination)
+    output_success({"message": f"Moved {source} to {destination}", "path": str(destination)})
 
 
 def cmd_add(args: argparse.Namespace) -> None:
@@ -514,7 +537,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # init
-    subparsers.add_parser("init", help="Create .claude/tasks/ directory")
+    subparsers.add_parser("init", help="Create .agent/tasks/ directory")
+    subparsers.add_parser("migrate", help="Move legacy .claude/tasks/ to .agent/tasks/")
 
     # add
     add_parser = subparsers.add_parser("add", help="Add a task")
@@ -586,6 +610,7 @@ def main():
 
     commands = {
         "init": cmd_init,
+        "migrate": cmd_migrate,
         "add": cmd_add,
         "remove": cmd_remove,
         "update": cmd_update,

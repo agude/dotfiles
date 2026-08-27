@@ -2,7 +2,7 @@
 """
 Render tasks to human-readable markdown.
 
-Reads .claude/tasks/ directory and outputs formatted markdown
+Reads .agent/tasks/ (or legacy .claude/tasks/) and outputs formatted markdown
 grouped by status.
 """
 
@@ -64,7 +64,7 @@ def render_task_line(task_id: str, task: Task, indent: int = 0) -> list[str]:
 def main():
     root = find_tasks_root()
     if not root:
-        print("No .claude/tasks/ found.", file=sys.stderr)
+        print("No .agent/tasks/ or legacy .claude/tasks/ found.", file=sys.stderr)
         sys.exit(1)
 
     # Collect all tasks

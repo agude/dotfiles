@@ -20,7 +20,8 @@ from pathlib import Path
 from typing import Iterator
 
 # Constants
-TASKS_DIR = ".claude/tasks"
+TASKS_DIR = ".agent/tasks"
+LEGACY_TASKS_DIR = ".claude/tasks"
 INDEX_FILE = "00-index.md"
 VALID_STATUSES = ("pending", "in_progress", "blocked", "complete", "wont_do")
 
@@ -170,17 +171,18 @@ def render_frontmatter(data: dict) -> str:
 
 
 def find_tasks_root() -> Path | None:
-    """Walk up directories to find .claude/tasks/."""
+    """Walk up directories to find current or legacy task storage."""
     current = Path.cwd()
     while current != current.parent:
-        candidate = current / TASKS_DIR
+        for tasks_directory in (TASKS_DIR, LEGACY_TASKS_DIR):
+            candidate = current / tasks_directory
+            if candidate.is_dir():
+                return candidate
+        current = current.parent
+    for tasks_directory in (TASKS_DIR, LEGACY_TASKS_DIR):
+        candidate = current / tasks_directory
         if candidate.is_dir():
             return candidate
-        current = current.parent
-    # Check root
-    candidate = current / TASKS_DIR
-    if candidate.is_dir():
-        return candidate
     return None
 
 
@@ -188,7 +190,10 @@ def require_tasks_root() -> Path:
     """Find tasks root or exit with error."""
     root = find_tasks_root()
     if not root:
-        raise TaskError(f"No {TASKS_DIR} found. Run 'task.py init' first.")
+        raise TaskError(
+            f"No {TASKS_DIR} or {LEGACY_TASKS_DIR} found. "
+            "Run 'task.py init' first."
+        )
     return root
 
 

@@ -11,7 +11,8 @@ compatibility: Requires Python 3.
 
 # Task Tracker
 
-Persist task state across LLM sessions using markdown files in `.claude/tasks/`.
+Persist task state across harness sessions using markdown files in
+`.agent/tasks/`. Existing projects using `.claude/tasks/` remain readable.
 Helps agents plan and remember what they're working on, and track progress through
 multi-step work.
 
@@ -39,7 +40,7 @@ scripts/task.py next
 Tasks are stored as markdown files. The filesystem hierarchy represents task hierarchy:
 
 ```
-.claude/tasks/
+.agent/tasks/
   01-auth-login/
     00-index.md                    # Parent task metadata
     01-create-login-form.md        # Subtask (leaf)
@@ -123,7 +124,17 @@ All output is JSON. Use `scripts/task.py` for all commands.
 scripts/task.py init
 ```
 
-Creates `.claude/tasks/` directory.
+Creates `.agent/tasks/` directory. If an existing project has `.claude/tasks/`,
+run `scripts/task.py migrate` to move it to the neutral path.
+
+### Migrate Legacy Storage
+
+```bash
+scripts/task.py migrate
+```
+
+Moves `.claude/tasks/` to `.agent/tasks/` without changing task IDs or file
+contents. Existing legacy storage is discovered automatically until migrated.
 
 ### Add Task
 

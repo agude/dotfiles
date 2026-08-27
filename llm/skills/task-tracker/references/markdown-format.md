@@ -1,6 +1,6 @@
 # Task Markdown Format
 
-Complete specification for task files in `.claude/tasks/`.
+Complete specification for task files in `.agent/tasks/`.
 
 ## File Structure
 
@@ -77,7 +77,7 @@ Redis cluster mode requires different client configuration.
 ## Directory Structure
 
 ```
-.claude/tasks/
+.agent/tasks/
   NN-slug.md              # Leaf task (no children)
   NN-slug/                # Parent task (has children)
     00-index.md           # Parent's metadata
