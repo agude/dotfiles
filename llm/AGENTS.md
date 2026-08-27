@@ -30,7 +30,7 @@ Do not make offers at the end of the turn.
 
 ## Artifacts
 
-Don't use https://claude.ai/code/artifact/; for most output I prefer simple
+Don't rely on provider-specific artifact URLs; for most output I prefer simple
 markdown.
 
 ## Knowledge Base

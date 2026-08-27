@@ -89,7 +89,7 @@ cat > .gitignore <<'GITIGNORE'
 output.csv
 GITIGNORE
 
-msg "AGENTS.md (CLAUDE.md symlinked)"
+msg "AGENTS.md (compatibility symlink created)"
 cat > AGENTS.md <<'AGENTS'
 # Repository Guidelines
 
