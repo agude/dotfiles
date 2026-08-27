@@ -164,6 +164,10 @@ Its extensions live in a separate `agents/openai.yaml` file, not in the
 frontmatter. Claude Code ignores this file, so both coexist in the same skill
 directory. Full details in `references/codex-build-skills.md`.
 
+Keep `SKILL.md` usable in every harness. Add `agents/openai.yaml` only for
+Codex UI metadata, invocation policy, or tool dependencies; do not move core
+workflow instructions there.
+
 ```yaml
 # agents/openai.yaml — optional, Codex-only
 interface:
