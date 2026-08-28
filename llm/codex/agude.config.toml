@@ -7,3 +7,6 @@ personality = "pragmatic"
 [features]
 hooks = true
 memories = false
+
+[tui]
+theme = "eldar"

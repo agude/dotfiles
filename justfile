@@ -121,6 +121,8 @@ test-integration:
     done
     export HOME="$TEST_HOME"
     ./install.sh
+    [[ -L "$TEST_HOME/.codex/themes/eldar.tmTheme" ]]
+    [[ "$(readlink "$TEST_HOME/.codex/themes/eldar.tmTheme")" == "$DOTFILES_DIR/llm/codex/themes/eldar.tmTheme" ]]
     ./install.sh
     ./install.sh --dry-run
     ./install.sh --profile server

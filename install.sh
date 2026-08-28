@@ -548,6 +548,15 @@ if install_group llm; then
         link "${CODEX_HOOKS_DIR}/${hook_name}" "llm/codex/hooks.d/${hook_name}"
     done
 
+    # Codex syntax themes — individual symlinks so Codex-owned files coexist.
+    CODEX_THEMES_DIR="${HOME}/.codex/themes"
+    ensure_real_dir "$CODEX_THEMES_DIR"
+    for theme_file in "$DOTFILES_DIR/llm/codex/themes/"*.tmTheme; do
+        [ -f "$theme_file" ] || continue
+        theme_name=$(basename "$theme_file")
+        link "${CODEX_THEMES_DIR}/${theme_name}" "llm/codex/themes/${theme_name}"
+    done
+
     # Codex writes trust and hook state into the selected profile.
     install_local_config "${HOME}/.codex/agude.config.toml" \
         "${DOTFILES_DIR}/llm/codex/agude.config.toml"
