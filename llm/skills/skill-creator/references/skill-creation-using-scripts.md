@@ -6,6 +6,12 @@
 
 > How to run commands and bundle executable scripts in your skills.
 
+> **Shared-skill invocation:** Resolve bundled resources from the absolute
+> directory containing the active `SKILL.md`, replace `$SKILL_DIR` with that
+> path, then invoke scripts as `"$SKILL_DIR/scripts/<name>"` while keeping
+> the current directory at the target project. Do not expect `scripts/` to
+> exist in that project.
+
 Skills can instruct agents to run shell commands and bundle reusable scripts in a `scripts/` directory. This guide covers one-off commands, self-contained scripts with their own dependencies, and how to design script interfaces for agentic use.
 
 ## One-off commands

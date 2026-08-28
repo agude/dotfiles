@@ -6,7 +6,9 @@ filesystem commands.
 
 ## Commands
 
-All scripts are in `scripts/` relative to the skill directory.
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before running bundled scripts while staying
+in the target project directory.
 
 | Command | Purpose |
 | --- | --- |

@@ -67,6 +67,16 @@ authoring guidance. Manually:
 3. Add optional `scripts/`, `references/`, or `assets/` as needed
 4. Validate: `bash skill-creator/scripts/validate.sh ./skill-name/`
 
+## Bundled Resource Paths
+
+`$SKILL_DIR` means the absolute directory containing the active skill's
+`SKILL.md`. Replace it in command examples with the resolved path from the
+skill's source; do not assume the variable is pre-set. Keep the current
+directory in the target project, then invoke
+scripts as `"$SKILL_DIR/scripts/<name>"` and read references from
+`$SKILL_DIR/references/`. Do not assume the target project has a `scripts/`
+directory.
+
 ## Script Design Pattern: Human vs Agent Mode
 
 When writing scripts that both humans and agents will use, follow this pattern:

@@ -14,12 +14,16 @@ compatibility: Requires uv and Python 3.11+. OCR scripts require tesseract.
 
 # PDF Processing
 
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before invoking a bundled script; keep the
+current directory at the target project or document location.
+
 ## Quick Start
 
 All scripts run via `uv run` with no manual dependency installation:
 
 ```bash
-uv run scripts/extract_text.py document.pdf
+uv run "$SKILL_DIR/scripts/extract_text.py" document.pdf
 ```
 
 ## Decision Tree
@@ -68,36 +72,36 @@ All scripts accept `--help` for full usage.
 
 ```bash
 # OCR all scanned PDFs in a directory, in-place
-uv run scripts/ocr_pdf.py -i inbox/*.pdf
+uv run "$SKILL_DIR/scripts/ocr_pdf.py" -i inbox/*.pdf
 
 # Check orientation of all files
-uv run scripts/detect_orientation.py inbox/*.pdf
+uv run "$SKILL_DIR/scripts/detect_orientation.py" inbox/*.pdf
 
 # Extract text from multiple files
-uv run scripts/extract_text.py inbox/*.pdf
+uv run "$SKILL_DIR/scripts/extract_text.py" inbox/*.pdf
 
 # Rotate all files in-place
-uv run scripts/rotate.py -i --angle 90 inbox/*.pdf
+uv run "$SKILL_DIR/scripts/rotate.py" -i --angle 90 inbox/*.pdf
 
 # Metadata for multiple files as JSONL
-uv run scripts/metadata.py --porcelain inbox/*.pdf
+uv run "$SKILL_DIR/scripts/metadata.py" --porcelain inbox/*.pdf
 ```
 
 ```bash
 # Encrypt all files in-place
-uv run scripts/encrypt.py -i --user-password secret inbox/*.pdf
+uv run "$SKILL_DIR/scripts/encrypt.py" -i --user-password secret inbox/*.pdf
 
 # Decrypt all files to a directory
-uv run scripts/decrypt.py -d decrypted/ --password secret inbox/*.pdf
+uv run "$SKILL_DIR/scripts/decrypt.py" -d decrypted/ --password secret inbox/*.pdf
 
 # Check which files have form fields
-uv run scripts/check_fields.py --porcelain inbox/*.pdf
+uv run "$SKILL_DIR/scripts/check_fields.py" --porcelain inbox/*.pdf
 
 # Convert all PDFs to images (each gets a subdirectory)
-uv run scripts/pdf_to_images.py -d images/ inbox/*.pdf
+uv run "$SKILL_DIR/scripts/pdf_to_images.py" -d images/ inbox/*.pdf
 
 # Split all PDFs into individual pages
-uv run scripts/split.py -d pages/ inbox/*.pdf
+uv run "$SKILL_DIR/scripts/split.py" -d pages/ inbox/*.pdf
 ```
 
 Batch flags: `--porcelain` (machine-readable output), `--fail-fast` (stop on
@@ -112,7 +116,7 @@ See [references/python-libraries.md](references/python-libraries.md) and
 ## Script Reference
 
 Every script is self-contained with inline dependencies (PEP 723). Run any
-script with `uv run scripts/<name>.py`.
+script with `uv run "$SKILL_DIR/scripts/<name>.py"`.
 
 ### Text Extraction
 
@@ -245,17 +249,17 @@ script with `uv run scripts/<name>.py`.
 
 1. Confirm the PDF has fillable fields:
    ```bash
-   uv run scripts/check_fields.py input.pdf
+   uv run "$SKILL_DIR/scripts/check_fields.py" input.pdf
    ```
 
 2. Extract field metadata:
    ```bash
-   uv run scripts/extract_fields.py input.pdf field_info.json
+   uv run "$SKILL_DIR/scripts/extract_fields.py" input.pdf field_info.json
    ```
 
 3. Convert to images to understand each field's purpose:
    ```bash
-   uv run scripts/pdf_to_images.py input.pdf images/
+   uv run "$SKILL_DIR/scripts/pdf_to_images.py" input.pdf images/
    ```
 
 4. Examine the images and `field_info.json`. Create `values.json`:
@@ -279,12 +283,12 @@ script with `uv run scripts/<name>.py`.
 
 5. Fill the form:
    ```bash
-   uv run scripts/fill_fields.py input.pdf values.json output.pdf
+   uv run "$SKILL_DIR/scripts/fill_fields.py" input.pdf values.json output.pdf
    ```
 
 6. Verify by converting the output to images:
    ```bash
-   uv run scripts/pdf_to_images.py output.pdf verify/
+   uv run "$SKILL_DIR/scripts/pdf_to_images.py" output.pdf verify/
    ```
 
 ## Non-Fillable Form Workflow
@@ -299,16 +303,16 @@ complete workflow.** Summary of the three approaches:
 
 1. Extract form structure:
    ```bash
-   uv run scripts/extract_structure.py input.pdf structure.json
+   uv run "$SKILL_DIR/scripts/extract_structure.py" input.pdf structure.json
    ```
 2. If `structure.json` has meaningful text labels, use their coordinates to
    build `fields.json` (see reference for format)
-3. Validate: `uv run scripts/check_boxes.py fields.json`
-4. Fill: `uv run scripts/fill_annotations.py input.pdf fields.json output.pdf`
+3. Validate: `uv run "$SKILL_DIR/scripts/check_boxes.py" fields.json`
+4. Fill: `uv run "$SKILL_DIR/scripts/fill_annotations.py" input.pdf fields.json output.pdf`
 
 ### Approach B: Visual Estimation (fallback)
 
-1. Convert to images: `uv run scripts/pdf_to_images.py input.pdf images/`
+1. Convert to images: `uv run "$SKILL_DIR/scripts/pdf_to_images.py" input.pdf images/`
 2. Examine images, estimate field positions in pixel coordinates
 3. Use `magick` to crop and zoom for precision (see reference)
 4. Build `fields.json` with `image_width`/`image_height` keys

@@ -121,7 +121,7 @@ Use when `extract_structure.py` finds meaningful text labels.
 ### Step 1: Extract structure
 
 ```bash
-uv run scripts/extract_structure.py input.pdf structure.json
+uv run "$SKILL_DIR/scripts/extract_structure.py" input.pdf structure.json
 ```
 
 ### Step 2: Analyze the output
@@ -152,7 +152,7 @@ Use `pdf_width`/`pdf_height` in the pages array (not image dimensions).
 ### Step 4: Validate
 
 ```bash
-uv run scripts/check_boxes.py fields.json
+uv run "$SKILL_DIR/scripts/check_boxes.py" fields.json
 ```
 
 Fix any overlaps or sizing errors before filling.
@@ -160,7 +160,7 @@ Fix any overlaps or sizing errors before filling.
 ### Step 5: Fill
 
 ```bash
-uv run scripts/fill_annotations.py input.pdf fields.json output.pdf
+uv run "$SKILL_DIR/scripts/fill_annotations.py" input.pdf fields.json output.pdf
 ```
 
 ## Approach B: Visual Estimation (Fallback)
@@ -171,7 +171,7 @@ usable text labels.
 ### Step 1: Convert to images
 
 ```bash
-uv run scripts/pdf_to_images.py input.pdf images/
+uv run "$SKILL_DIR/scripts/pdf_to_images.py" input.pdf images/
 ```
 
 ### Step 2: Rough estimation
@@ -234,7 +234,7 @@ circular checkboxes, unusual form controls):
 Always verify the output:
 
 ```bash
-uv run scripts/pdf_to_images.py output.pdf verify/
+uv run "$SKILL_DIR/scripts/pdf_to_images.py" output.pdf verify/
 ```
 
 If text is mispositioned:
@@ -248,5 +248,5 @@ Use `validation_image.py` to overlay boxes on the original page image before
 filling, to catch errors early:
 
 ```bash
-uv run scripts/validation_image.py --page 1 fields.json images/page_1.png debug.png
+uv run "$SKILL_DIR/scripts/validation_image.py" --page 1 fields.json images/page_1.png debug.png
 ```

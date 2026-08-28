@@ -38,11 +38,12 @@ explicit `$skill-name` invocation available. Most skills do not need this file.
 
 - Use only portable frontmatter in `SKILL.md`; Codex does not require a
   Claude-specific environment variable for bundled files.
-- Reference bundled files with paths relative to the skill directory.
+- Resolve bundled files against the absolute directory containing `SKILL.md`;
+  do not resolve them against the target project.
 - Keep scripts deterministic, self-contained, and tested.
 - Invoke bundled scripts through their interpreter when executable permissions
-  are not guaranteed, for example `bash scripts/check.sh` or
-  `python3 scripts/check.py`.
+  are not guaranteed, for example `bash "$SKILL_DIR/scripts/check.sh"` or
+  `python3 "$SKILL_DIR/scripts/check.py"`.
 - Test explicit `$skill-name` invocation, implicit triggering where enabled,
   and realistic inputs in a fresh session.
 

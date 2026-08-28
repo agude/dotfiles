@@ -8,6 +8,10 @@ metadata:
 
 # Project Standards
 
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before invoking a bundled script; keep the
+current directory at the repository being assessed or created.
+
 House conventions for how repos are linted, tested, gated, and released.
 The point is that every repo answers the same questions the same way, so a
 change to one repo's tooling is legible in all the others.
@@ -163,7 +167,7 @@ action removes a version to track.
 
 ### Bringing an existing repo in line
 
-1. Run the audit: `bash scripts/audit.sh <repo>`.
+1. Run the audit: `bash "$SKILL_DIR/scripts/audit.sh" <repo>`.
 2. Read the archetype reference before editing anything.
 3. Fix in this order — **runner first**, because the hook and CI call it:
    rename recipes to the verb contract → point the hook at `just lint` →
@@ -222,7 +226,7 @@ repo with no Makefile.
 ### Starting a new repo
 
 ```bash
-bash scripts/scaffold.sh <dest-dir> <package-name>
+bash "$SKILL_DIR/scripts/scaffold.sh" <dest-dir> <package-name>
 ```
 
 `package-name` is the Python import name (e.g. `my_package`); the distribution
@@ -235,7 +239,7 @@ After scaffolding: fill in `AGENTS.md` and `README.md`, then run `just check`.
 ### Starting a Google Apps Script repo
 
 ```bash
-bash scripts/scaffold-apps-script.sh <dest-dir> <project-name>
+bash "$SKILL_DIR/scripts/scaffold-apps-script.sh" <dest-dir> <project-name>
 ```
 
 The scaffold creates a source layout compatible with a future `clasp`
@@ -307,8 +311,8 @@ Read-only conformance check for one repo. Detects the archetype, then
 reports PASS/WARN/FAIL per rule. Changes nothing.
 
 ```bash
-bash scripts/audit.sh /path/to/repo
-bash scripts/audit.sh /path/to/repo --porcelain
+bash "$SKILL_DIR/scripts/audit.sh" /path/to/repo
+bash "$SKILL_DIR/scripts/audit.sh" /path/to/repo --porcelain
 ```
 
 `--porcelain` emits tab-separated `STATUS<TAB>CHECK<TAB>DETAIL` for parsing.

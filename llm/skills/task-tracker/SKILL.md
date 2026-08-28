@@ -16,23 +16,28 @@ Persist task state across harness sessions using markdown files in
 Helps agents plan and remember what they're working on, and track progress through
 multi-step work.
 
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before invoking a bundled script. Keep the
+current directory at the target project so task data is stored there, not in
+the skill directory.
+
 ## Quick Start
 
-Scripts are located in `scripts/`. Run them from the skill directory using
-relative paths:
+Scripts are in `$SKILL_DIR/scripts/`. Run their resolved paths from the target
+project directory:
 
 ```bash
 # Initialize in current project
-scripts/task.py init
+"$SKILL_DIR/scripts/task.py" init
 
 # Add tasks
-scripts/task.py add "Implement user authentication"
-scripts/task.py add "Write login tests" --parent 01-implement-user-authentication
+"$SKILL_DIR/scripts/task.py" add "Implement user authentication"
+"$SKILL_DIR/scripts/task.py" add "Write login tests" --parent 01-implement-user-authentication
 
 # Work through tasks
-scripts/task.py start 01-implement-user-authentication
-scripts/task.py done
-scripts/task.py next
+"$SKILL_DIR/scripts/task.py" start 01-implement-user-authentication
+"$SKILL_DIR/scripts/task.py" done
+"$SKILL_DIR/scripts/task.py" next
 ```
 
 ## Directory Structure
@@ -116,21 +121,21 @@ These help an agent resume work across sessions without re-discovering context.
 
 ## Commands
 
-All output is JSON. Use `scripts/task.py` for all commands.
+All output is JSON. Use `"$SKILL_DIR/scripts/task.py"` for all commands.
 
 ### Initialize
 
 ```bash
-scripts/task.py init
+"$SKILL_DIR/scripts/task.py" init
 ```
 
 Creates `.agent/tasks/` directory. If an existing project has `.claude/tasks/`,
-run `scripts/task.py migrate` to move it to the neutral path.
+run `"$SKILL_DIR/scripts/task.py" migrate` to move it to the neutral path.
 
 ### Migrate Legacy Storage
 
 ```bash
-scripts/task.py migrate
+"$SKILL_DIR/scripts/task.py" migrate
 ```
 
 Moves `.claude/tasks/` to `.agent/tasks/` without changing task IDs or file
@@ -139,13 +144,13 @@ contents. Existing legacy storage is discovered automatically until migrated.
 ### Add Task
 
 ```bash
-scripts/task.py add "Task title"
-scripts/task.py add "Subtask title" --parent 01-parent-task
-scripts/task.py add "Task with deps" --deps 01-auth-login 02-database
-scripts/task.py add "With description" --description "Detailed info"
-scripts/task.py add "With approach" --approach "Use existing auth middleware"
-scripts/task.py add "With criteria" --criteria "Tests pass" "Docs updated"
-scripts/task.py add "With files" --files src/auth.ts src/middleware.ts
+"$SKILL_DIR/scripts/task.py" add "Task title"
+"$SKILL_DIR/scripts/task.py" add "Subtask title" --parent 01-parent-task
+"$SKILL_DIR/scripts/task.py" add "Task with deps" --deps 01-auth-login 02-database
+"$SKILL_DIR/scripts/task.py" add "With description" --description "Detailed info"
+"$SKILL_DIR/scripts/task.py" add "With approach" --approach "Use existing auth middleware"
+"$SKILL_DIR/scripts/task.py" add "With criteria" --criteria "Tests pass" "Docs updated"
+"$SKILL_DIR/scripts/task.py" add "With files" --files src/auth.ts src/middleware.ts
 ```
 
 Adding a subtask to a leaf task automatically promotes it to a directory.
@@ -153,8 +158,8 @@ Adding a subtask to a leaf task automatically promotes it to a directory.
 ### Remove Task
 
 ```bash
-scripts/task.py remove 01-auth-login              # Remove task
-scripts/task.py remove 01-auth-login/02-session   # Remove subtask
+"$SKILL_DIR/scripts/task.py" remove 01-auth-login              # Remove task
+"$SKILL_DIR/scripts/task.py" remove 01-auth-login/02-session   # Remove subtask
 ```
 
 Removing the last child of a parent automatically demotes it back to a file.
@@ -162,27 +167,27 @@ Removing the last child of a parent automatically demotes it back to a file.
 ### Update Task
 
 ```bash
-scripts/task.py update 01-auth-login --title "New title"
-scripts/task.py update 01-auth-login --status complete
-scripts/task.py update 01-auth-login --deps 02-database
-scripts/task.py update 01-auth-login --approach "Changed to use Redis"
-scripts/task.py update 01-auth-login --criteria "Cache hits > 90%"
-scripts/task.py update 01-auth-login --files src/cache.ts
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --title "New title"
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --status complete
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --deps 02-database
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --approach "Changed to use Redis"
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --criteria "Cache hits > 90%"
+"$SKILL_DIR/scripts/task.py" update 01-auth-login --files src/cache.ts
 ```
 
 ### List Tasks
 
 ```bash
-scripts/task.py list
-scripts/task.py list --status pending
-scripts/task.py list --status in_progress
+"$SKILL_DIR/scripts/task.py" list
+"$SKILL_DIR/scripts/task.py" list --status pending
+"$SKILL_DIR/scripts/task.py" list --status in_progress
 ```
 
 ### Show Task
 
 ```bash
-scripts/task.py show 01-auth-login
-scripts/task.py show 01-auth-login/02-session
+"$SKILL_DIR/scripts/task.py" show 01-auth-login
+"$SKILL_DIR/scripts/task.py" show 01-auth-login/02-session
 ```
 
 Returns task details including dependency status.
@@ -190,7 +195,7 @@ Returns task details including dependency status.
 ### Get Next Task
 
 ```bash
-scripts/task.py next
+"$SKILL_DIR/scripts/task.py" next
 ```
 
 Returns the next task to work on using depth-first logic:
@@ -200,7 +205,7 @@ Returns the next task to work on using depth-first logic:
 ### Start Task
 
 ```bash
-scripts/task.py start 01-auth-login
+"$SKILL_DIR/scripts/task.py" start 01-auth-login
 ```
 
 Sets status to `in_progress` and records start time. Warns (but allows) if
@@ -209,22 +214,22 @@ dependencies incomplete.
 ### Complete Task
 
 ```bash
-scripts/task.py done                  # Current in_progress task
-scripts/task.py done 01-auth-login    # Specific task
+"$SKILL_DIR/scripts/task.py" done                  # Current in_progress task
+"$SKILL_DIR/scripts/task.py" done 01-auth-login    # Specific task
 ```
 
 ### Block/Unblock Task
 
 ```bash
-scripts/task.py block 01-auth-login --reason "Waiting on API spec"
-scripts/task.py unblock 01-auth-login
+"$SKILL_DIR/scripts/task.py" block 01-auth-login --reason "Waiting on API spec"
+"$SKILL_DIR/scripts/task.py" unblock 01-auth-login
 ```
 
 ### Add Note
 
 ```bash
-scripts/task.py note 01-auth-login "Discovered edge case X"
-scripts/task.py note 01-auth-login/02-session "Harder than expected"
+"$SKILL_DIR/scripts/task.py" note 01-auth-login "Discovered edge case X"
+"$SKILL_DIR/scripts/task.py" note 01-auth-login/02-session "Harder than expected"
 ```
 
 Attach learnings, context, or decisions to a task. Notes are timestamped and
@@ -233,7 +238,7 @@ preserved for future sessions.
 ### View All Notes
 
 ```bash
-scripts/task.py notes
+"$SKILL_DIR/scripts/task.py" notes
 ```
 
 Returns all notes chronologically across all tasks - a project journal showing
@@ -242,8 +247,8 @@ what you learned over time.
 ### Move Task
 
 ```bash
-scripts/task.py move 01-auth-login/03-feature --parent 02-backend
-scripts/task.py move 02-backend/01-api                             # Move to top level
+"$SKILL_DIR/scripts/task.py" move 01-auth-login/03-feature --parent 02-backend
+"$SKILL_DIR/scripts/task.py" move 02-backend/01-api                             # Move to top level
 ```
 
 Moves a task to a new location and updates any dependency references.
@@ -253,7 +258,7 @@ Moves a task to a new location and updates any dependency references.
 Tasks can depend on other tasks by path:
 
 ```bash
-scripts/task.py add "Deploy" --deps 01-auth-login 02-database-setup
+"$SKILL_DIR/scripts/task.py" add "Deploy" --deps 01-auth-login 02-database-setup
 ```
 
 Dependencies are soft-blocking:
@@ -265,7 +270,7 @@ Dependencies are soft-blocking:
 Use `task-render.py` to generate readable markdown:
 
 ```bash
-scripts/task-render.py
+"$SKILL_DIR/scripts/task-render.py"
 ```
 
 Output:
@@ -330,16 +335,16 @@ Output:
 
 ## Typical Workflow
 
-1. **Starting a session**: Run `scripts/task.py next` to see what to work on
-2. **Resuming after time away**: Run `scripts/task.py notes` to review learnings
-3. **Beginning work**: Run `scripts/task.py start <id>` on the task
+1. **Starting a session**: Run `"$SKILL_DIR/scripts/task.py" next` to see what to work on
+2. **Resuming after time away**: Run `"$SKILL_DIR/scripts/task.py" notes` to review learnings
+3. **Beginning work**: Run `"$SKILL_DIR/scripts/task.py" start <id>` on the task
 4. **Breaking down work**: Add subtasks with `--parent`
-5. **Capturing learnings**: Run `scripts/task.py note <id> "text"` when you discover something
-6. **Completing**: Run `scripts/task.py done` when finished
-7. **Repeat**: Run `scripts/task.py next` for the next task
+5. **Capturing learnings**: Run `"$SKILL_DIR/scripts/task.py" note <id> "text"` when you discover something
+6. **Completing**: Run `"$SKILL_DIR/scripts/task.py" done` when finished
+7. **Repeat**: Run `"$SKILL_DIR/scripts/task.py" next` for the next task
 
 ## References
 
 For more detailed guidance, use the Read tool to load:
-- `references/markdown-format.md` - The task file format specification
-- `references/project-breakdown.md` - How to decompose projects into atomic tasks
+- `$SKILL_DIR/references/markdown-format.md` - The task file format specification
+- `$SKILL_DIR/references/project-breakdown.md` - How to decompose projects into atomic tasks

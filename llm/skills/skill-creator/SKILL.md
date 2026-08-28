@@ -14,6 +14,10 @@ Create Agent Skills that conform to the agentskills.io specification. Client-
 specific extensions are documented separately and must not leak into the
 portable core.
 
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before invoking a bundled script; keep the
+current directory at the directory where the skill should be created or evaluated.
+
 ## Workflow
 
 1. **Capture intent** — what the skill should do, when it should trigger, and
@@ -272,7 +276,8 @@ Inline metadata lets `uv run` handle dependencies with no manual install:
 # ///
 ```
 
-Invoke with `uv run scripts/myscript.py` from the skill directory.
+Invoke with `uv run "$SKILL_DIR/scripts/myscript.py"` from the target project
+or evaluation directory.
 
 ### Human vs agent mode (`--porcelain`)
 
@@ -288,8 +293,8 @@ See `llm/skills/README.md` for the full pattern. Summary:
 
 ## Available scripts
 
-Scripts are in `scripts/`. Refer to them with paths relative to the skill
-directory so the instructions remain portable.
+Scripts are in `$SKILL_DIR/scripts/`. Resolve `$SKILL_DIR` from this skill's
+source path before invoking them.
 
 | Script | Purpose |
 |--------|---------|
@@ -300,7 +305,7 @@ directory so the instructions remain portable.
 ### scaffold.sh
 
 ```bash
-bash scripts/scaffold.sh <name> [--scripts] [--references] [--assets] [--codex] [--dir <path>]
+bash "$SKILL_DIR/scripts/scaffold.sh" <name> [--scripts] [--references] [--assets] [--codex] [--dir <path>]
 ```
 
 Creates a skill directory (in `--dir`, or the current working directory) with:
@@ -314,7 +319,7 @@ name is invalid or the directory already exists.
 ### validate.sh
 
 ```bash
-bash scripts/validate.sh [--client <name>] <skill-directory>
+bash "$SKILL_DIR/scripts/validate.sh" [--client <name>] <skill-directory>
 ```
 
 Fails on: missing SKILL.md; missing `name` or `description`; `name` not
@@ -325,14 +330,15 @@ matching the directory; malformed `name`; XML tags in `name` or `description`;
 Warns on: reserved words in `name`; first- or second-person `description`;
 a `description` with no "when to use" signal; unrecognized frontmatter keys;
 unexpected top-level entries; and Claude-only frontmatter when the client is
-not `claude`. The Claude client also checks its listing-length convention.
+not `claude`. The Claude client also checks its listing-length convention; the
+Codex client validates optional `agents/openai.yaml` interface metadata.
 
 Prints PASS/FAIL/WARN per check. Exits 0 if all checks pass, 1 if any fail.
 
 ### update-references.sh
 
 ```bash
-bash scripts/update-references.sh
+bash "$SKILL_DIR/scripts/update-references.sh"
 ```
 
 Refetches the agentskills.io spec pages and client documentation into

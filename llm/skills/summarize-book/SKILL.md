@@ -13,11 +13,15 @@ compatibility: >-
 
 # Summarize Book
 
+`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
+Replace it with the resolved path before invoking a bundled script while
+keeping the current directory at the target book or project.
+
 ## Quick Start
 
 ```bash
 # 1. Extract ebook to chapter markdown files
-uv run scripts/extract_ebook.py book.epub -d chapters/
+uv run "$SKILL_DIR/scripts/extract_ebook.py" book.epub -d chapters/
 
 # 2. Summarize (the agent orchestrates this — see Workflow below)
 ```
@@ -29,7 +33,7 @@ uv run scripts/extract_ebook.py book.epub -d chapters/
 Run the extraction script on the ebook file:
 
 ```bash
-uv run scripts/extract_ebook.py book.epub -d chapters/
+uv run "$SKILL_DIR/scripts/extract_ebook.py" book.epub -d chapters/
 ```
 
 This produces one markdown file per chapter in the output directory, named

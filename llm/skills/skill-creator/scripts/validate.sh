@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # validate.sh — Validate a skill directory against the Agent Skills spec.
 #
-# Usage: validate.sh <skill-directory>
+# Usage: validate.sh [--client <name>] <skill-directory>
 #
 # Checks SKILL.md existence, frontmatter fields, naming conventions, and size
 # limits. Exits 0 if all checks pass, 1 if any fail.
@@ -32,8 +32,9 @@ Warns on:
   - Unexpected top-level entries
 
 With --client claude, also warns when description plus when_to_use exceeds
-Claude Code's 1536-character listing cap. Other client names validate the
-portable core until client-specific checks are added.
+Claude Code's 1536-character listing cap. With --client codex, validates
+optional agents/openai.yaml interface metadata. Other client names validate
+the portable core until client-specific checks are added.
 
 Options:
   --client <name>
@@ -130,6 +131,100 @@ extract_field() {
         multi && !/^[ \t]/ { print line; found=1; exit }
         END { if (multi && !found) print line }
     ' <<< "$FRONTMATTER"
+}
+
+extract_yaml_scalar() {
+    local section="$1"
+    local key="$2"
+    local yaml_file="$3"
+
+    awk -v section="$section" -v key="$key" '
+        $0 == section ":" { in_section=1; next }
+        in_section && /^[^[:space:]#]/ { exit }
+        in_section && $0 ~ "^[[:space:]]+" key ":[[:space:]]*" {
+            sub("^[[:space:]]+" key ":[[:space:]]*", "")
+            print
+            exit
+        }
+    ' "$yaml_file"
+}
+
+validate_codex_metadata() {
+    local metadata_file="${SKILL_DIR}/agents/openai.yaml"
+    local display_name
+    local short_description
+    local implicit_invocation
+    local field_name
+
+    if [[ ! -e "$metadata_file" ]]; then
+        return
+    fi
+
+    if [[ ! -f "$metadata_file" ]]; then
+        check "Codex metadata is a file" "fail" "${metadata_file}"
+        return
+    fi
+
+    if grep -qE '^[^[:space:]#][^:]*:' "$metadata_file"; then
+        while IFS= read -r field_name; do
+            case "$field_name" in
+                interface|policy|dependencies) ;;
+                *) check "Codex metadata top-level fields" "fail" "unknown field '${field_name}'" ;;
+            esac
+        done < <(grep -oE '^[^[:space:]#][^:]*:' "$metadata_file" | tr -d ':' | sort -u)
+    fi
+
+    if ! grep -qx 'interface:' "$metadata_file"; then
+        check "Codex metadata has interface" "fail" "missing interface section"
+        return
+    fi
+    check "Codex metadata has interface" "pass"
+
+    while IFS= read -r field_name; do
+        case "$field_name" in
+            display_name|short_description|icon_small|icon_large|brand_color|default_prompt) ;;
+            *) check "Codex interface fields" "fail" "unknown field '${field_name}'" ;;
+        esac
+    done < <(
+        awk '
+            $0 == "interface:" { in_section=1; next }
+            in_section && /^[^[:space:]#]/ { exit }
+            in_section && /^[[:space:]]+[A-Za-z_][A-Za-z0-9_-]*:/ {
+                sub(/^[[:space:]]+/, "")
+                sub(/:.*/, "")
+                print
+            }
+        ' "$metadata_file" | sort -u
+    )
+
+    display_name=$(extract_yaml_scalar "interface" "display_name" "$metadata_file")
+    if [[ "$display_name" =~ ^\".+\"$ ]]; then
+        check "Codex display name" "pass"
+    else
+        check "Codex display name" "fail" "interface.display_name must be a quoted, non-empty string"
+    fi
+
+    short_description=$(extract_yaml_scalar "interface" "short_description" "$metadata_file")
+    if ! [[ "$short_description" =~ ^\".+\"$ ]]; then
+        check "Codex short description" "fail" "must be a quoted, non-empty string"
+    else
+        short_description=${short_description#\"}
+        short_description=${short_description%\"}
+        if [[ ${#short_description} -lt 25 || ${#short_description} -gt 64 ]]; then
+            check "Codex short description length (25-64)" "fail" "got ${#short_description} chars"
+        else
+            check "Codex short description length (25-64)" "pass"
+        fi
+    fi
+
+    if grep -qx 'policy:' "$metadata_file"; then
+        implicit_invocation=$(extract_yaml_scalar "policy" "allow_implicit_invocation" "$metadata_file")
+        if [[ "$implicit_invocation" != "true" && "$implicit_invocation" != "false" ]]; then
+            check "Codex implicit invocation policy" "fail" "must be true or false"
+        else
+            check "Codex implicit invocation policy" "pass"
+        fi
+    fi
 }
 
 # --- SKILL.md exists ---
@@ -278,6 +373,12 @@ while IFS= read -r entry; do
         warn "unexpected top-level entry: ${entry_name}"
     fi
 done < <(find "$SKILL_DIR" -maxdepth 1 -mindepth 1 -exec basename {} \;)
+
+# --- Codex metadata ---
+
+if [[ "$CLIENT" == "codex" ]]; then
+    validate_codex_metadata
+fi
 
 # --- Summary ---
 
