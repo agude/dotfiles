@@ -10,8 +10,8 @@ compatibility: "Requires bash. The tree command is required for full tree output
 
 # Local Johnny.Decimal System
 
-This is a local, plain-file Johnny.Decimal system. This `SKILL.md` is the
-entry point; load only the layer needed for the task:
+This is a local, plain-file Johnny.Decimal system. Use this file as the entry
+point. Read only the reference material required for the task:
 
 | Layer | Read when | Reference |
 | --- | --- | --- |
@@ -19,26 +19,28 @@ entry point; load only the layer needed for the task:
 | JDex policy | Working with the user's index, filing rules, or local decisions | `references/jdex.md` |
 | JD tools | Searching, reading, creating, moving, or renaming files and notes | `references/jd-tools.md` |
 
-For a filing operation, read the JDex and tools layers. For naming or a
-specific placement decision, also read `references/FILING-GUIDE.md` and
+For a filing operation, read the JDex policy and tools references. For a
+placement or naming decision, also read `references/FILING-GUIDE.md` and
 `references/NAMING.md`. Read the local JDex `overview.md` and `flowchart.md`
-when the current structure or filing decision is unclear.
+when the target is not clear.
 
 ## Operating boundaries
 
 - The filesystem and JDex are local sources of truth.
 - Do not replace local rules with generic JD assumptions.
 - Do not use a hosted Johnny.Decimal service as a prerequisite.
-- Treat actual documents and notes about those documents as different things.
-- Use the bundled scripts for filesystem changes and follow their agent-mode
-  output requirements.
+- Treat documents and JDex notes about those documents as separate records.
+- Use the bundled scripts for inspection and filesystem changes. Follow their
+  agent-mode output requirements.
+- Treat a need for an ad hoc filesystem command as a tooling gap. Do not use
+  the command as a routine fallback.
 - Preserve existing user changes and naming conventions.
 
 ## Quick routing
 
-1. Identify whether the request is about JD concepts, the local JDex, or an
-   operation on files and notes.
-2. Read the corresponding layer reference.
-3. For filing, inspect the source and target before changing anything.
-4. Use `--porcelain` for agent-mode script calls.
-5. Report the resulting path or note file and any unresolved ambiguity.
+1. Classify the request: Johnny.Decimal concepts, local policy, or a file or
+   note operation.
+2. Read the corresponding reference material.
+3. Before filing, inspect the source and the proposed destination.
+4. Pass `--porcelain` to every bundled-script call made for an agent.
+5. Report the resulting path or note file. State any remaining ambiguity.

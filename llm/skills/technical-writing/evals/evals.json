@@ -1,0 +1,23 @@
+{
+  "skill_name": "technical-writing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Rewrite this reference for clarity without changing its meaning: 'Batch mode accepts multiple inputs. The rotate and split commands accept --output-dir; merge requires --output and combines multiple inputs into one file. By default, batch operations continue after an input fails. Use --fail-fast to stop at the first failure where supported.'",
+      "expected_output": "Preserves each command's output contract, the continue-on-error default, and the conditional availability of --fail-fast. Does not generalize the output-dir behavior to merge.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this documentation rewrite for lost information. Original: 'Create values.json as a JSON array, for example [{\"field_id\":\"last_name\",\"page\":1,\"value\":\"Smith\"}]. Then run fill_fields.py input.pdf values.json output.pdf.' Revised: 'Create values.json using the field reference, then run fill_fields.py input.pdf values.json output.pdf.' The entire field reference says: 'Text fields accept strings. Checkbox values must match checked_value or unchecked_value.'",
+      "expected_output": "Identifies that the array shape and entry keys were lost and are absent from the reference. Proposes restoring the schema or example without claiming the command changed.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Improve this procedure's wording: 'Run the audit. Fix each failure or document a permanent exception. During migration, if a rule requires separate code work, leave the audit failing and record the reason in AGENTS.md. Do not weaken the rule or add a failing recipe.'",
+      "expected_output": "Resolves the conflict in the general step by including documented migration deferrals. Preserves visible audit failure, the AGENTS.md record, and the prohibitions. Does not require permanent waivers or passing the audit for deferred work.",
+      "files": []
+    }
+  ]
+}
