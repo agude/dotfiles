@@ -1,80 +1,94 @@
 ---
 name: technical-writing
-description: Writes, rewrites, and reviews technical documentation in clear, precise English. Use for procedures, runbooks, READMEs, reference material, troubleshooting guides, release notes, incident reports, error messages, API documentation, code comments, and docstrings; also use when a user asks to remove vague or LLM-like language from technical prose.
+description: Write, rewrite, and review technical documentation in clear, precise English. Use for procedures, runbooks, READMEs, reference material, troubleshooting guides, release notes, incident reports, error messages, API documentation, code comments, and docstrings. Also use when a user asks to remove vague or LLM-like language from technical prose.
 ---
 
 # Technical Writing
 
-Write technical prose that lets the intended reader understand the facts and
-take the correct action on the first read. Use the structural discipline of
-Simplified Technical English. Do not claim that the output complies with
-ASD-STE100.
+Write prose that lets the intended reader understand the facts and take the
+correct action on the first read. Apply the useful disciplines of Simplified
+Technical English: direct instructions, consistent terminology, explicit
+conditions, and complete grammar.
 
-## Scope
+## Scope and Boundaries
 
-Use this skill only for prose that explains a technical system or directs a
-technical action. This includes prose in code comments and docstrings. Do not
-apply it to executable code, identifiers, commands, configuration files, quoted
-errors, UI labels, or marketing and narrative writing.
+Use this skill for prose that explains a technical system or directs a
+technical action, including prose in code comments and docstrings.
 
-Preserve all facts, numbers, conditions, safety information, and established
-technical terms. Do not invent a cause, result, value, or example to make text
-appear more concrete.
+Do not apply it to executable code, identifiers, commands, configuration,
+quoted errors, UI labels, or marketing and narrative writing. Preserve these
+literal elements exactly unless the user explicitly asks to change them.
 
-## Choose the Form
+Preserve facts, quantities, conditions, safety information, requirements, and
+established technical terms. Do not invent a cause, outcome, value, example,
+or implementation detail to make the text sound more concrete.
 
-Classify each passage before writing:
+## Identify the Document Form
 
-- **Procedural text** tells the reader what to do. Use numbered steps when the
-  actions have an order. Use the imperative. Give one action per sentence.
-  Put a required condition before its action.
-- **Descriptive text** explains what a system is, does, or did. State facts in
-  a logical order. Group one topic per paragraph.
-- **Reference text** defines interfaces, inputs, outputs, limits, and failure
-  cases. Prefer tables, lists, and examples when they make an exact mapping
-  clearer than prose.
+Classify the passage before drafting or revising it.
 
-Do not mix instructions and explanation in the same sentence. Put a short
-explanation before or after the relevant procedure.
+- **Procedural text** tells the reader what to do. Use ordered steps when the
+  actions have a sequence. Use the imperative. Put each required condition
+  before the action it controls. Give one action per sentence where practical.
+- **Descriptive text** explains what a system is, does, or did. Lead with the
+  main fact, then state supporting facts in a logical order. Keep one topic in
+  each paragraph.
+- **Reference text** defines interfaces, inputs, outputs, limits, defaults,
+  and failure cases. Use tables, lists, or examples when they show an exact
+  mapping more clearly than prose.
 
-## Write the Draft
+Do not combine an instruction and its explanation in the same sentence. Put a
+short explanation immediately before or after the relevant instruction.
+
+## Draft or Rewrite
 
 1. State the result, purpose, or required action first.
-2. Use concrete nouns and direct verbs. Name the actor when it matters.
+2. Use concrete nouns and direct verbs. Name the actor when responsibility
+   matters.
 3. Use one term for one concept throughout the document. Preserve project
-   terminology. Do not replace distinct terms merely to avoid repetition.
-4. Prefer short sentences. Split a sentence that contains multiple actions,
-   conditions, exceptions, or independent facts.
-5. Use active voice when it identifies the responsible actor. Use passive voice
-   when the actor is unknown, irrelevant, or the affected object is the topic.
-6. State uncertainty accurately. Keep distinctions such as must, should, can,
-   may, and might when they carry different requirements or confidence.
-7. Replace vague claims with observable facts. Give the condition, limit,
+   terminology; do not substitute synonyms only to avoid repetition.
+4. Prefer short sentences. Split sentences that combine actions, conditions,
+   exceptions, or independent facts.
+5. Use active voice when it makes the responsible actor clear. Use passive
+   voice when the actor is unknown, irrelevant, or not the topic.
+6. Preserve the meaning of modal language. `Must`, `should`, `can`, `may`, and
+   `might` express different requirements or degrees of certainty.
+7. Replace vague claims with observable facts. State the condition, limit,
    behavior, or consequence instead of calling something simple, robust,
    seamless, powerful, or important.
-8. Define an unfamiliar term at first use when the intended reader needs the
-   definition. Do not define terms the document's audience already knows.
+8. Define an unfamiliar term at first use only when the intended audience
+   needs the definition.
+9. Keep the original structure when it already serves the reader. Reorganize
+   only when the current order obscures purpose, sequence, or ownership.
 
-## Review Before Delivering
+For a rewrite request, return the revised text without a change log unless the
+user asks for one. Preserve the source's level of detail unless it contains
+repetition, filler, or ambiguity.
 
-Check the draft for these failures:
+## Review Requests
 
-- A reader cannot identify what to do, when to do it, or what result to expect.
-- A condition appears after the action it changes.
-- Synonyms hide that the same system object or action is meant.
-- A sentence contains more than one independent instruction.
-- A qualifier, exception, risk, limit, or known uncertainty was lost.
-- Filler, hype, ceremonial transitions, or unsupported significance claims add
-  no information.
-- Code and other literal technical text changed.
+Review only the text in scope. Do not rewrite unrelated passages.
 
-For a review request, report each issue as: **problem**, **why it affects the
-reader**, and **a proposed rewrite**. Do not rewrite unrelated text.
+For each material issue, report:
 
-## ASD-STE100 Boundary
+1. **Problem:** what is unclear, inaccurate, inconsistent, or hard to use.
+2. **Reader impact:** why it affects correct understanding or action.
+3. **Proposed rewrite:** the smallest revision that resolves the issue.
 
-This skill takes inspiration from ASD-STE100: consistent terminology, complete
-grammar, direct instructions, short sentences, and explicit conditions. It
-does not include the ASD-STE100 controlled dictionary or its full rules. Do not
-describe its output as ASD-STE100 compliant. A compliance assessment requires
-the official standard and qualified review.
+Do not report stylistic preferences as defects. Prioritize ambiguity, missing
+conditions, unsafe instructions, contradictions, terminology drift, and lost
+limits or exceptions.
+
+## Final Check
+
+Before delivering, confirm that:
+
+- The reader can identify what to do, when to do it, and the expected result.
+- Every condition appears before the action it changes.
+- Terminology is consistent and does not hide distinct system objects.
+- No sentence contains multiple independent instructions without a reason.
+- Requirements, qualifiers, exceptions, risks, limits, and uncertainties remain
+  intact.
+- Filler, hype, ceremonial transitions, and unsupported importance claims are
+  removed.
+- Literal technical text has not changed unintentionally.
