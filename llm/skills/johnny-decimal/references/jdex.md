@@ -1,7 +1,7 @@
 # Local JDex Policy
 
-Use this file for the user's index, local filing decisions, and notes about
-Johnny.Decimal items.
+Use this reference for the user's index, local filing decisions, and JDex
+notes.
 
 ## Local locations
 
@@ -18,7 +18,7 @@ The JDex contains:
 - `flowchart.md`: the filing decision tree.
 - `XX.YY.md`: notes and decisions about a specific ID.
 
-## Local configuration
+## Configuration
 
 The runtime configuration is `${XDG_CONFIG_HOME}/johnnydecimal/config.json`,
 defaulting to `~/.config/johnnydecimal/config.json`. Set `JD_CONFIG` to use a
@@ -35,22 +35,22 @@ Johnny.Decimal examples.
 
 ## Local filing rules
 
-1. **Person first.** If a record belongs to one person, file it in that
-   person's area.
+1. **Person first.** File a record belonging to one person in that person's
+   area.
 2. **Purpose over provider.** File a bill by its purpose, not by the company
    that sent it.
-3. **Notes versus documents.** Notes about an ID belong in the JDex. Actual
-   documents belong in the ID's filesystem folder.
-4. **One source of truth.** Do not create competing copies merely to make an
-   item visible from multiple places. Use a JDex note or link instead.
-5. **When uncertain, stop before moving.** Inspect the flowchart and target
-   directory; ask for clarification if the location remains ambiguous.
+3. **Separate notes from documents.** Store an ID note in the JDex and the
+   associated document in the ID's filesystem folder.
+4. **Maintain one source of truth.** Do not create duplicate files solely to
+   expose an item in multiple locations. Use a JDex note or link instead.
+5. **Stop when placement remains unclear.** Inspect the flowchart and target
+   directory before moving a file. Request clarification if ambiguity remains.
 
 ## JDex notes
 
-JDex notes use the ID as the filename and a heading containing the ID and
-name. `jd-note.sh` appends a dated entry to the existing note or creates it
-when needed. Preserve existing note history and formatting.
+Name a JDex note with its ID. Its heading contains the ID and name.
+`jd-note.sh` appends a dated entry to an existing note or creates the note.
+Preserve existing history and formatting.
 
 The current local convention is dated Markdown prose. Metadata and related-ID
 links may be added when useful, but do not rewrite existing notes in bulk.
