@@ -11,7 +11,8 @@ by default. Write a separate output file, inspect it, and replace the source
 only when the task explicitly requires an in-place change.
 
 `$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Run scripts with:
+Resolve it before running a bundled script. Keep the current directory at the
+target project or document location. Run scripts with:
 
 ```bash
 uv run "$SKILL_DIR/scripts/<script>.py" --help
@@ -55,8 +56,13 @@ in-place modification.
 | Decrypt | `decrypt.py input.pdf -o decrypted.pdf --password <password>` |
 | Add a supplied text layer | `add_text_layer.py input.pdf output.pdf --file transcript.txt` |
 
-Prefix each pattern with `uv run "$SKILL_DIR/scripts/"`. Run the script with
-`--help` before using an option not shown here.
+Replace the script name in each pattern with its full path, for example:
+
+```bash
+uv run "$SKILL_DIR/scripts/extract_text.py" input.pdf
+```
+
+Run the script with `--help` before using an option not shown here.
 
 Do not put passwords in shell history, source files, logs, or status reports.
 Use the environment, prompt, or secret-handling mechanism established by the
@@ -65,10 +71,10 @@ target environment.
 ## Non-default and batch operations
 
 All bundled scripts are self-contained with PEP 723 dependencies. They accept
-multiple inputs where noted. Use `--porcelain` for machine-readable output:
+multiple inputs where noted. For scripts that support `--porcelain`,
 text-reading scripts emit JSONL; file-producing scripts emit tab-delimited
-status. Use `--fail-fast` to stop a batch on its first failure; otherwise the
-scripts continue and report failures.
+status. For scripts that support `--fail-fast`, use it to stop a batch on its
+first failure; otherwise those scripts continue and report failures.
 
 | Script | Useful non-default operations |
 | --- | --- |
@@ -76,7 +82,7 @@ scripts continue and report failures.
 | `ocr_text.py` | `--pages 1-3,5` limits OCR; multiple inputs print file headers. Requires `tesseract`. |
 | `ocr_pdf.py` | `-i` updates one or more files atomically; `-d output-dir/` writes batch output; `--rotate` and `--deskew` preprocess scans. |
 | `detect_orientation.py` | `--pages 1-3,5` limits detection. Requires `tesseract`. |
-| `check_fields.py` | Accepts multiple PDFs. Exits 0 when at least one input has fillable fields and 1 when none do; use `--porcelain` for JSONL results. |
+| `check_fields.py` | Accepts multiple PDFs. Exits 0 only when every input was read successfully and at least one has fields. Exits 1 on any read error or when no input has fields; use `--porcelain` for per-file JSONL results. |
 | `split.py` | `-d output-dir/` splits every page; `-d output-dir/ input1.pdf input2.pdf` gives each source a subdirectory. |
 | `rotate.py` | `--pages 1,3,5` limits rotation; `-i` or `-d output-dir/` supports batches. |
 | `metadata.py` | `--json` returns metadata as JSON. |
@@ -84,9 +90,12 @@ scripts continue and report failures.
 | `decrypt.py` | `-i` or `-d output-dir/` supports batches; unencrypted files are skipped with a message. |
 | `pdf_to_images.py` | `--pages 1-3,5` limits rendering; `--dpi 300` controls resolution; `-d output-dir/` supports batches. Rendering uses `pypdfium2`, not Poppler. |
 
-The file-producing scripts retain their legacy two-positional output syntax
-for compatibility, but use `-o` or `-d` in new commands. A single `-o` output
-requires one input; a batch requires `-i` or `-d`.
+For `ocr_pdf.py`, `split.py`, `rotate.py`, `encrypt.py`, `decrypt.py`, and
+`pdf_to_images.py`, legacy two-positional output syntax remains supported.
+Prefer `-o` or `-d` where supported. For these scripts, `-o` requires one
+input; multiple inputs require `-i` or `-d` where supported. `merge.py` instead
+combines multiple inputs into one required `-o` output. Text-layer and form
+scripts use the positional arguments shown in their workflows.
 
 Use a manual text layer when OCR cannot read content such as handwriting but a
 transcription exists:
@@ -108,7 +117,7 @@ atomic temporary file.
 1. Run `extract_text.py` first. It is faster and preserves text from
    born-digital PDFs.
 2. If the result is missing, sparse, or unusable, run `ocr_text.py`.
-3. To produce a searchable document, run `ocr_pdf.py -o <output.pdf>`.
+3. To produce a searchable document, run `ocr_pdf.py input.pdf -o searchable.pdf`.
 4. Render the output with `pdf_to_images.py` when visual verification matters.
 
 OCR requires `tesseract`. Use `--lang <language>` when the document is not in
@@ -118,8 +127,9 @@ the task requires replacing its text layer.
 
 ## Fill forms
 
-Start every form task by detecting fields. The script exits 0 when the PDF has
-fillable fields and 1 when it does not:
+Start every form task by detecting fields. For a single input, exit 0 means
+the PDF has fillable fields. Exit 1 means either no fields or a read error;
+inspect the result and stderr before choosing a workflow:
 
 ```bash
 uv run "$SKILL_DIR/scripts/check_fields.py" input.pdf
@@ -131,14 +141,20 @@ uv run "$SKILL_DIR/scripts/check_fields.py" input.pdf
    JSON records each field's ID, type, page, and bounding box.
 2. Render the source PDF with `pdf_to_images.py` to confirm each field's
    purpose.
-3. Create a values JSON file using the extracted field IDs and allowed values.
+3. Create `values.json` as an array of entries with `field_id`, `page`, and
+   `value`, using the extracted field IDs, page numbers, and allowed values:
+
+   ```json
+   [{"field_id": "last_name", "page": 1, "value": "Smith"}]
+   ```
+
 4. Fill the form with `fill_fields.py input.pdf values.json output.pdf`. It
    validates field IDs, page numbers, and allowed values before writing.
 5. Render `output.pdf` and verify the completed fields.
 
 For checkboxes, radio groups, and choice fields, use the values reported in
-the field metadata exactly. Read `references/form-filling.md` for the JSON
-format and field-type rules.
+the field metadata exactly. Read `references/form-filling.md` for field
+metadata and field-type rules.
 
 ### Non-fillable forms
 

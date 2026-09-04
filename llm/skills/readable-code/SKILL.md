@@ -31,7 +31,7 @@ meaning, not for their type or a shortened implementation detail.
 - Use specific, pronounceable names: `customerAddress`, not `custAddr`.
 - Avoid unexplained abbreviations and non-idiomatic single-letter names. Do
   not use shortcuts such as `curr`, `prev`, `res`, `ans`, or `gen_ts`.
-- Use nouns for values and collections: `activeUserCount`, `pendingOrders`.
+- Use nouns for values: `activeUserCount`, `customerAddress`.
 - Use verbs for functions: `findUserByEmail`, `calculateTotalPrice`.
 - Use question forms for booleans: `isActive`, `hasPermission`, `canEdit`.
 - Use plural nouns for collections: `users`, `matchedRecords`.
@@ -122,8 +122,7 @@ direction rather than inventing a product rule.
 For a feature, implement the requested behavior directly within the existing
 architecture. For a reported bug, fix the cause and check related code for the
 same failure mode. For architecture discussions, recommend the readable option
-that minimizes maintenance burden. Apply small local cleanup only when it does
-not broaden the task.
+that minimizes maintenance burden.
 
 ## Review and completion
 
@@ -137,5 +136,5 @@ Before completing work, verify that:
 - the relevant build, test, lint, or type-check command has run when available.
 
 Resolve a failed relevant check before reporting completion. Confirm that
-cleanup is complete and that the change will remain understandable at a
-substantially larger usage volume.
+cleanup is complete. Check whether the design can handle a tenfold increase
+in usage; consider data volume, resource use, and failure handling.

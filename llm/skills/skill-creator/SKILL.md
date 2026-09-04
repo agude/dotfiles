@@ -7,8 +7,9 @@ compatibility: Requires bash. curl is required for update-references.
 # Skill Creator
 
 Create portable Agent Skills that conform to the agentskills.io specification.
-Keep portable guidance in `SKILL.md`. Put client-specific behavior in the
-client's supported extension file; do not leak it into the portable core.
+Keep shared workflow guidance portable. Document client-specific behavior
+separately and use the client's supported mechanism: Claude Code extends
+frontmatter, while Codex uses `agents/openai.yaml`.
 
 `$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
 Resolve it before running a bundled script. Run scripts from the directory

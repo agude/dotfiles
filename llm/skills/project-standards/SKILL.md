@@ -136,7 +136,8 @@ pin to maintain.
 7. Run `git status` and `git check-ignore -v` for newly added dotfiles, hook
    files, and agent-document symlinks. Update `.gitignore` rather than
    force-adding ignored files.
-8. Re-run the audit. Fix each failure or document a permanent exception.
+8. Re-run the audit. Fix each failure, document a permanent exception, or
+   record a migration deferral as described under **Exceptions**.
 9. Run `just check` before committing.
 
 For a Google Apps Script repository, use the documented bound-project test

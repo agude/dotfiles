@@ -18,8 +18,15 @@ the prose more specific.
 
 Preserve commands, code, identifiers, paths, configuration, quoted errors, UI
 labels, and established project terminology exactly unless the user asks to
-change them. Do not apply this skill to marketing or narrative prose unless a
-technical passage is in scope.
+change them. If a literal conflicts with the implementation, flag the error
+in a review or correct it when the task includes technical corrections.
+Do not apply this skill to marketing or narrative prose unless a technical
+passage is in scope.
+
+For a rewrite, preserve behavior and policy as well as facts. Do not turn a
+recommendation into a requirement, broaden a rule from some tools to all
+tools, or remove an exception to simplify a sentence. Resolve contradictions
+against available evidence; identify any that the evidence cannot settle.
 
 ## Choose the Document Form
 
@@ -35,35 +42,57 @@ technical passage is in scope.
   corrective action, and expected result. Keep diagnosis separate from
   remediation.
 
-Do not combine an instruction and its explanation in the same sentence. Put a
-short explanation immediately before or after the relevant instruction.
+Keep an instruction and its reason together. Use a separate sentence when the
+explanation obscures the action or makes the sentence hard to follow.
 
 ## Draft and Rewrite
 
 1. State the purpose, result, or required action before background detail.
 2. Use concrete nouns and direct verbs. Name the responsible actor when it
-affects ownership or execution.
+   affects ownership or execution.
 3. Use one term for one concept. Do not substitute synonyms merely to avoid
-repetition.
+   repetition.
 4. Split sentences that contain several actions, conditions, exceptions, or
-independent facts. Keep a required exception with the statement it limits.
+   independent facts when splitting improves comprehension. Keep a required
+   exception with the statement it limits.
 5. Preserve modality. `Must`, `should`, `can`, `may`, and `might` carry
-different requirements or degrees of certainty.
+   different requirements or degrees of certainty.
 6. Replace vague claims with observable behavior, stated limits, or explicit
-consequences. Remove filler, hype, ceremonial transitions, and unsupported
-importance claims.
+   consequences. Remove filler, hype, ceremonial transitions, and unsupported
+   importance claims. Retain reasons that explain a constraint or exception.
 7. Define an unfamiliar term at first use only when the audience needs it.
 8. Retain a structure that already serves the reader. Reorganize only to make
-purpose, sequence, ownership, or dependencies clear.
+   purpose, sequence, ownership, or dependencies clear. Use headings and tables
+   for navigation or comparison, not to fragment a short explanation.
 
 Use active voice when it identifies a useful actor. Use passive voice when the
 actor is unknown, irrelevant, or deliberately not the subject.
 
+## Check for Information Loss
+
+Compare the revision with the original, not just with itself. For a branch
+review, use the branch's common ancestor with its target as the baseline.
+
+- Account for each distinct requirement, default, condition, exception,
+  failure behavior, and operational reason. Check both deleted guidance and
+  new claims; fluent prose can still change the contract.
+- Retain examples that define an input shape, show required arguments, or
+  explain a non-obvious case. Remove duplicate examples only when the same
+  information remains accessible.
+- When replacing detail with a reference, verify that the target contains the
+  omitted information and that the reader is directed to it at the right step.
+- Check shared summaries against each tool or case they cover. Preserve
+  differences in flags, output formats, exit codes, and side effects.
+- When command examples change, check their arguments and shell syntax
+  against local help or source. Keep runnable examples distinct from schematic
+  command patterns.
+
 ## Deliver the Requested Work
 
 - For a draft or rewrite, return the revised text. Preserve the source's level
-  of detail unless it contains repetition, filler, or ambiguity. Do not add a
-  change log unless requested.
+  of detail unless the user requests a summary. Remove repetition and filler;
+  clarify ambiguity without discarding the underlying information. Do not add
+  a change log unless requested.
 - For a review, report only material issues in the supplied scope. For each,
   state the problem, reader impact, and the smallest proposed rewrite. Do not
   report personal style preferences as defects.
