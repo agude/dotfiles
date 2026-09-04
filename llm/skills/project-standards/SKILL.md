@@ -1,332 +1,253 @@
 ---
 name: project-standards
-description: Tooling conventions for this user's repos — task-runner verbs (just/make), ruff lint and format, mypy, pytest and coverage, pre-commit hooks, GitHub Actions CI, release flow, and repo docs. Use when scaffolding a new repo, adding or changing a linter/formatter/type-checker/test setup, wiring or editing CI workflows or pre-commit hooks, pinning or bumping tool and action versions, or bringing an existing repo in line with the standard.
-compatibility: Requires bash for the audit script. The conventions themselves assume uv, just, and GitHub Actions.
+description: Applies the user's repository conventions for task runners, uv-based Python tooling, quality checks, hooks, GitHub Actions, releases, and repository documentation. Use when scaffolding a repository or changing its tooling, CI, hooks, release flow, or standards compliance.
+compatibility: Requires bash for the audit script. The conventions assume uv, just, and GitHub Actions where applicable.
 metadata:
   updated: "2026-07-27"
 ---
 
 # Project Standards
 
+Use one task-runner recipe for every quality check. Developers, hooks, and CI
+call that recipe; they do not repeat the underlying commands. This prevents
+local, hook, and CI behavior from drifting.
+
 `$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Replace it with the resolved path before invoking a bundled script; keep the
-current directory at the repository being assessed or created.
+Run bundled scripts from the repository being created or assessed.
 
-House conventions for how repos are linted, tested, gated, and released.
-The point is that every repo answers the same questions the same way, so a
-change to one repo's tooling is legible in all the others.
+## Choose the repository archetype
 
-## The core rule
+Identify the repository before changing its tooling. Read the matching
+reference before implementation.
 
-**Every check has exactly one definition — a task-runner recipe. The
-developer, the pre-commit hook, and CI all call that recipe. None of them
-restate the commands.**
-
-```
-just lint  ←──┬── developer types it
-              ├── .git/hooks/pre-commit calls it
-              └── CI calls it
-```
-
-When this rule is broken, tooling drifts silently: a hook can call a binary
-that isn't installed, or CI can check something the developer never runs.
-Both have happened here.
-
-## Always uv, always isolated
-
-**Every Python invocation goes through uv, and every dependency lives in an
-environment uv owns.** No exceptions in these repos.
-
-| Situation | Do this | Never this |
-|---|---|---|
-| Repo with a `pyproject.toml` | `uv sync`, then `uv run <tool>` | `pip install`, `source .venv/bin/activate`, bare `ruff`/`pytest` |
-| Repo without one | `uvx <tool>@<pinned-version>` | a globally installed tool |
-| Standalone script | PEP 723 inline metadata + `uv run script.py` | `pip install` into system Python |
-| Long-lived CLI you use by hand | `uv tool install` | `pip install --user` |
-| CI | `astral-sh/setup-uv`, `uv python install`, `uv sync` | `pip install`, `uv pip install --system` |
-| Interpreter itself | `uv python install` | system Python, pyenv, homebrew Python |
-
-Two consequences that are easy to get wrong:
-
-- **Never assume a tool is on `PATH`.** Nothing is installed globally, so a
-  script that calls bare `ruff` works on the machine that wrote it and
-  nowhere else. This has already broken a hook here: it called `ruff`,
-  exited 127, and blocked every commit touching a `.py` file. Recipes and
-  hooks call `uv run <tool>`; the hook calls the recipe.
-- **`uv pip install --system` is not isolation.** It installs into the
-  runner's interpreter, which is fine for a throwaway container and wrong
-  as a habit — it diverges from what `just sync` gives the developer, so CI
-  stops being reproducible locally. Use `uv sync` in CI too.
-
-Dev tools go in `[dependency-groups] dev`, not
-`[project.optional-dependencies]`. The dependency group is uv's native
-mechanism and does not pollute the package's public extras.
-
-## Archetypes
-
-Pick the archetype first; it determines the runner and the reference doc.
-
-| Archetype | Looks like | Runner | Reference |
-|---|---|---|---|
+| Archetype | Signals | Runner | Reference |
+| --- | --- | --- | --- |
 | Python package | `pyproject.toml`, `src/`, uv | `just` | `references/python-package.md` |
-| Script collection | loose `*.py`, no `src/`, no suite | `just` | this table's note below |
+| Script collection | Loose scripts without a package or test suite | `just` | This skill |
 | Jekyll site | `_config.yml`, `Gemfile`, Docker | `make` | `references/jekyll-site.md` |
-| Shell / infra | `*.sh`, `tests/*.bats`, playbooks | `just` | `references/shell-repo.md` |
-| Google Apps Script | `src/appsscript.json`, Apps Script JavaScript | none by default | `references/apps-script.md` |
-| Single file | one script, no deps | none | ruff config only, no CI needed |
+| Shell or infrastructure | Shell scripts, Bats tests, playbooks | `just` | `references/shell-repo.md` |
+| Google Apps Script | `src/appsscript.json`, bound Apps Script | None by default | `references/apps-script.md` |
+| Single file | One script with no dependencies | None | Ruff configuration only; no CI required |
 
-**Script collections** get `sync`, `lint`, `format`, `check`, and
-`hooks-install` — and deliberately no `type-check`, `test`, coverage gate, or
-version, because there is no package or suite for them to describe. `check`
-is just `lint`. CI is a single lint job. Say so in `AGENTS.md`, so the
-audit's warnings about the missing mypy and coverage settings read as a shape
-decision rather than neglect.
+Script collections provide `sync`, `lint`, `format`, `check`, and
+`hooks-install`. Their `check` recipe is `lint`; CI is one lint job. They do
+not need `type-check`, `test`, coverage, versioning, or release recipes
+without a package or test suite. Document that shape in `AGENTS.md` so audit
+warnings about missing mypy and coverage settings are understood as deliberate.
 
-**Google Apps Script** projects execute inside a bound Google Workspace file.
-They start without a local runner or CI: runtime tests run from the Apps
-Script editor. Add `clasp`, a `justfile`, and CI only after configuring a
-real Apps Script project and credentials; an unexecutable recipe is worse
-than no recipe.
+Google Apps Script projects start without local tooling or CI. Add `clasp`, a
+task runner, and CI only after a real script project and credentials exist.
+Run runtime tests from the Apps Script editor until then. An unexecutable
+recipe is worse than no recipe.
 
-## The verb contract
+## Task-runner contract
 
-Both runners expose the same verbs. Recipes may be absent when they don't
-apply (a repo with no types has no `type-check`), but a verb that exists
-means what it means here.
+Use `just` unless the archetype requires `make`. A recipe may be absent when
+it does not apply. When present, use these names and meanings.
 
-| Verb | Does | Called by |
-|---|---|---|
-| `default` | list recipes (`@just --list`) | human |
-| `sync` | install/lock dependencies | human, CI |
-| `lint` | **all read-only static checks** | hook, CI |
-| `format` | all mutating fixers | human |
-| `type-check` | mypy | CI |
-| `test` | test suite | CI |
-| `check` | `lint` + `type-check` + `test` | pre-push, release |
-| `hooks-install` | install the pre-commit hook | once per clone |
-| `build` / `clean` | package build, artifact cleanup | as applicable |
+| Recipe | Meaning | Caller |
+| --- | --- | --- |
+| `default` | List available recipes | Developer |
+| `sync` | Install and lock dependencies | Developer and CI |
+| `lint` | Run every read-only static check | Hook and CI |
+| `format` | Run mutating formatters and fixers | Developer |
+| `type-check` | Run mypy | CI |
+| `test` | Run the test suite | CI |
+| `check` | Run `lint`, `type-check`, and `test` | Pre-push and release |
+| `hooks-install` | Install the pre-commit hook | Once per clone |
+| `build` / `clean` | Build artifacts or remove generated output | When applicable |
 
-Rules that keep the contract honest:
+`lint` is complete and read-only. For Python, it includes both `ruff check`
+and `ruff format --check`. Add every applicable static checker, such as
+yamllint, shellcheck, or hadolint. `format` is the mutating counterpart:
+`ruff format`, then `ruff check --fix`.
 
-- **`lint` is read-only and total.** It runs *every* static check the repo
-  has — `ruff check` **and** `ruff format --check`, plus yamllint,
-  shellcheck, hadolint where they apply. Never a subset.
-- **`format` is the mutating twin**: `ruff format` then `ruff check --fix`.
-- **No `fmt`, `lint-fix`, or `format-check` recipes.** They fold into the
-  two verbs above.
-- **`check` is the full gate** and must cover at least what CI runs, so a
-  green `just check` means a green CI. It may run *more* — a repo whose full
-  suite takes minutes per interpreter can have CI run a fast subset while
-  `check` runs everything locally. It must never run *less*. Never use the
-  name for anything else (a syntax check is `syntax-check`).
-- **Standard verbs are a floor, not a replacement.** Keep the repo's own
-  recipes — `just decode`, `just organize`, `just test-fast` — alongside
-  them. The contract says what `lint` must mean, not that a justfile may
-  contain nothing else.
-- Jekyll sites suffix only where Ruby owns the base name:
-  `lint-scripts`, `format-scripts`, `test-scripts`.
+Do not create aliases such as `fmt`, `lint-fix`, or `format-check`. Keep
+project-specific recipes alongside this contract. Standard recipes are a
+floor, not a limit on recipes such as `just decode` or `just test-fast`.
+`check` must cover at least what CI runs. It may run more, but never less. A
+green local `check` must mean CI will pass. Use `syntax-check` rather than
+`check` for a narrower operation.
 
-## Policy
+For Jekyll sites, use `lint-scripts`, `format-scripts`, and `test-scripts`
+where Ruby owns the base recipe names.
 
-Defaults. Deviating is allowed; deviating silently is not — see
-*Recording an exception*.
+## Python tooling policy
+
+Use uv-managed environments for every Python invocation.
+
+| Situation | Required approach |
+| --- | --- |
+| Repository with `pyproject.toml` | `uv sync`, then `uv run <tool>` |
+| Repository without a project environment | `uvx <tool>@<pinned-version>` |
+| Standalone script | PEP 723 metadata and `uv run script.py` |
+| Long-lived command-line tool | `uv tool install` |
+| CI | `astral-sh/setup-uv`, `uv python install`, and `uv sync` |
+
+Do not use `pip install`, activate a virtual environment, depend on globally
+installed tools, or use `uv pip install --system`. Put development tools in
+`[dependency-groups] dev`, commit `uv.lock`, and use `uv python install` for
+the interpreter.
+
+## Default policy
+
+Apply these defaults unless a documented exception requires a different
+choice.
 
 | Area | Standard |
-|---|---|
-| Dependencies | uv only (see above); `uv.lock` **committed**, never gitignored |
-| Build backend | `hatchling` with `[tool.hatch.version]` reading `__init__.py` |
-| Versioning | version lives in `__init__.py` only; `just release` tags |
-| Python support | `requires-python` floor = CI matrix floor = oldest non-EOL CPython; matrix runs floor→latest; `.python-version` present and set to latest supported |
-| Lint | ruff, config in `pyproject.toml` (`ruff.toml` if no pyproject); see `assets/pyproject-tooling.toml` |
-| Types | mypy `strict` wherever there is a `src/` package; script collections exempt |
-| Tests | pytest; `--cov-fail-under=90` for packages, no gate for script collections |
-| Hook | calls `just lint`; installed by `just hooks-install`; **never inlines commands** |
-| CI | jobs call runner verbs; workflow YAML contains no tool knowledge |
-| CI layout | `ci.yml` (`on: workflow_call`) + `tests.yml` (`on: [push, pull_request]`) + `release.yml` |
-| Docs | `AGENTS.md` canonical, `CLAUDE.md` symlinked to it; `README.md` |
-| Licence | **New repos: CC0.** Never relicense an existing repo, and never add a licence to one that has none — both are the owner's call, not a tooling decision |
+| --- | --- |
+| Dependencies | uv only. Commit `uv.lock`; never ignore it. |
+| Build backend | Hatchling. Read the package version from `__init__.py`. |
+| Versioning | Keep the version in `__init__.py` only. `just release` creates the tag. |
+| Python support | `requires-python`, the CI floor, and the oldest supported non-EOL CPython match. Test the floor through latest; set `.python-version` to latest. |
+| Linting | Ruff configuration in `pyproject.toml`, or `ruff.toml` without a project file. Use `assets/pyproject-tooling.toml`. |
+| Types | `mypy --strict` for `src/` packages. Script collections are exempt. |
+| Tests | Pytest. Packages use `--cov-fail-under=90`; script collections have no coverage gate. |
+| Hook | Calls `just lint` and is installed by `just hooks-install`. Do not inline tool commands. |
+| CI | Workflows call runner recipes and contain no tool-specific commands. Use `ci.yml` as a reusable workflow, with `tests.yml` and `release.yml` as callers. |
+| Documentation | `AGENTS.md` is canonical; `CLAUDE.md` is a symlink. Include a `README.md`. |
+| License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
 
-### Pinned action versions
-
-Bump these together, here, then propagate to every repo. This table is the
-single source of truth.
+Use these action versions together and propagate the change to every affected
+repository:
 
 | Action | Version |
-|---|---|
+| --- | --- |
 | `actions/checkout` | `v7` |
 | `astral-sh/setup-uv` | `v9.0.0` |
 | `extractions/setup-just` | `v4` |
-| `actions/setup-python` | `v6` (only when uv isn't managing the interpreter) |
+| `actions/setup-python` | `v6`, only when uv does not manage Python |
 | `pypa/gh-action-pypi-publish` | `release/v1` |
 
-Prefer `uv python install ${{ matrix.python-version }}` over
-`actions/setup-python`; uv already manages interpreters, and dropping the
-action removes a version to track.
+Prefer `uv python install ${{ matrix.python-version }}` to
+`actions/setup-python`. uv already manages the interpreter, so this removes a
+pin to maintain.
 
-## Workflows
+## Update an existing repository
 
-### Bringing an existing repo in line
+1. Run the audit:
+   `bash "$SKILL_DIR/scripts/audit.sh" <repo-path>`.
+2. Read the archetype reference.
+3. Establish the task-runner contract first.
+4. Update the pre-commit hook to call `just lint`.
+5. Update CI to call runner recipes.
+6. Align pins and the remaining policy items.
+7. Run `git status` and `git check-ignore -v` for newly added dotfiles, hook
+   files, and agent-document symlinks. Update `.gitignore` rather than
+   force-adding ignored files.
+8. Re-run the audit. Fix each failure or document a permanent exception.
+9. Run `just check` before committing.
 
-1. Run the audit: `bash "$SKILL_DIR/scripts/audit.sh" <repo>`.
-2. Read the archetype reference before editing anything.
-3. Fix in this order — **runner first**, because the hook and CI call it:
-   rename recipes to the verb contract → point the hook at `just lint` →
-   point CI at the runner → align pins and policy items.
-4. **Run `git status` and confirm every new file is actually visible.** See
-   the gitignore trap below.
-5. Re-run the audit; every FAIL should be gone or documented as an exception.
-6. Run `just check` and confirm it passes before committing.
+For a Google Apps Script repository, use the documented bound-project test
+entry point until `clasp` is configured.
 
-For Google Apps Script projects, run the project's documented Apps Script test
-entry point in the bound project instead of `just check` until `clasp` is
-configured.
+Rename recipes and all their call sites in the same change. Search code and
+documentation for the old recipe name before completing the migration. Make a
+line-length reflow its own commit when widening an older repository from 88 to
+100 columns. Keep the old width only when reflow would collide with in-flight
+work, and record the reason in a comment.
 
-### The gitignore trap
-
-Older repos carry GitHub-template `.gitignore` files with rules like `.*`,
-`bin`, or a bare `CLAUDE.md` from a pre-`AGENTS.md` era. Those silently
-swallow exactly the files a migration adds: `.python-version`,
-`bin/pre-commit.sh`, and the agent-doc symlinks. Everything looks right
-locally and nobody else ever receives the hook.
-
-`git add` warns only for explicitly named paths, so a directory add hides
-it. Check directly, and un-ignore rather than force-add:
+Older `.gitignore` files can hide `.python-version`, `bin/pre-commit.sh`, or
+the `CLAUDE.md` symlink through rules such as `.*`, `bin`, or `CLAUDE.md`.
+`git add` may not report a file hidden by a directory rule. Check the expected
+files explicitly:
 
 ```bash
 git check-ignore -v .python-version bin/pre-commit.sh CLAUDE.md
 ```
 
-The audit reports this as `hook.tracked` and `python.version`, but only for
-files that already exist — it cannot warn about a file you have not written
-yet.
+Un-ignore the file rather than force-adding it. The audit detects only files
+that already exist, so it cannot report an omitted file.
 
-### Adopting the line length
+Treat unexplained commands in the previous CI as suspect. Confirm that the CI
+being replaced actually worked. After copying an asset, search it for
+`PACKAGE`; replace every placeholder. `PACKAGE` is the distribution name,
+which may differ from the console-script name used in a smoke test.
 
-Repos predating the standard may sit at 88. Widen to 100 and reflow in a
-**separate commit** that touches nothing else, so the formatting churn stays
-reviewable apart from the tooling change. Keep the old width only when the
-reflow would collide with in-flight work; say so in a comment if you do.
+## Scaffold a new repository
 
-Rename recipes with their call sites in the same commit. A justfile whose
-`fmt` became `format` while a hook still calls `just fmt` is worse than the
-inconsistency it replaced. Call sites include prose: `AGENTS.md`, the
-README, and design docs all quote recipe names. `grep -rn "just <oldname>"`
-before you finish.
-
-**Check that the CI you are replacing actually worked.** A migration is when
-anyone looks at these files closely, so treat unexplained commands as
-suspect. `calibre-blog-rating-sync` had two jobs running `make build` in a
-repo with no Makefile.
-
-**Replace every placeholder in a copied asset.** The templates use
-`PACKAGE`, which is the distribution name — but a smoke test needs the
-*console script* name, and the two often differ (`photo-org` ships
-`organize-photos`). Grep the copied file for `PACKAGE` before moving on.
-
-### Starting a new repo
+Create a Python package with:
 
 ```bash
 bash "$SKILL_DIR/scripts/scaffold.sh" <dest-dir> <package-name>
 ```
 
-`package-name` is the Python import name (e.g. `my_package`); the distribution
-name (`my-package`) is derived from it automatically. The script creates the
-full directory tree, copies and substitutes all assets, initializes git, and
-runs `just sync && just hooks-install`.
+`package-name` is the Python import name. The scaffold derives the
+distribution name, initializes Git, copies and substitutes the standard
+assets, and runs `just sync` and `just hooks-install`. Fill in `AGENTS.md` and
+`README.md`, then run `just check`.
 
-After scaffolding: fill in `AGENTS.md` and `README.md`, then run `just check`.
-
-### Starting a Google Apps Script repo
+Create a Google Apps Script repository with:
 
 ```bash
 bash "$SKILL_DIR/scripts/scaffold-apps-script.sh" <dest-dir> <project-name>
 ```
 
-The scaffold creates a source layout compatible with a future `clasp`
-workflow, anonymized-fixture guidance, and CC0 licensing. It deliberately
-does not install Node.js, configure a script ID, or create CI. Open the target
-Google Sheet, select **Extensions → Apps Script**, and copy the JavaScript
-files from `src/` into the bound project before adding runtime behavior.
+The scaffold includes a source layout for a future `clasp` workflow,
+anonymized-fixture guidance, and CC0 licensing. It does not install Node.js,
+configure a script ID, or create CI. In the target Google Sheet, select
+**Extensions → Apps Script**, then copy the JavaScript files from `src/` into
+the bound project before adding runtime behavior.
 
-### Bumping a tool or action version
+## Bump a tool or action version
 
-Update the pin here first, then apply it repo by repo, running `just check`
-in each. For ruff specifically: `uv lock --upgrade-package ruff` in uv
-repos, and the `uvx ruff@X.Y.Z` pin in repos without a lockfile.
+Update the pin in this skill first. Apply the change repository by repository
+and run `just check` in each. For Ruff, run
+`uv lock --upgrade-package ruff` in a uv repository. In a repository without
+a lockfile, update the `uvx ruff@X.Y.Z` pin.
 
-## Recording an exception
+## Exceptions
 
-Deviations are fine when the reason is external. Write the reason **in the
-file that deviates**, as a comment, naming the constraint:
+Record an external constraint in the file that deviates from the standard.
+For example, comment a nonstandard Python floor next to `requires-python`.
+Add a reason to every Ruff ignore entry.
 
 ```toml
 # Calibre ships its own interpreter; 3.8 is externally imposed, not a choice.
 requires-python = ">=3.8"
 ```
 
-Every `ignore` entry in a ruff config carries a comment saying why. An
-undocumented deviation is a bug, and the audit script reports it as one.
-
-### Waiving a rule permanently
-
-A rule that will *never* apply to a file — as opposed to one you have not
-got to yet — gets an inline waiver naming the check and the reason:
+Use a permanent inline waiver only when a rule will never apply:
 
 ```yaml
 # project-standards: allow ci-inline — minimal Alpine container
 ```
 
-The audit then reports it as a documented exception instead of a failure.
-Use this sparingly and only for permanent constraints; a standing FAIL that
-nobody intends to fix trains people to ignore the audit entirely, which is
-worse than either outcome.
+The audit reports a documented permanent waiver as an exception rather than a
+failure. Use waivers only for permanent constraints.
 
-### Deferring a rule during migration
-
-Some rules cannot be satisfied by tooling work alone. Adding mypy to a
-package that never had it, or reaching a coverage target, means changing
-code — that is a separate project, and bundling it into a migration makes
-both harder to review.
-
-When that happens: **leave the audit failing, and record why in
-`AGENTS.md`.** Do not add a recipe that fails, do not weaken the rule, and
-do not silently drop it. A standing FAIL with a written reason is honest;
-a passing audit that hides the gap is not.
-
-Real examples: `shapez_2_tools` has no `type-check` recipe because
-`mypy --strict` reports 195 errors; `wayback-machine-archiver` scopes
-`type-check` to the package because widening it to tests surfaces 26.
+For a migration blocked by code work, leave the audit failure visible and
+record the reason in `AGENTS.md`. Do not weaken the rule or add an unworkable
+recipe merely to make the audit pass. For example, `shapez_2_tools` omits
+`type-check` because `mypy --strict` reports 195 errors;
+`wayback-machine-archiver` limits its type check to the package because tests
+produce 26 additional errors.
 
 Known standing exceptions:
 
-- `calibre-blog-rating-sync` — `requires-python = ">=3.8"`, set by Calibre.
-- Jekyll sites — ruff excludes `*.md`; ruff 0.16+ formats Python code
-  fences inside Markdown, and published prose is not ours to reformat.
+- `calibre-blog-rating-sync` uses `requires-python = ">=3.8"` because Calibre
+  provides the interpreter.
+- Jekyll sites exclude `*.md` from Ruff. Ruff 0.16 and later formats Python
+  code fences in published prose that the repository does not own.
 
-## Scripts
+## Scripts and references
 
-### `scripts/audit.sh`
-
-Read-only conformance check for one repo. Detects the archetype, then
-reports PASS/WARN/FAIL per rule. Changes nothing.
+`scripts/audit.sh` is read-only. It reports PASS, WARN, or FAIL and exits 1
+when any check fails. Use `--porcelain` for tab-separated output.
 
 ```bash
 bash "$SKILL_DIR/scripts/audit.sh" /path/to/repo
 bash "$SKILL_DIR/scripts/audit.sh" /path/to/repo --porcelain
 ```
 
-`--porcelain` emits tab-separated `STATUS<TAB>CHECK<TAB>DETAIL` for parsing.
-Exits 1 if any check FAILs, 0 otherwise, so it can gate a loop over repos.
+Porcelain output is `STATUS<TAB>CHECK<TAB>DETAIL`; it can gate a loop over
+repositories.
 
-## References
-
-Read the one matching the archetype before making changes:
-
-- `references/python-package.md` — uv, hatchling, mypy, pytest, matrix,
-  release flow.
-- `references/apps-script.md` — bound-script layout, fixtures, tests, and
+- `references/python-package.md`: package layout, dependencies, versions,
+  mypy, pytest, CI, and releases.
+- `references/apps-script.md`: Apps Script layout, fixtures, validation, and
   optional clasp workflow.
-- `references/jekyll-site.md` — make targets, Docker patterns, ruff scoping
-  for `_scripts/`, why these hooks auto-fix.
-- `references/shell-repo.md` — shellcheck, bats, Bash 3.2 coverage,
-  hadolint.
+- `references/jekyll-site.md`: Make targets, Docker, Ruff scoping, hooks, and
+  CI.
+- `references/shell-repo.md`: shellcheck, Bats, Bash 3.2, hadolint, hooks,
+  and CI.
