@@ -1,87 +1,71 @@
 ---
 name: skill-creator
-description: >
-  Create, scaffold, evaluate, and validate Agent Skills. Use this skill when
-  the user wants to create a skill, package knowledge or a workflow into a
-  reusable skill, scaffold a skill directory, write or review a SKILL.md, or
-  validate an existing skill against the spec.
-compatibility: Requires bash. curl needed for update-references.
+description: Creates, scaffolds, evaluates, and validates Agent Skills. Use when creating or updating a skill, packaging a reusable workflow, writing or reviewing a SKILL.md, or validating a skill against the specification.
+compatibility: Requires bash. curl is required for update-references.
 ---
 
 # Skill Creator
 
-Create Agent Skills that conform to the agentskills.io specification. Client-
-specific extensions are documented separately and must not leak into the
-portable core.
+Create portable Agent Skills that conform to the agentskills.io specification.
+Keep portable guidance in `SKILL.md`. Put client-specific behavior in the
+client's supported extension file; do not leak it into the portable core.
 
 `$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Replace it with the resolved path before invoking a bundled script; keep the
-current directory at the directory where the skill should be created or evaluated.
+Resolve it before running a bundled script. Run scripts from the directory
+where the target skill is created or evaluated.
 
 ## Workflow
 
-1. **Capture intent** — what the skill should do, when it should trigger, and
-   whether it needs scripts, references, or assets.
-2. **Identify the gap** — run the task without a skill first. What context did
-   you have to supply by hand? That, and only that, belongs in the skill.
-3. **Scaffold** — run `scaffold.sh` to create the directory structure.
-4. **Write SKILL.md** — frontmatter plus instructions.
-5. **Validate** — run `validate.sh`.
-6. **Test in a fresh session** — leftover context from authoring masks gaps in
-   the written instructions. Iterate on what the fresh session gets wrong.
+1. Capture the skill's capability, trigger conditions, and required scripts,
+   references, or assets.
+2. Identify the gap. Perform the task without a skill and record only context
+   that the model could not reliably infer.
+3. Scaffold a new skill when needed.
+4. Write or update `SKILL.md` and the required supporting files.
+5. Validate the skill.
+6. Test it in a fresh session. Compare triggering and output quality with the
+   skill disabled, then fix the observed gap.
 
-## Spec quick reference
+For destructive or batch workflows, use plan-validate-execute: write the plan
+to a file, validate it with a script, then execute it.
 
-### Directory structure
+## Portable structure
 
-```
+```text
 skill-name/
 ├── SKILL.md          # Required
-├── scripts/          # Optional: executable code
-├── references/       # Optional: documentation loaded on demand
-├── assets/           # Optional: templates, images, data files
-└── agents/           # Optional: client-specific metadata
+├── scripts/          # Optional executable code
+├── references/       # Optional on-demand documentation
+├── assets/           # Optional templates, images, or data
+└── agents/           # Optional client-specific metadata
 ```
 
-### Frontmatter (portable fields)
+### Frontmatter
 
-These work in every Agent Skills client.
+| Field | Requirement |
+| --- | --- |
+| `name` | Required. 1–64 lowercase letters, digits, and hyphens. |
+| `description` | Required. At most 1,024 characters; states what the skill does and when to use it. |
+| `license` | Optional license name or bundled license file. |
+| `compatibility` | Optional environment requirements; at most 500 characters. |
+| `metadata` | Optional string key-value map. |
+| `allowed-tools` | Optional experimental space-separated tool hints. Client support varies. |
 
-| Field | Required | Constraints |
-|---|---|---|
-| `name` | Yes | 1–64 chars, lowercase alphanumeric and hyphens |
-| `description` | Yes | 1–1024 chars. What it does **and** when to use it |
-| `license` | No | License name or bundled license file |
-| `compatibility` | No | ≤500 chars. Environment requirements. Most skills omit it |
-| `metadata` | No | Arbitrary string key-value map |
-| `allowed-tools` | No | Space-separated tool hints (experimental; client support varies) |
+The name must match the parent directory. It cannot start or end with a
+hyphen, contain consecutive hyphens, or contain XML tags. Avoid `claude` and
+`anthropic`, which are reserved by the Skills API. Prefer a gerund or noun
+phrase, such as `processing-pdfs` or `pdf-processing`; avoid generic names
+such as `helper`, `utils`, `tools`, and `data`.
 
-### Naming rules
+### Description
 
-- Lowercase letters, numbers, and hyphens only (`a-z`, `0-9`, `-`)
-- 1–64 characters, no leading/trailing hyphen, no consecutive hyphens (`--`)
-- Must match the parent directory name
-- No XML tags
-- Avoid `claude` and `anthropic`: the Skills API rejects them as reserved
-  words. Claude Code does not enforce this, but portable skills should comply
-- Prefer gerunds (`processing-pdfs`) or noun phrases (`pdf-processing`).
-  Avoid `helper`, `utils`, `tools`, `data`
+The description is always in context and controls automatic triggering.
 
-### Writing the description
-
-The description is the only part of a skill that is always in context, and it
-is what the agent matches a request against. Get it right before anything else.
-
-- **Third person.** "Extracts text from PDFs", not "I can help you with PDFs"
-  or "You can use this to…". It is injected into the system prompt, and a
-  mixed point of view degrades matching.
-- **What plus when.** Name the capability, then the triggers: file types,
-  tool names, and the phrases a user would actually type.
-- **Key use case first.** Some clients truncate skill descriptions in their
-  listings, especially when many skills are installed.
-- **Be specific.** "Helps with documents" matches nothing reliably.
-
-Good:
+- Write in third person.
+- State the main capability first, then concrete triggers such as file types,
+  tools, and user phrases.
+- Use phrases users would actually say.
+- Do not use generic descriptions such as “Helps with documents.”
 
 ```yaml
 description: Extracts text and tables from PDF files, fills forms, and merges
@@ -89,98 +73,95 @@ description: Extracts text and tables from PDF files, fills forms, and merges
   forms, or document extraction.
 ```
 
-See `references/skill-creation-optimizing-descriptions.md` when a skill
-triggers too often or not often enough.
+Read `references/skill-creation-optimizing-descriptions.md` when a skill
+triggers too broadly or misses expected prompts.
 
-## Claude Code extensions
+## Write concise instructions
 
-Claude Code implements the spec above and adds the fields below. Use them only
-when targeting Claude Code; other clients ignore them. Full details in
-`references/claude-code-skills.md`.
+Include only context the model needs to perform the task safely and
+consistently. Do not explain basic language or library concepts.
 
-| Field | Purpose |
-|---|---|
-| `when_to_use` | Extra trigger phrases, appended to `description` in the listing |
-| `argument-hint` | Autocomplete hint, e.g. `[issue-number]` |
-| `arguments` | Named positional arguments for `$name` substitution |
-| `disable-model-invocation` | `true` = only the user can invoke it, via `/name` |
-| `user-invocable` | `false` = only the model can invoke it; hidden from `/` menu |
-| `disallowed-tools` | Tools removed from the pool while the skill is active |
-| `model` / `effort` | Override model or effort level for the turn |
-| `context: fork` | Run the skill as a subagent prompt |
-| `agent` / `background` | Subagent type; whether the fork blocks the turn |
-| `hooks` | Hooks scoped to this skill's lifecycle |
-| `paths` | Globs limiting automatic activation to matching files |
+| Task shape | Guidance to provide |
+| --- | --- |
+| Several valid approaches | Prose heuristics that let context decide. |
+| Preferred pattern with variation | Pseudocode or a parameterized script. |
+| Fragile, ordered, or high-stakes task | Exact command and an instruction not to modify it. |
 
-### Invocation control
+For multi-step work, use ordered steps and a copyable checklist. Close any
+quality-critical loop: run the validator, fix failures, and validate again.
 
-Pick deliberately — this is the most common design decision:
+Use one term for one concept. Avoid time-sensitive instructions; keep
+superseded material under an **Old patterns** heading. Use forward slashes in
+paths, fully qualify MCP tools as `ServerName:tool_name`, and prefer concrete
+input/output examples when output format matters. Provide one default with an
+escape hatch rather than several equal options.
 
-| Frontmatter | User invokes | Model invokes | Use for |
-|---|---|---|---|
-| (default) | Yes | Yes | Most skills |
-| `disable-model-invocation: true` | Yes | No | Side effects: deploy, commit, send |
-| `user-invocable: false` | No | Yes | Background knowledge, not an action |
+### Progressive disclosure
 
-### String substitutions
+Metadata is always loaded, the body loads when the skill activates, and
+references load on demand. Keep `SKILL.md` below 500 lines and ideally below
+5,000 tokens. Put detailed material in direct, one-level-deep references.
+Give a reference over 100 lines a table of contents. State when to read each
+reference. Do not bury required instructions behind several reference hops.
 
-| Variable | Expands to |
-|---|---|
-| `$ARGUMENTS` | All arguments as typed |
-| `$0`, `$1`, … | Positional arguments (shell-style quoting) |
-| `$name` | Named argument declared in `arguments` |
-| `${CLAUDE_SKILL_DIR}` | Directory containing this `SKILL.md` |
-| `${CLAUDE_PROJECT_DIR}` | Project root |
-| `${CLAUDE_SESSION_ID}` | Current session ID |
-| `${CLAUDE_EFFORT}` | Current effort level |
+## Scripts
 
-`${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` expand in both the body and
-in `Bash(...)` rules in `allowed-tools`. Use the same path in both so a
-bundled script runs without a permission prompt:
+Scripts must be self-contained or document their dependencies. They must
+support `--help`, accept non-interactive input through flags or stdin, and put
+data on stdout and diagnostics on stderr. Prefer structured output such as
+JSON or CSV. Make scripts idempotent when possible.
 
-```yaml
-allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/render.sh *)
+Handle known errors in the script rather than leaving the agent to guess. Name
+and justify timeout values. State whether an agent should run a script or read
+it as reference; running is usually preferable because only its output enters
+context.
+
+For Python scripts, use PEP 723 metadata and invoke them with `uv run`:
+
+```python
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["beautifulsoup4>=4.12", "requests>=2.31"]
+# ///
 ```
 
-### Dynamic context injection
-
-`` !`command` `` runs before the agent sees the content and is replaced by the
-command's output. Use it to pull live data into the prompt:
-
-```markdown
-- PR diff: !`gh pr diff`
+```bash
+uv run "$SKILL_DIR/scripts/myscript.py"
 ```
 
-Use a ` ```! ` fenced block for multi-line commands. This is preprocessing, not
-something the agent executes, and output is not rescanned for placeholders.
+Scripts that serve both humans and agents should support `--porcelain`.
 
-### Content lifecycle
+| Feature | Human mode | `--porcelain` |
+| --- | --- | --- |
+| Paths | Basenames | Full absolute paths |
+| Output | Colored and decorated | Plain and structured |
+| Interaction | Opens `$EDITOR` | Requires all arguments |
+| Errors | Colored stderr | Plain stderr |
 
-Invoked skill content enters the conversation once and stays for the session;
-Claude Code does not re-read the file on later turns. Write guidance that must
-hold throughout a task as standing instructions, not one-time steps. Every line
-is a recurring token cost.
+See `llm/skills/README.md` for the full porcelain pattern.
 
-## Codex CLI extensions
+## Client extensions
 
-Codex reads the same `SKILL.md` and honors the portable frontmatter fields.
-Its extensions live in a separate `agents/openai.yaml` file, not in the
-frontmatter. Claude Code ignores this file, so both coexist in the same skill
-directory. Full details in `references/codex-build-skills.md`.
+Keep `SKILL.md` portable. Read the extension reference before adding a
+client-specific feature.
 
-Keep `SKILL.md` usable in every harness. Add `agents/openai.yaml` only for
-Codex UI metadata, invocation policy, or tool dependencies; do not move core
-workflow instructions there.
+### Codex CLI
+
+Codex supports portable frontmatter and optional `agents/openai.yaml`. Use the
+extension file only for Codex interface metadata, invocation policy, or MCP
+tool dependencies; do not move core workflow guidance there. Claude Code
+ignores `agents/openai.yaml`, so both clients can use the same skill. Most
+skills do not need this file.
 
 ```yaml
-# agents/openai.yaml — optional, Codex-only
+# agents/openai.yaml
 interface:
   display_name: "User-facing name"
   short_description: "User-facing description"
   brand_color: "#3B82F6"
 
 policy:
-  allow_implicit_invocation: false  # default true
+  allow_implicit_invocation: false
 
 dependencies:
   tools:
@@ -190,203 +171,106 @@ dependencies:
       url: "https://example.com/mcp"
 ```
 
-| Field | Purpose | Claude Code equivalent |
-|---|---|---|
-| `policy.allow_implicit_invocation` | Suppress auto-triggering | `disable-model-invocation` (inverted) |
-| `interface.display_name` | UI label | `name` field |
-| `dependencies.tools` | MCP server dependencies | (none) |
+`policy.allow_implicit_invocation` defaults to `true`. Read
+`references/codex-build-skills.md` for the complete Codex extension model. It
+is the inverse of Claude’s `disable-model-invocation` setting.
 
-Most skills need no `agents/openai.yaml`. Add one only when you need
-Codex-specific behavior.
+### Claude Code
 
-## Authoring principles
+Claude Code supports these additional frontmatter fields:
 
-### Be concise
+| Field | Purpose |
+| --- | --- |
+| `when_to_use` | Additional trigger phrases. |
+| `argument-hint` | Autocomplete hint. |
+| `arguments` | Named positional arguments for substitutions. |
+| `disable-model-invocation` | User-only invocation. |
+| `user-invocable` | Hide a model-only skill from the user menu. |
+| `disallowed-tools` | Remove tools while the skill is active. |
+| `model` / `effort` | Override model or effort. |
+| `context: fork` | Run the skill as a subagent prompt. |
+| `agent` / `background` | Set subagent type or blocking behavior. |
+| `hooks` | Attach lifecycle hooks. |
+| `paths` | Limit automatic activation to path globs. |
 
-The model is already capable. Only add context it does not have. Challenge each
-paragraph: does this justify its token cost? Do not explain what PDFs are, what
-a library is, or how the language works.
+Use default invocation for most skills. Use
+`disable-model-invocation: true` for side effects such as deploy, commit, or
+send. Use `user-invocable: false` for model-only background knowledge.
 
-### Match freedom to fragility
+Claude expands `$ARGUMENTS` as typed; `$0`, `$1`, and later positional
+arguments with shell-style quoting; named `$name` arguments; and the
+`${CLAUDE_SKILL_DIR}`, `${CLAUDE_PROJECT_DIR}`, `${CLAUDE_SESSION_ID}`, and
+`${CLAUDE_EFFORT}` variables. Dynamic context uses `` !`command` `` or a
+` ```! ` fenced command. It runs before the skill is read, and its output is
+not rescanned for substitutions. Invoked skill content persists for the
+session, so write standing instructions rather than one-time directions.
 
-| Task shape | Give |
-|---|---|
-| Many valid approaches, context decides | Prose heuristics |
-| A preferred pattern with variation | Pseudocode or a parameterised script |
-| Fragile, order-dependent, high-stakes | An exact command and "do not modify it" |
+`${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` also expand in Claude
+`allowed-tools` rules. Reuse the same path in the rule and the skill body so a
+bundled script runs without an extra permission prompt.
 
-### Progressive disclosure
+Read `references/claude-code-skills.md` before using these features.
 
-Metadata is always loaded; the body loads on activation; everything else loads
-on demand. So:
+## Scaffold, validate, and evaluate
 
-- Keep SKILL.md under 500 lines (validated) and ideally under 5k tokens
-- Move detail into `references/`, and say when to read each file
-- Keep references **one level deep** from SKILL.md. Nested reference chains get
-  partially read
-- Give reference files over 100 lines a table of contents at the top
-- Bundled files cost nothing until read, so bundling comprehensive material is
-  fine — burying it behind three hops is not
-
-### Workflows and feedback loops
-
-For multi-step procedures, give numbered steps and a copyable checklist. For
-anything quality-critical, close the loop: run a validator, fix the errors,
-repeat, and only then proceed. The "validator" can be a script or a checklist
-in a reference file.
-
-For batch or destructive operations, use plan-validate-execute: write the plan
-to a file, validate the file with a script, then execute it.
-
-### Content rules
-
-- No time-sensitive statements ("before August, use…"). Put superseded material
-  under an "Old patterns" heading instead
-- One term per concept throughout — not "field", "box", and "element"
-- Offer one default with an escape hatch, not five options
-- Forward slashes in all paths, even for Windows
-- Fully qualify MCP tools as `ServerName:tool_name`
-- Concrete examples over abstract description; input/output pairs when the
-  output format matters
-
-## Scripts
-
-- Self-contained, or dependencies documented explicitly. Do not assume a
-  package is installed
-- Support `--help` so the interface is discoverable
-- Structured output (JSON, CSV) over prose; data to stdout, diagnostics to
-  stderr
-- No interactive prompts — all input via flags or stdin
-- Idempotent where possible
-- **Solve, do not defer.** Handle the error in the script instead of failing
-  and leaving the agent to guess
-- No voodoo constants. If you cannot justify a timeout value, the agent cannot
-  either — name it and comment why
-- Say whether the agent should **run** the script or **read** it as reference.
-  Running is usually right: the code never enters context, only the output
-
-### PEP 723 Python scripts (recommended pattern)
-
-Inline metadata lets `uv run` handle dependencies with no manual install:
-
-```python
-# /// script
-# requires-python = ">=3.11"
-# dependencies = ["beautifulsoup4>=4.12", "requests>=2.31"]
-# ///
-```
-
-Invoke with `uv run "$SKILL_DIR/scripts/myscript.py"` from the target project
-or evaluation directory.
-
-### Human vs agent mode (`--porcelain`)
-
-Scripts that serve both humans and agents should support a `--porcelain` flag.
-See `llm/skills/README.md` for the full pattern. Summary:
-
-| Feature | Human mode | `--porcelain` |
-|---------|-----------|---------------|
-| Paths | Basenames | Full absolute paths |
-| Output | Colored, decorated | Plain, structured |
-| Interactive | Opens `$EDITOR` | Requires all args |
-| Errors | Colored to stderr | Plain to stderr |
-
-## Available scripts
-
-Scripts are in `$SKILL_DIR/scripts/`. Resolve `$SKILL_DIR` from this skill's
-source path before invoking them.
-
-| Script | Purpose |
-|--------|---------|
-| `scaffold.sh` | Create a new skill directory with SKILL.md stub |
-| `validate.sh` | Validate a skill directory against the spec |
-| `update-references.sh` | Refetch the vendored specification and client docs |
-
-### scaffold.sh
+Create a skill directory:
 
 ```bash
-bash "$SKILL_DIR/scripts/scaffold.sh" <name> [--scripts] [--references] [--assets] [--codex] [--dir <path>]
+bash "$SKILL_DIR/scripts/scaffold.sh" <name> \
+  [--scripts] [--references] [--assets] [--codex] [--dir <path>]
 ```
 
-Creates a skill directory (in `--dir`, or the current working directory) with:
-- A `SKILL.md` containing valid frontmatter and a body placeholder
-- Optional `scripts/`, `references/`, and `assets/` subdirectories
-- An optional `agents/openai.yaml` file when `--codex` is passed
+The scaffold validates the name, refuses an existing directory, and creates
+the skill in `--dir` or the current directory. It creates a `SKILL.md` stub
+and optionally creates the requested directories and `agents/openai.yaml`.
 
-The name is validated against the naming rules first. Exits non-zero if the
-name is invalid or the directory already exists.
-
-### validate.sh
+Validate a skill:
 
 ```bash
 bash "$SKILL_DIR/scripts/validate.sh" [--client <name>] <skill-directory>
 ```
 
-Fails on: missing SKILL.md; missing `name` or `description`; `name` not
-matching the directory; malformed `name`; XML tags in `name` or `description`;
-`description` over 1024 chars; `compatibility` over 500 chars; SKILL.md over
-500 lines.
+Validation fails for missing or malformed required frontmatter, an invalid or
+mismatched name, XML tags in name or description, overlong description or
+compatibility fields, or a `SKILL.md` over 500 lines. It warns about reserved
+names, first- or second-person descriptions, weak trigger wording,
+unrecognized fields, unexpected top-level entries, and unsupported
+client-specific frontmatter. Claude validation also checks its listing-length
+convention; Codex validation checks optional `agents/openai.yaml` metadata. It
+prints PASS, FAIL, or WARN for each check; exits 0 on pass and 1 on failure.
 
-Warns on: reserved words in `name`; first- or second-person `description`;
-a `description` with no "when to use" signal; unrecognized frontmatter keys;
-unexpected top-level entries; and Claude-only frontmatter when the client is
-not `claude`. The Claude client also checks its listing-length convention; the
-Codex client validates optional `agents/openai.yaml` interface metadata.
+Evaluate two independent outcomes in fresh sessions:
 
-Prints PASS/FAIL/WARN per check. Exits 0 if all checks pass, 1 if any fail.
+1. **Triggering:** test prompts that should and should not activate the skill.
+   Fix misses or false positives in the description and `when_to_use`.
+2. **Output quality:** compare realistic prompts with and without the skill.
 
-### update-references.sh
+Write at least three test cases before adding extensive guidance. Test every
+target model because their inference differs. See
+`references/skill-creation-evaluating-skills.md` for the eval-file format.
+
+## References and updates
+
+Check `references/.last-updated` for freshness. Update vendored specification
+and client documentation with:
 
 ```bash
 bash "$SKILL_DIR/scripts/update-references.sh"
 ```
 
-Refetches the agentskills.io spec pages and client documentation into
-`references/`, and records the date in `.last-updated`.
-Only files it vendored (tracked in `.vendored`) are pruned; hand-written
-reference files are left alone. Run it periodically.
+The update records the date and removes only vendored files listed in
+`.vendored`; hand-written references remain unchanged. Run it periodically.
 
-## Evaluating a skill
-
-A skill that triggers is not necessarily a skill that works. Measure the two
-separately, both against a baseline with the skill disabled:
-
-1. **Triggering** — collect prompts that should and should not activate it, and
-   check the hit rate. Fix by editing `description` and `when_to_use`.
-2. **Output quality** — run realistic prompts in fresh sessions with and
-   without the skill, and compare against written expectations.
-
-Write at least three test cases before writing extensive instructions, so the
-skill addresses real gaps rather than imagined ones. Test with every model you
-intend to use: what Opus infers, Haiku may need spelled out.
-
-See `references/skill-creation-evaluating-skills.md` for the eval file format
-and the full iteration loop.
-
-## References
-
-Read these with the Read tool as needed. Check
-`references/.last-updated` for freshness and run
-`update-references.sh` to refresh.
-
-Portable specification (agentskills.io):
-
-- `references/specification.md` — complete format specification
-- `references/skill-creation-best-practices.md` — scoping and calibration
-- `references/skill-creation-optimizing-descriptions.md` — description tuning
-- `references/skill-creation-using-scripts.md` — script authoring guide
-- `references/skill-creation-evaluating-skills.md` — testing and eval guide
-- `references/skill-creation-quickstart.md` — quick start walkthrough
-- `references/clients.md` — agents that support the format
-
-Anthropic-specific:
-
-- `references/claude-code-skills.md` — Claude Code frontmatter, substitutions,
-  subagent execution, settings, and troubleshooting
-- `references/anthropic-best-practices.md` — authoring guidance in depth
-- `references/anthropic-overview.md` — architecture, surfaces, and constraints
-
-OpenAI-specific:
-
-- `references/codex-build-skills.md` — Codex skill structure, `agents/openai.yaml`,
-  and invocation policies
+| Reference | Use when |
+| --- | --- |
+| `specification.md` | Checking the complete portable specification. |
+| `skill-creation-best-practices.md` | Scoping or calibrating a skill. |
+| `skill-creation-optimizing-descriptions.md` | Tuning activation. |
+| `skill-creation-using-scripts.md` | Writing scripts. |
+| `skill-creation-evaluating-skills.md` | Creating or running evaluations. |
+| `skill-creation-quickstart.md` | Following a complete starter walkthrough. |
+| `clients.md` | Checking supported skill clients. |
+| `claude-code-skills.md` | Adding Claude Code extensions. |
+| `anthropic-best-practices.md` | Applying detailed Anthropic authoring guidance. |
+| `anthropic-overview.md` | Understanding Anthropic skill architecture. |
+| `codex-build-skills.md` | Adding Codex extensions. |
