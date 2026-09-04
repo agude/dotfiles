@@ -1,94 +1,75 @@
 ---
 name: technical-writing
-description: Write, rewrite, and review technical documentation in clear, precise English. Use for procedures, runbooks, READMEs, reference material, troubleshooting guides, release notes, incident reports, error messages, API documentation, code comments, and docstrings. Also use when a user asks to remove vague or LLM-like language from technical prose.
+description: Writes, rewrites, and reviews technical documentation in precise, usable English. Use when drafting or revising procedures, runbooks, READMEs, reference material, troubleshooting guides, release notes, incident reports, API documentation, code comments, docstrings, error messages, or vague and LLM-like technical prose.
 ---
 
 # Technical Writing
 
-Write prose that lets the intended reader understand the facts and take the
-correct action on the first read. Apply the useful disciplines of Simplified
-Technical English: direct instructions, consistent terminology, explicit
-conditions, and complete grammar.
+Make the intended reader able to understand the system or take the required
+action on the first read. Favor accuracy, explicit conditions, consistent
+terms, and direct language over elegance or variety.
 
-## Scope and Boundaries
+## Establish the Source of Truth
 
-Use this skill for prose that explains a technical system or directs a
-technical action, including prose in code comments and docstrings.
+Treat supplied text, repository documentation, code, and verified evidence as
+the source of truth. Preserve facts, quantities, requirements, safety
+information, defaults, limits, and uncertainty. Do not invent details to make
+the prose more specific.
 
-Do not apply it to executable code, identifiers, commands, configuration,
-quoted errors, UI labels, or marketing and narrative writing. Preserve these
-literal elements exactly unless the user explicitly asks to change them.
+Preserve commands, code, identifiers, paths, configuration, quoted errors, UI
+labels, and established project terminology exactly unless the user asks to
+change them. Do not apply this skill to marketing or narrative prose unless a
+technical passage is in scope.
 
-Preserve facts, quantities, conditions, safety information, requirements, and
-established technical terms. Do not invent a cause, outcome, value, example,
-or implementation detail to make the text sound more concrete.
+## Choose the Document Form
 
-## Identify the Document Form
-
-Classify the passage before drafting or revising it.
-
-- **Procedural text** tells the reader what to do. Use ordered steps when the
-  actions have a sequence. Use the imperative. Put each required condition
-  before the action it controls. Give one action per sentence where practical.
-- **Descriptive text** explains what a system is, does, or did. Lead with the
-  main fact, then state supporting facts in a logical order. Keep one topic in
-  each paragraph.
-- **Reference text** defines interfaces, inputs, outputs, limits, defaults,
-  and failure cases. Use tables, lists, or examples when they show an exact
-  mapping more clearly than prose.
+- **Procedure:** State the result or prerequisite first. Use ordered,
+  imperative steps for actions that must occur in sequence. Put a condition or
+  warning before the action it controls. Use one action per step where that
+  makes execution safer.
+- **Description:** Lead with the main fact. Group supporting facts by topic or
+  dependency, and keep each paragraph to one subject.
+- **Reference:** Define inputs, outputs, defaults, limits, and failures. Use a
+  table, list, or example when it makes an exact mapping easier to scan.
+- **Troubleshooting:** State the symptom, cause only when supported,
+  corrective action, and expected result. Keep diagnosis separate from
+  remediation.
 
 Do not combine an instruction and its explanation in the same sentence. Put a
 short explanation immediately before or after the relevant instruction.
 
-## Draft or Rewrite
+## Draft and Rewrite
 
-1. State the result, purpose, or required action first.
-2. Use concrete nouns and direct verbs. Name the actor when responsibility
-   matters.
-3. Use one term for one concept throughout the document. Preserve project
-   terminology; do not substitute synonyms only to avoid repetition.
-4. Prefer short sentences. Split sentences that combine actions, conditions,
-   exceptions, or independent facts.
-5. Use active voice when it makes the responsible actor clear. Use passive
-   voice when the actor is unknown, irrelevant, or not the topic.
-6. Preserve the meaning of modal language. `Must`, `should`, `can`, `may`, and
-   `might` express different requirements or degrees of certainty.
-7. Replace vague claims with observable facts. State the condition, limit,
-   behavior, or consequence instead of calling something simple, robust,
-   seamless, powerful, or important.
-8. Define an unfamiliar term at first use only when the intended audience
-   needs the definition.
-9. Keep the original structure when it already serves the reader. Reorganize
-   only when the current order obscures purpose, sequence, or ownership.
+1. State the purpose, result, or required action before background detail.
+2. Use concrete nouns and direct verbs. Name the responsible actor when it
+affects ownership or execution.
+3. Use one term for one concept. Do not substitute synonyms merely to avoid
+repetition.
+4. Split sentences that contain several actions, conditions, exceptions, or
+independent facts. Keep a required exception with the statement it limits.
+5. Preserve modality. `Must`, `should`, `can`, `may`, and `might` carry
+different requirements or degrees of certainty.
+6. Replace vague claims with observable behavior, stated limits, or explicit
+consequences. Remove filler, hype, ceremonial transitions, and unsupported
+importance claims.
+7. Define an unfamiliar term at first use only when the audience needs it.
+8. Retain a structure that already serves the reader. Reorganize only to make
+purpose, sequence, ownership, or dependencies clear.
 
-For a rewrite request, return the revised text without a change log unless the
-user asks for one. Preserve the source's level of detail unless it contains
-repetition, filler, or ambiguity.
+Use active voice when it identifies a useful actor. Use passive voice when the
+actor is unknown, irrelevant, or deliberately not the subject.
 
-## Review Requests
+## Deliver the Requested Work
 
-Review only the text in scope. Do not rewrite unrelated passages.
+- For a draft or rewrite, return the revised text. Preserve the source's level
+  of detail unless it contains repetition, filler, or ambiguity. Do not add a
+  change log unless requested.
+- For a review, report only material issues in the supplied scope. For each,
+  state the problem, reader impact, and the smallest proposed rewrite. Do not
+  report personal style preferences as defects.
+- For a factual gap or unsupported claim, identify the gap instead of
+  guessing.
 
-For each material issue, report:
-
-1. **Problem:** what is unclear, inaccurate, inconsistent, or hard to use.
-2. **Reader impact:** why it affects correct understanding or action.
-3. **Proposed rewrite:** the smallest revision that resolves the issue.
-
-Do not report stylistic preferences as defects. Prioritize ambiguity, missing
-conditions, unsafe instructions, contradictions, terminology drift, and lost
-limits or exceptions.
-
-## Final Check
-
-Before delivering, confirm that:
-
-- The reader can identify what to do, when to do it, and the expected result.
-- Every condition appears before the action it changes.
-- Terminology is consistent and does not hide distinct system objects.
-- No sentence contains multiple independent instructions without a reason.
-- Requirements, qualifiers, exceptions, risks, limits, and uncertainties remain
-  intact.
-- Filler, hype, ceremonial transitions, and unsupported importance claims are
-  removed.
-- Literal technical text has not changed unintentionally.
+Before delivering, verify that the reader can identify the action, conditions,
+and expected result; that terms and literal technical text remain correct; and
+that requirements, exceptions, risks, limits, and uncertainty are intact.
