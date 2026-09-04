@@ -29,11 +29,14 @@ Names are the primary explanation of code. Name values for their role and
 meaning, not for their type or a shortened implementation detail.
 
 - Use specific, pronounceable names: `customerAddress`, not `custAddr`.
-- Avoid unexplained abbreviations and non-idiomatic single-letter names.
+- Avoid unexplained abbreviations and non-idiomatic single-letter names. Do
+  not use shortcuts such as `curr`, `prev`, `res`, `ans`, or `gen_ts`.
 - Use nouns for values and collections: `activeUserCount`, `pendingOrders`.
 - Use verbs for functions: `findUserByEmail`, `calculateTotalPrice`.
 - Use question forms for booleans: `isActive`, `hasPermission`, `canEdit`.
 - Use plural nouns for collections: `users`, `matchedRecords`.
+- Name predicate or filtered collections with a past participle or adjective,
+  such as `enabledFeatures` or `matchedRecords`.
 - Follow the language and project convention for constants. For example,
   `MAX_RETRY_COUNT` is appropriate in languages that use screaming snake case.
 
@@ -49,21 +52,24 @@ Give each function one clear responsibility at one abstraction level.
 
 - Keep functions short enough to understand as a unit. About 40 lines is a
   signal to review the structure, not a required limit.
-- Prefer zero to two parameters. When a function needs four or more related
+- Prefer zero to two parameters. Three parameters are acceptable when their
+  relationship remains clear. When a function needs four or more related
   values, use a named parameter object or struct.
 - Make side effects explicit in the function name or split them from queries.
   A function named `checkUserStatus` must not update a database.
 - Use guard clauses and early returns for invalid input, errors, and edge
   cases.
 - Prefer shallow control flow. Restructure deeply nested conditions when a
-  guard clause or helper makes the path clearer.
+  guard clause or helper makes the path clearer. Keep visual nesting to two
+  levels where practical.
 - Prefer explicit, multi-step logic to dense expressions or clever one-liners.
 - Extract a repeated or independently meaningful block. Do not extract a
   trivial one-line expression used once.
 
 Place high-level operations before their supporting helpers when the language
 and project style permit it. Keep related code together rather than scattering
-one concept across files.
+one concept across files. Use blank lines as paragraph breaks between distinct
+steps in a function.
 
 ## Constants and configuration
 
@@ -110,6 +116,15 @@ Do not refactor unrelated code without authorization. When touching existing
 code, make small local improvements only when they do not broaden the task or
 obscure the requested change.
 
+When a missing requirement would materially change the implementation, obtain
+direction rather than inventing a product rule.
+
+For a feature, implement the requested behavior directly within the existing
+architecture. For a reported bug, fix the cause and check related code for the
+same failure mode. For architecture discussions, recommend the readable option
+that minimizes maintenance burden. Apply small local cleanup only when it does
+not broaden the task.
+
 ## Review and completion
 
 Before completing work, verify that:
@@ -120,3 +135,7 @@ Before completing work, verify that:
 - comments explain only non-obvious context;
 - error paths and relevant edge cases are handled; and
 - the relevant build, test, lint, or type-check command has run when available.
+
+Resolve a failed relevant check before reporting completion. Confirm that
+cleanup is complete and that the change will remain understandable at a
+substantially larger usage volume.

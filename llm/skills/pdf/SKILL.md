@@ -62,6 +62,47 @@ Do not put passwords in shell history, source files, logs, or status reports.
 Use the environment, prompt, or secret-handling mechanism established by the
 target environment.
 
+## Non-default and batch operations
+
+All bundled scripts are self-contained with PEP 723 dependencies. They accept
+multiple inputs where noted. Use `--porcelain` for machine-readable output:
+text-reading scripts emit JSONL; file-producing scripts emit tab-delimited
+status. Use `--fail-fast` to stop a batch on its first failure; otherwise the
+scripts continue and report failures.
+
+| Script | Useful non-default operations |
+| --- | --- |
+| `extract_text.py` | `--tables` writes CSV; `--pages 1-3,5` limits extraction; multiple inputs print file headers. |
+| `ocr_text.py` | `--pages 1-3,5` limits OCR; multiple inputs print file headers. Requires `tesseract`. |
+| `ocr_pdf.py` | `-i` updates one or more files atomically; `-d output-dir/` writes batch output; `--rotate` and `--deskew` preprocess scans. |
+| `detect_orientation.py` | `--pages 1-3,5` limits detection. Requires `tesseract`. |
+| `check_fields.py` | Accepts multiple PDFs. Exits 0 when at least one input has fillable fields and 1 when none do; use `--porcelain` for JSONL results. |
+| `split.py` | `-d output-dir/` splits every page; `-d output-dir/ input1.pdf input2.pdf` gives each source a subdirectory. |
+| `rotate.py` | `--pages 1,3,5` limits rotation; `-i` or `-d output-dir/` supports batches. |
+| `metadata.py` | `--json` returns metadata as JSON. |
+| `encrypt.py` | `--owner-password` sets the full-permission password separately; `-i` or `-d output-dir/` supports batches. |
+| `decrypt.py` | `-i` or `-d output-dir/` supports batches; unencrypted files are skipped with a message. |
+| `pdf_to_images.py` | `--pages 1-3,5` limits rendering; `--dpi 300` controls resolution; `-d output-dir/` supports batches. Rendering uses `pypdfium2`, not Poppler. |
+
+The file-producing scripts retain their legacy two-positional output syntax
+for compatibility, but use `-o` or `-d` in new commands. A single `-o` output
+requires one input; a batch requires `-i` or `-d`.
+
+Use a manual text layer when OCR cannot read content such as handwriting but a
+transcription exists:
+
+```bash
+uv run "$SKILL_DIR/scripts/add_text_layer.py" input.pdf output.pdf \
+  --file transcript.txt
+```
+
+This makes scanned pages searchable and selectable without replacing the
+visible image.
+
+To add supplied text in place, use
+`add_text_layer.py -i input.pdf "transcription"`. The script writes through an
+atomic temporary file.
+
 ## Read and OCR PDFs
 
 1. Run `extract_text.py` first. It is faster and preserves text from
@@ -77,7 +118,8 @@ the task requires replacing its text layer.
 
 ## Fill forms
 
-Start every form task by detecting fields:
+Start every form task by detecting fields. The script exits 0 when the PDF has
+fillable fields and 1 when it does not:
 
 ```bash
 uv run "$SKILL_DIR/scripts/check_fields.py" input.pdf
@@ -85,11 +127,13 @@ uv run "$SKILL_DIR/scripts/check_fields.py" input.pdf
 
 ### Fillable forms
 
-1. Extract field metadata with `extract_fields.py input.pdf fields.json`.
+1. Extract field metadata with `extract_fields.py input.pdf fields.json`. The
+   JSON records each field's ID, type, page, and bounding box.
 2. Render the source PDF with `pdf_to_images.py` to confirm each field's
    purpose.
 3. Create a values JSON file using the extracted field IDs and allowed values.
-4. Fill the form with `fill_fields.py input.pdf values.json output.pdf`.
+4. Fill the form with `fill_fields.py input.pdf values.json output.pdf`. It
+   validates field IDs, page numbers, and allowed values before writing.
 5. Render `output.pdf` and verify the completed fields.
 
 For checkboxes, radio groups, and choice fields, use the values reported in
@@ -99,14 +143,19 @@ format and field-type rules.
 ### Non-fillable forms
 
 1. Run `extract_structure.py input.pdf structure.json`.
-2. Use the extracted coordinates to create `fields.json`.
+2. Use its labels, lines, checkboxes, and row boundaries to create
+   `fields.json`.
 3. Validate it with `check_boxes.py fields.json`.
-4. Fill the PDF with `fill_annotations.py input.pdf fields.json output.pdf`.
-5. Render the output and inspect every completed page.
+4. Use `validation_image.py` to overlay the fields on a rendered source page
+   when coordinate accuracy is uncertain.
+5. Fill the PDF with `fill_annotations.py input.pdf fields.json output.pdf`.
+   It accepts PDF and image coordinate systems.
+6. Render the output and inspect every completed page.
 
 If structure extraction cannot identify reliable labels, use the visual or
-hybrid coordinate workflow in `references/form-filling.md`. Validate bounding
-boxes before writing the final PDF.
+hybrid coordinate workflow in `references/form-filling.md`. It uses rendered
+page dimensions; crop and zoom the page when visual estimation needs more
+precision. Validate bounding boxes before writing the final PDF.
 
 ## Verify outputs
 
@@ -128,6 +177,8 @@ pages.
 - `references/form-filling.md`: field values, coordinate systems,
   `fields.json`, and non-fillable form workflows.
 - `references/python-libraries.md`: custom work with pypdf, pdfplumber,
-  reportlab, and pypdfium2.
+  reportlab, and pypdfium2. Read this before using ReportLab; its built-in
+  fonts render Unicode subscript and superscript glyphs as black boxes. Use
+  `<sub>` and `<super>` in `Paragraph` objects instead.
 - `references/cli-tools.md`: system tools including Poppler, qpdf, pdftk, and
   ocrmypdf.

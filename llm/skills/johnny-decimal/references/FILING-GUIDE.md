@@ -34,7 +34,8 @@ Before renaming a file for its destination:
 1. Run `jd-list.sh <ID> --porcelain` to inspect existing filenames.
 2. Match the destination's established pattern. See `NAMING.md` for
    category-specific rules.
-3. Make each filename meaningful outside its directory when the category
-   requires it. Manuals must identify their brand and product.
+3. Keep names short when the directory path already provides the context. Make
+   a filename meaningful outside its directory when the category requires it.
+   Manuals must identify their brand and product.
 4. Treat inbox scan-date filenames, such as `20260127.pdf`, as temporary.
    Inspect the file and rename it to match the destination convention.

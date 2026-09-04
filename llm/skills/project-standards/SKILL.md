@@ -87,7 +87,8 @@ Use uv-managed environments for every Python invocation.
 Do not use `pip install`, activate a virtual environment, depend on globally
 installed tools, or use `uv pip install --system`. Put development tools in
 `[dependency-groups] dev`, commit `uv.lock`, and use `uv python install` for
-the interpreter.
+the interpreter. A bare tool can work on one machine but fail in a hook or CI;
+`uv pip install --system` also makes CI differ from `just sync` locally.
 
 ## Default policy
 
@@ -109,7 +110,7 @@ choice.
 | License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
 
 Use these action versions together and propagate the change to every affected
-repository:
+repository. This table is the authoritative pin set.
 
 | Action | Version |
 | --- | --- |
@@ -162,7 +163,8 @@ that already exist, so it cannot report an omitted file.
 Treat unexplained commands in the previous CI as suspect. Confirm that the CI
 being replaced actually worked. After copying an asset, search it for
 `PACKAGE`; replace every placeholder. `PACKAGE` is the distribution name,
-which may differ from the console-script name used in a smoke test.
+which may differ from the console-script name used in a smoke test. For
+example, `photo-org` can provide an `organize-photos` command.
 
 ## Scaffold a new repository
 
@@ -214,7 +216,8 @@ Use a permanent inline waiver only when a rule will never apply:
 ```
 
 The audit reports a documented permanent waiver as an exception rather than a
-failure. Use waivers only for permanent constraints.
+failure. Use waivers only for permanent constraints; unexplained standing
+failures make later audit results less credible.
 
 For a migration blocked by code work, leave the audit failure visible and
 record the reason in `AGENTS.md`. Do not weaken the rule or add an unworkable
