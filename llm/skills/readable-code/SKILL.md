@@ -1,127 +1,122 @@
 ---
 name: readable-code
-description: Readable, maintainable code standards. Use when writing, editing, reviewing, or discussing any source code.
+description: Standards for writing, editing, reviewing, and discussing readable, maintainable source code. Use when working with source code or code design.
 ---
 
-# Readable & Scalable Code Standards
+# Readable Code
 
-**Readability first.** Code is read far more often than it is written. Write
-for the human who opens this file six months from now, or six minutes from
-now, with no context.
+Write code that a maintainer can understand and safely change without needing
+unwritten context. Favor clear names, direct control flow, local reasoning,
+and established project conventions over brevity or novelty.
 
-## Naming
+## Before editing
 
-**Names are the primary interface for understanding code.**
+Inspect the code in context before changing it.
 
-- **Reveal intent.** A name should answer *why* it exists and *how* it is
-  used.
-- **Avoid abbreviations.** `customerAddress` not `custAddr`.
-- **Avoid single-letter names** unless they are the **universal idiomatic
-  convention** for that language (e.g., `i`/`j` for loop indices in C-style
-  languages, `e` for error in Go, `T` for type parameters in generics). When
-  in doubt, spell it out.
-- **No leetcode-style shortcuts.** `currentNode` not `curr`; `previousValue`
-  not `prev`; `result` not `res`; `answer` not `ans`.
-- **Pronounceable names.** `generationTimestamp` not `gen_ts`.
+| Check | Reason |
+| --- | --- |
+| Callers and imports | A signature or behavior change can affect dependent code. |
+| Tests | Existing tests define supported behavior and expose regressions. |
+| Shared interfaces | A change can affect several modules or consumers. |
+| Local conventions | The surrounding code may establish names, patterns, or boundaries. |
 
-**By type:** variables = noun phrase (`activeUserCount`, `processedLines`);
-functions = verb+noun (`findUserByEmail`, `calculateTotalPrice`); booleans =
-question form (`isActive`, `hasPermission`, `canEdit`, `shouldRetry`);
-constants = SCREAMING_SNAKE_CASE (`MAX_RETRY_COUNT`, `DEFAULT_TIMEOUT_MS`);
-collections = plural noun (`users`, `pendingOrders`); predicates/filters =
-past participle or adjective (`enabledFeatures`, `matchedRecords`).
+Update dependent code in the same task. Do not leave broken imports, stale
+callers, or orphaned references.
 
-**Rule:** If you need a comment to explain a name, rename it.
+## Names
 
-## Functions
+Names are the primary explanation of code. Name values for their role and
+meaning, not for their type or a shortened implementation detail.
 
-**Functions** --- under 40 lines (don't artificially split one clear
-responsibility just to hit the count); one responsibility and one abstraction
-level per function; 0--2 args ideal (3 acceptable, 4+ → struct/object with
-named fields); no hidden side effects (`checkUserStatus` must not also update
-the database); guard clauses / return early; no clever one-liners (prefer
-explicit multi-step logic over dense expressions); extract a meaningful chunk
-when you can, but inline a one-liner used only once.
+- Use specific, pronounceable names: `customerAddress`, not `custAddr`.
+- Avoid unexplained abbreviations and non-idiomatic single-letter names.
+- Use nouns for values and collections: `activeUserCount`, `pendingOrders`.
+- Use verbs for functions: `findUserByEmail`, `calculateTotalPrice`.
+- Use question forms for booleans: `isActive`, `hasPermission`, `canEdit`.
+- Use plural nouns for collections: `users`, `matchedRecords`.
+- Follow the language and project convention for constants. For example,
+  `MAX_RETRY_COUNT` is appropriate in languages that use screaming snake case.
 
-## Code Structure
+Idiomatic short names remain appropriate when their scope makes the meaning
+unambiguous, such as `i` in a short C-style loop, `e` for a Go error, or `T`
+for a generic type parameter. Otherwise, spell the name out.
 
-**Code structure** --- guard clauses (return early for nulls/errors/edge
-cases); flat over nested (max 2 levels visual nesting); step-down rule
-(high-level functions first, helpers below); colocation (keep related code
-close, don't scatter one concept across files); whitespace as paragraph
-punctuation within a function; named constants not magic numbers
-(`MAX_RETRIES` not `3`).
+Rename a value when a comment is needed only to explain what the name means.
 
-## Scale & Flexibility
+## Functions and control flow
 
-**Solve today's problem with tomorrow's load in mind.**
+Give each function one clear responsibility at one abstraction level.
 
-**Scale** --- YAGNI (no abstractions for hypothetical requirements); scalable
-boundaries (interfaces, data models, and failure modes that grow without
-rewrites); config over hardcode (timeouts, limits, feature flags, URLs,
-thresholds); loose coupling (a change in one module shouldn't cascade); fail
-loudly, recover cleanly (silent failures become catastrophic at scale); keep
-observability easy to add (logs, metrics, tracing); wrap third-party deps so
-they can be replaced or mocked.
+- Keep functions short enough to understand as a unit. About 40 lines is a
+  signal to review the structure, not a required limit.
+- Prefer zero to two parameters. When a function needs four or more related
+  values, use a named parameter object or struct.
+- Make side effects explicit in the function name or split them from queries.
+  A function named `checkUserStatus` must not update a database.
+- Use guard clauses and early returns for invalid input, errors, and edge
+  cases.
+- Prefer shallow control flow. Restructure deeply nested conditions when a
+  guard clause or helper makes the path clearer.
+- Prefer explicit, multi-step logic to dense expressions or clever one-liners.
+- Extract a repeated or independently meaningful block. Do not extract a
+  trivial one-line expression used once.
 
-## Comments & Didacticism
+Place high-level operations before their supporting helpers when the language
+and project style permit it. Keep related code together rather than scattering
+one concept across files.
 
-**The code is the explanation. Comments are the apology.**
+## Constants and configuration
 
-- **Do not state the obvious.**
-  ```
-  ❌  // increment counter by 1
-      counter += 1;
+Name a non-obvious literal when the name communicates a domain rule, unit, or
+shared behavior. Do not introduce a constant for a value whose meaning is
+already obvious from a standard API or immediate expression.
 
-  ✅  counter += 1;
-  ```
-- **Do not write tutorials in comments.** Assume the reader knows the language. Explain *why* a non-obvious choice was made, not *what* the syntax does.
-- **Do not leave commented-out code.** Delete it. Git remembers.
+Move values that vary by deployment, environment, or product policy into the
+project's established configuration mechanism. Do not add configuration for a
+hypothetical future use case.
 
-- **Use simple, direct clauses in comments.** Prefer imperative style. Write `Retry on timeout` not `This will retry the operation if a timeout occurs`. Comments should be brief and to the point.
-- **Do document surprises.** If the code must diverge from an obvious approach for a subtle reason, a brief comment is warranted.
+## Comments
 
-## Before Editing Any File
+Use code to explain normal behavior. Use comments to preserve information that
+the code cannot express clearly.
 
-**Stop and think.**
+- Explain why a surprising decision, constraint, or workaround exists.
+- State external behavior, compatibility requirements, or non-obvious failure
+  modes when they affect maintenance.
+- Do not narrate syntax, restate a well-named expression, or provide a
+  language tutorial.
+- Delete commented-out code. Version control preserves it.
+- Keep comments brief and direct. Write `Retry on timeout`, not `This will
+  retry the operation if a timeout occurs`.
 
-| Question | Why it matters |
-|----------|----------------|
-| What imports this file? | Signatures changes may break callers. |
-| What does this file import? | Changing an interface may require downstream updates. |
-| What tests cover this? | Tests will fail if behavior changes. |
-| Is this shared code? | A change here affects many places. |
+## Design boundaries
 
-**Rule:** Edit the file AND all dependent files in the same task. Never leave broken imports, missing updates, or orphaned references.
+Solve the requested problem without speculative abstraction. Preserve a path
+to future change at boundaries that are already likely to vary, such as
+external services, storage, configuration, or failure handling.
 
-## AI Coding Style
+- Keep modules loosely coupled. A local change should not require unrelated
+  modules to change.
+- Encapsulate third-party integrations when the project benefits from a stable
+  seam for replacement or testing.
+- Make failures visible and handle recovery deliberately. Do not silently
+  discard errors.
+- Add logging, metrics, or tracing when the existing observability pattern
+  calls for them.
+- Optimize only with evidence of a bottleneck. Preserve readability unless a
+  measured requirement requires a trade-off.
 
-| Situation | Action |
-|-----------|--------|
-| User asks for a feature | Write it directly and clearly. Consider how it fits the existing architecture. |
-| User reports a bug | Fix it. Do not explain the fix unless asked. Check if the root cause affects other areas. |
-| No clear requirement | Ask, do not assume. |
-| Multiple valid approaches | Choose the most readable and the one that respects existing boundaries, not the most impressive. |
-| User asks about architecture or design | Explain tradeoffs concisely. Recommend the approach that minimizes future maintenance burden and cognitive load, not the most novel. |
-| Encountering messy existing code | Follow the Boy Scout rule: leave it cleaner. But do not refactor unrelated code without permission. |
-| Performance vs. readability tension | Default to readability. Optimize only when there is measurable evidence of a bottleneck, not on speculation. |
+Do not refactor unrelated code without authorization. When touching existing
+code, make small local improvements only when they do not broaden the task or
+obscure the requested change.
 
-## Self-Check Before Completing
+## Review and completion
 
-Before reporting a task complete, verify:
+Before completing work, verify that:
 
-- [ ] **Goal met?** Did I do exactly what the user asked?
-- [ ] **All files edited?** Did I modify every necessary file, including dependents?
-- [ ] **Code works?** Did I verify the change compiles / runs / passes tests?
-- [ ] **Readable?** Would a new teammate understand this without explanation?
-- [ ] **No obvious comments?** Is the code self-documenting via names and structure?
-- [ ] **No abbreviations or single-letter vars?** (idiomatic `i`/`j`/`e`/`T` are fine; no `curr`, `prev`, `res`, `tmp`).
-- [ ] **No magic numbers?** Named constants over bare literals (`MAX_RETRIES` not `3`).
-- [ ] **No deep nesting?** Prefer guard clauses and early returns over nested `if`.
-- [ ] **No god functions?** Each function does one thing, named precisely.
-- [ ] **No clever one-liners?** Explicit multi-step logic over dense expressions.
-- [ ] **No extracted trivialities?** Don't extract a one-liner used only once.
-- [ ] **Scale respected?** Did I avoid tunnel vision? Does this change hold up if usage grows 10x?
-- [ ] **Nothing forgotten?** Edge cases, error paths, cleanup handled?
-
-> **Rule:** If any check fails, fix it before completing.
+- the implementation meets the requested behavior;
+- callers, imports, and tests remain consistent with the change;
+- names, function boundaries, and control flow make the code understandable;
+- comments explain only non-obvious context;
+- error paths and relevant edge cases are handled; and
+- the relevant build, test, lint, or type-check command has run when available.
