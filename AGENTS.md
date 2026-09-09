@@ -188,6 +188,8 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   `/settings` writes)
 - `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
   glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
+- `llm/pi/packages.conf` — pinned third-party Pi packages, installed only by
+  `just bootstrap-pi`; normal installation never contacts the network
 - `~/.pi/agent/AGENTS.md` is symlinked to the shared instructions; Pi also
   reads project `AGENTS.md`/`CLAUDE.md`
 - Config dir is hardcoded to `~/.pi/agent` — no XDG support. Keep it
@@ -195,6 +197,9 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   `sharedrc.d` would silently fork state into `~/.pi`.
 - PATH comes from `shared/sharedrc.d/203.pi.sh`, which follows pi's
   version-agnostic `~/.local/share/pi-node/current` symlink
+- `pi-web-access` is installed by `just bootstrap-pi` and supplies `web_search`
+  and `fetch_content`. It reuses Pi's `openai-codex` login when available;
+  package state and optional provider credentials stay under `~/.pi/agent/`.
 - Capture gates and semantics match the OpenCode plugin: on unless
   `KNOWLEDGE_OBSERVE=0`; context injection ignores the variable
 

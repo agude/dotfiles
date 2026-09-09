@@ -26,14 +26,18 @@ templates. `default` installs the complete desktop setup. `work` changes the
 Claude settings template. `server`, `synology`, and `root` provide reduced
 environments.
 
-Normal installation does not contact the network. Vim plugins are a separate,
-explicit bootstrap:
+Normal installation does not contact the network. Network-dependent components
+are separate, explicit bootstraps:
 
 ```bash
-bootstrap-vim-plugins
-# or, from this repository:
-just bootstrap-vim-plugins
+just bootstrap              # install dotfiles and synchronize Vim plugins
+just bootstrap-pi           # install pinned Pi packages
 ```
+
+`just bootstrap-pi` installs the sources pinned in `llm/pi/packages.conf` into
+Pi's local package directory and updates Pi's mutable settings. It currently
+installs `pi-web-access`, which adds web search and page-content tools. Pi
+uses the existing Codex login when available; no API key is stored here.
 
 ## Structure
 

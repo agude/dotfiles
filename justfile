@@ -13,6 +13,10 @@ bootstrap *ARGS:
     ./install.sh {{ARGS}}
     ./bin/bootstrap-vim-plugins.sh
 
+# Install the pinned, network-dependent Pi packages.
+bootstrap-pi:
+    ./bin/bootstrap-pi-packages.sh
+
 # Run every static check.
 lint: lint-shell lint-zsh lint-data lint-python lint-opencode
 
