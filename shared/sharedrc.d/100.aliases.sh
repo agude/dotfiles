@@ -53,21 +53,33 @@ elif [[ -n "$BASH_VERSION" ]]; then
     alias reload='source "${HOME}/.bashrc"'
 fi
 
-# Claude Code with all permissions, no knowledge-base observation
-alias qclaude='KNOWLEDGE_OBSERVE=0 claude --dangerously-skip-permissions'
-# Claude Code pinned to Opus 4.6
-alias opus='claude --model claude-opus-4-6'
-# Claude Code pinned to Sonnet 5
-alias sonnet='claude --model claude-sonnet-4-6'
-# Claude Code pinned to Fable 5
-alias fable='claude --model claude-fable-5'
+# Claude Code aliases
+if command -v claude >/dev/null 2>&1; then
+    # Claude Code pinned to Opus 4.6
+    alias opus='claude --model claude-opus-4-6'
+    # Claude Code pinned to Sonnet 5
+    alias sonnet='claude --model claude-sonnet-4-6'
+    # Claude Code pinned to Fable 5
+    alias fable='claude --model claude-fable-5'
+fi
 
-# Codex CLI with synced profile and session capture enabled
-codex() { KNOWLEDGE_OBSERVE=1 command codex --profile agude "$@"; }
-alias luna='codex --model gpt-5.6-luna -c model_reasoning_effort=xhigh'
-alias terra='codex --model gpt-5.6-terra -c model_reasoning_effort=medium'
-alias sol='codex --model gpt-5.6-sol -c model_reasoning_effort=medium'
-alias astra='codex --model gpt-6-astra -c model_reasoning_effort=low'
+# Codex CLI aliases
+if command -v codex >/dev/null 2>&1; then
+    # Synced profile and session capture enabled
+    codex() { KNOWLEDGE_OBSERVE=1 command codex --profile agude "$@"; }
+    alias luna='codex --model gpt-5.6-luna -c model_reasoning_effort=xhigh'
+    alias terra='codex --model gpt-5.6-terra -c model_reasoning_effort=medium'
+    alias sol='codex --model gpt-5.6-sol -c model_reasoning_effort=medium'
+    alias astra='codex --model gpt-6-astra -c model_reasoning_effort=low'
+fi
+
+# Pi coding agent aliases using the OpenAI Codex provider
+if command -v pi >/dev/null 2>&1; then
+    alias luna-pi='pi --provider openai-codex --model gpt-5.6-luna --thinking xhigh'
+    alias terra-pi='pi --provider openai-codex --model gpt-5.6-terra --thinking medium'
+    alias sol-pi='pi --provider openai-codex --model gpt-5.6-sol --thinking medium'
+    alias astra-pi='pi --provider openai-codex --model gpt-6-astra --thinking low'
+fi
 
 # ------------------------------------------------------------------------------
 # Functions

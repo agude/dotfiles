@@ -475,7 +475,9 @@ EOF
     [[ "$status" -eq 0 ]]
     [[ -f "$settings" ]]
     [[ ! -L "$settings" ]]
-    grep -Fq '"defaultModel": "stealth/ox-alpha"' "$settings"
+    grep -Fq '"defaultProvider": "openai-codex"' "$settings"
+    grep -Fq '"defaultModel": "gpt-5.6-luna"' "$settings"
+    grep -Fq '"defaultThinkingLevel": "xhigh"' "$settings"
     [[ -L "$extension" ]]
     [[ "$(readlink "$extension")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts" ]]
 }

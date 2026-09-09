@@ -28,7 +28,8 @@ teardown() {
         CONTROL_MARKER="$CONTROL_MARKER" \
         HOME="$TEST_HOME" \
         PATH="${TEST_BIN}:${PATH}" \
-        bash --noprofile --norc -i -c 'source "$1"; exit 0' _ "$BASHRC"
+        bash --noprofile --norc -i -c 'source "$1"; exit 0' _ "$BASHRC" \
+        < /dev/null
 
     [[ "$status" -eq 0 ]]
     [[ ! -e "$CONTROL_MARKER" ]]
