@@ -124,7 +124,13 @@ test-integration:
         [[ -f "${DOTFILES_DIR}/${f}" ]] && mv "${DOTFILES_DIR}/${f}" "${STASH_DIR}/${f}"
     done
     export HOME="$TEST_HOME"
-    ./install.sh
+    export XDG_CONFIG_HOME="$TEST_HOME/.config"
+    export XDG_DATA_HOME="$TEST_HOME/.local/share"
+    export XDG_CACHE_HOME="$TEST_HOME/.cache"
+    export XDG_STATE_HOME="$TEST_HOME/.local/state"
+    # Keep the first-run profile selection non-interactive when just test runs
+    # from a terminal.
+    ./install.sh </dev/null
     [[ -L "$TEST_HOME/.codex/themes/eldar.tmTheme" ]]
     [[ "$(readlink "$TEST_HOME/.codex/themes/eldar.tmTheme")" == "$DOTFILES_DIR/llm/codex/themes/eldar.tmTheme" ]]
     ./install.sh
