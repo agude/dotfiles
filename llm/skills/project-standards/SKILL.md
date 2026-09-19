@@ -106,7 +106,7 @@ choice.
 | Tests | Pytest. Packages use `--cov-fail-under=90`; script collections have no coverage gate. |
 | Hook | Calls `just lint` and is installed by `just hooks-install`. Do not inline tool commands. |
 | CI | Workflows call runner recipes and contain no tool-specific commands. Use `ci.yml` as a reusable workflow, with `tests.yml` and `release.yml` as callers. |
-| Documentation | `AGENTS.md` is canonical; `CLAUDE.md` is a symlink. Include a `README.md`. |
+| Documentation | `AGENTS.md` is canonical; `CLAUDE.md` is a compatibility symlink. Include a `README.md`. |
 | License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
 
 Use these action versions together and propagate the change to every affected

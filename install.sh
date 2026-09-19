@@ -232,7 +232,6 @@ expand_vars() {
     s="${s//\$HOME/$HOME}"
     s="${s//\$\{XDG_CONFIG_HOME\}/$XDG_CONFIG_HOME}"
     s="${s//\$\{CLAUDE_SETTINGS_REL\}/$CLAUDE_SETTINGS_REL}"
-    s="${s//\$\{CLAUDE_AGENTS_REL\}/$CLAUDE_AGENTS_REL}"
     s="${s//\$\{CODEX_AGENTS_REL\}/$CODEX_AGENTS_REL}"
     s="${s//\$\{PI_AGENTS_REL\}/$PI_AGENTS_REL}"
     printf '%s' "$s"

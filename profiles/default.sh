@@ -32,6 +32,5 @@ INSTALL_CLEANUP=true
 # These are relative to DOTFILES_DIR. link() prepends the full path.
 # Override these in machine-specific profiles to swap config variants.
 CLAUDE_SETTINGS_REL="llm/claude/settings.json"
-CLAUDE_AGENTS_REL="llm/AGENTS.md"
 CODEX_AGENTS_REL="llm/AGENTS.md"
 PI_AGENTS_REL="llm/AGENTS.md"

@@ -131,6 +131,9 @@ test-integration:
     # Keep the first-run profile selection non-interactive when just test runs
     # from a terminal.
     ./install.sh </dev/null
+    [[ -L "$TEST_HOME/.claude/CLAUDE.md" ]]
+    [[ "$(readlink "$TEST_HOME/.claude/CLAUDE.md")" == "$DOTFILES_DIR/llm/AGENTS.md" ]]
+    [[ ! -e "$TEST_HOME/.claude/AGENTS.md" ]]
     [[ -L "$TEST_HOME/.codex/themes/eldar.tmTheme" ]]
     [[ "$(readlink "$TEST_HOME/.codex/themes/eldar.tmTheme")" == "$DOTFILES_DIR/llm/codex/themes/eldar.tmTheme" ]]
     ./install.sh
