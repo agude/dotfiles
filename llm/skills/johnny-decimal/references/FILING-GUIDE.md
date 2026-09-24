@@ -11,17 +11,19 @@ Use the JDex flowchart for a detailed filing decision:
 1. **About a specific person?** → `10-19 Personal` under their folder
 2. **About yourself specifically?** → `11 Self`
 3. **A bill to pay?** → `27 Bills and Reimbursements`
-4. **Major asset (home, car)?** → `30-39 Home and Property`
-5. **Job/career/education?** → `40-49 Career and Education`
-6. **Hobby or creative project?** → `60-69 Hobbies and Recreation`
-7. **Litigation or legal proceedings?** → `70-79 Legal and Records`
-8. **Household service/utility?** → `80-89 Household and Services`
-9. **Reference material?** → `90-99 Reference`
+4. **3510 Honeysuckle Way?** → `50-59 3510 Honeysuckle Way`
+5. **Other property or vehicle?** → `30-39 Home and Property` (pending rename)
+6. **Job/career/education?** → `40-49 Career and Education`
+7. **Hobby or creative project?** → `60-69 Hobbies and Recreation`
+8. **Litigation or legal proceedings?** → `70-79 Legal and Records`
+9. **Household service/utility?** → `80-89 Household and Services`
+10. **Reference material?** → `90-99 Reference`
 
 ## Common exceptions
 
-- **Personal health records** → Person's folder (e.g., `12.50`), not `50-59 Health`
-- **House fixtures** (HVAC manual) → With the house in `31.XX`
+- **Personal health records** → Person's folder (e.g., `12.50`)
+- **General athletics resources** → `64 Athletics and Activities`
+- **House fixtures** (HVAC manual) → With the house in `53 Maintenance and House Systems`
 - **Standalone appliances** → `93 Manuals and Documentation`
 - **Photos as memories** → `Pictures` folder (outside JD)
 - **Photos for projects** → `63 Creative Works`
