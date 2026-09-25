@@ -461,39 +461,57 @@ EOF
     [[ "$(readlink "$instructions")" == "${FIXTURE_REPOSITORY}/llm/AGENTS.md" ]]
 }
 
-@test "installer initializes Pi settings and links the knowledge extension" {
+@test "installer initializes Pi settings and links extensions" {
     mkdir -p "${FIXTURE_REPOSITORY}/llm/pi/extensions"
     cp "${REPOSITORY_ROOT}/llm/pi/settings.json" \
         "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
+    cp "${REPOSITORY_ROOT}/llm/pi/models.json" \
+        "${FIXTURE_REPOSITORY}/llm/pi/models.json"
     cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
         "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
+    cp "${REPOSITORY_ROOT}/llm/pi/extensions/status-footer.ts" \
+        "${FIXTURE_REPOSITORY}/llm/pi/extensions/status-footer.ts"
     run_installer --profile codex
 
     settings="${TEST_HOME}/.pi/agent/settings.json"
+    models="${TEST_HOME}/.pi/agent/models.json"
     extension="${TEST_HOME}/.pi/agent/extensions/knowledge.ts"
+    footer="${TEST_HOME}/.pi/agent/extensions/status-footer.ts"
     [[ "$status" -eq 0 ]]
     [[ -f "$settings" ]]
     [[ ! -L "$settings" ]]
     grep -Fq '"defaultProvider": "openai-codex"' "$settings"
     grep -Fq '"defaultModel": "gpt-6-luna"' "$settings"
     grep -Fq '"defaultThinkingLevel": "xhigh"' "$settings"
+    [[ -f "$models" ]]
+    for model in gpt-6-astra gpt-6-sol gpt-6-luna; do
+        grep -Fq "\"$model\"" "$models"
+    done
+    [[ "$(grep -Fc '"contextWindow": 872000' "$models")" -eq 3 ]]
     [[ -L "$extension" ]]
     [[ "$(readlink "$extension")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts" ]]
+    [[ -L "$footer" ]]
+    [[ "$(readlink "$footer")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/status-footer.ts" ]]
 }
 
 @test "installer preserves existing local Pi settings" {
     mkdir -p "${FIXTURE_REPOSITORY}/llm/pi/extensions"
     cp "${REPOSITORY_ROOT}/llm/pi/settings.json" \
         "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
+    cp "${REPOSITORY_ROOT}/llm/pi/models.json" \
+        "${FIXTURE_REPOSITORY}/llm/pi/models.json"
     cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
         "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
     run_installer --profile codex
     [[ "$status" -eq 0 ]]
     settings="${TEST_HOME}/.pi/agent/settings.json"
+    models="${TEST_HOME}/.pi/agent/models.json"
     printf '\n  "localSetting": true\n' >> "$settings"
+    printf '\n  "localModel": true\n' >> "$models"
 
     run_installer
 
     [[ "$status" -eq 0 ]]
     grep -Fq '"localSetting": true' "$settings"
+    grep -Fq '"localModel": true' "$models"
 }

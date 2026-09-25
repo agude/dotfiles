@@ -186,8 +186,14 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 - `llm/pi/settings.json` — template for `~/.pi/agent/settings.json`,
   installed copy-once; Pi owns the file afterwards (trust decisions,
   `/settings` writes)
+- `llm/pi/models.json` — copy-once template for local model overrides. It sets
+  `openai-codex/gpt-6-astra`, `gpt-6-sol`, and `gpt-6-luna` to an 872K context
+  window, the maximum in the Codex model catalog; existing local model
+  definitions remain untouched.
 - `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
   glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
+- `llm/pi/extensions/status-footer.ts` — shows directory, model, and context
+  percentage in the interactive footer; linked by the same loop
 - `llm/pi/packages.conf` — pinned third-party Pi packages, installed only by
   `just bootstrap-pi`; normal installation never contacts the network
 - `~/.pi/agent/AGENTS.md` is symlinked to the shared instructions; Pi also

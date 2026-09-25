@@ -564,6 +564,8 @@ if install_group llm; then
     # directory; the settings file is initialized once from the template.
     install_local_config "${HOME}/.pi/agent/settings.json" \
         "${DOTFILES_DIR}/llm/pi/settings.json"
+    install_local_config "${HOME}/.pi/agent/models.json" \
+        "${DOTFILES_DIR}/llm/pi/models.json"
 
     # Pi extensions — knowledge base session capture.
     PI_EXTENSIONS_DIR="${HOME}/.pi/agent/extensions"
