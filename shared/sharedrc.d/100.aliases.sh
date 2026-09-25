@@ -72,13 +72,6 @@ if command -v codex >/dev/null 2>&1; then
     alias astra='codex --model gpt-6-astra -c model_reasoning_effort=low'
 fi
 
-# Pi coding agent aliases using the OpenAI Codex provider
-if command -v pi >/dev/null 2>&1; then
-    alias luna-pi='pi --provider openai-codex --model gpt-6-luna --thinking xhigh'
-    alias sol-pi='pi --provider openai-codex --model gpt-6-sol --thinking medium'
-    alias astra-pi='pi --provider openai-codex --model gpt-6-astra --thinking low'
-fi
-
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------

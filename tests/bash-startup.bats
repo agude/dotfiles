@@ -34,3 +34,21 @@ teardown() {
     [[ "$status" -eq 0 ]]
     [[ ! -e "$CONTROL_MARKER" ]]
 }
+
+@test "Pi aliases load after its PATH setup" {
+    TEST_PI_BIN="${TEST_HOME}/.local/share/pi-node/current/bin"
+    mkdir -p "$TEST_PI_BIN"
+    : > "${TEST_PI_BIN}/pi"
+    chmod +x "${TEST_PI_BIN}/pi"
+
+    ALIASES="${BATS_TEST_DIRNAME}/../shared/sharedrc.d/100.aliases.sh"
+    PI_PATH="${BATS_TEST_DIRNAME}/../shared/sharedrc.d/203.pi.sh"
+    run env HOME="$TEST_HOME" PATH=/usr/bin:/bin \
+        bash --noprofile --norc -c \
+        'source "$1"; source "$2"; alias luna-pi; command -v pi' \
+        _ "$ALIASES" "$PI_PATH"
+
+    [[ "$status" -eq 0 ]]
+    [[ "$output" == *"alias luna-pi='pi --provider openai-codex --model gpt-6-luna --thinking xhigh'"* ]]
+    [[ "$output" == *"${TEST_PI_BIN}/pi"* ]]
+}
