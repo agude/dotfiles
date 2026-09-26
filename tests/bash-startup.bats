@@ -49,6 +49,6 @@ teardown() {
         _ "$ALIASES" "$PI_PATH"
 
     [[ "$status" -eq 0 ]]
-    [[ "$output" == *"alias luna-pi='pi --provider openai-codex --model gpt-5.6-luna --thinking xhigh'"* ]]
+    [[ "$output" == *"alias luna-pi='pi --provider openai-codex --model gpt-6-luna --thinking xhigh'"* ]]
     [[ "$output" == *"${TEST_PI_BIN}/pi"* ]]
 }
