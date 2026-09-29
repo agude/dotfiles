@@ -187,9 +187,9 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   installed copy-once; Pi owns the file afterwards (trust decisions,
   `/settings` writes)
 - `llm/pi/models.json` — copy-once template for local model overrides. It sets
-  `openai-codex/gpt-6-astra`, `gpt-6-sol`, and `gpt-6-luna` to an 872K context
-  window, the maximum in the Codex model catalog; existing local model
-  definitions remain untouched.
+  `openai-codex/gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, and `gpt-6-luna` to
+  an 872K context window, the maximum in the Codex model catalog; existing
+  local model definitions remain untouched.
 - `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
   glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
 - `llm/pi/extensions/status-footer.ts` — shows directory, model, and context

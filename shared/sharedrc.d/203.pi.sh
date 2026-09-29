@@ -17,9 +17,10 @@ unset _pi_bin
 # Launch Luna-family models through Pi's OpenAI Codex provider.
 if command -v pi >/dev/null 2>&1; then
     alias luna-pi='pi --provider openai-codex --model gpt-6-luna --thinking xhigh'
-    alias sol-pi='pi --provider openai-codex --model gpt-6-sol --thinking medium'
+    alias sol-pi='pi --provider openai-codex --model gpt-6.1-sol --thinking medium'
+    alias sol6-pi='pi --provider openai-codex --model gpt-6-sol --thinking medium'
     alias astra-pi='pi --provider openai-codex --model gpt-6-astra --thinking low'
-    alias luna-5.6-pi='pi --provider openai-codex --model gpt-5.6-luna --thinking xhigh'
-    alias sol-5.6-pi='pi --provider openai-codex --model gpt-5.6-sol --thinking medium'
-    alias astra-5.6-pi='pi --provider openai-codex --model gpt-5.6-astra --thinking low'
+    alias luna5.6-pi='pi --provider openai-codex --model gpt-5.6-luna --thinking xhigh'
+    alias sol5.6-pi='pi --provider openai-codex --model gpt-5.6-sol --thinking medium'
+    alias astra5.6-pi='pi --provider openai-codex --model gpt-5.6-astra --thinking low'
 fi
