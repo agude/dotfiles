@@ -118,7 +118,7 @@ build/
 .venv/
 GITIGNORE
 
-msg "AGENTS.md (compatibility symlink created)"
+msg "AGENTS.md"
 cat > AGENTS.md <<AGENTS
 # AGENTS.md
 
@@ -147,7 +147,6 @@ Python package (see the project-standards skill, \`references/python-package.md\
 
 None.
 AGENTS
-ln -sf AGENTS.md CLAUDE.md
 
 msg "README.md"
 printf '# %s\n' "$REPO" > README.md

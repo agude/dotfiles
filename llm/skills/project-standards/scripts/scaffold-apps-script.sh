@@ -89,7 +89,7 @@ cat > .gitignore <<'GITIGNORE'
 output.csv
 GITIGNORE
 
-msg "AGENTS.md (compatibility symlink created)"
+msg "AGENTS.md"
 cat > AGENTS.md <<'AGENTS'
 # Repository Guidelines
 
@@ -108,7 +108,6 @@ This project has no local runner or CI until a real clasp workflow exists.
 Do not commit Google Form exports, generated receipts, `.clasp.json`, or
 `.clasprc.json`.
 AGENTS
-ln -sf AGENTS.md CLAUDE.md
 
 msg "README.md"
 {

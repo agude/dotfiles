@@ -15,7 +15,7 @@ repo/
 ├── pyproject.toml
 ├── uv.lock                        # committed
 ├── .python-version                # latest supported
-├── AGENTS.md                      # CLAUDE.md symlink to it
+├── AGENTS.md                      # canonical agent instructions
 ├── README.md
 └── LICENSE.md
 ```
@@ -75,11 +75,13 @@ setuptools → hatchling is safe in practice: the wheel loses only
 `top_level.txt`, which is legacy setuptools metadata. The sdist changes
 more — hatchling ships everything not gitignored, so it picks up `.github/`
 and drops `*.egg-info`. Confirm the sdist still carries every test file, and
-exclude the agent docs, which are noise for anyone installing from source:
+exclude the agent docs, which are noise for anyone installing from source.
+New scaffolds create only `AGENTS.md`; add `CLAUDE.md` here only when a legacy
+repository still contains it:
 
 ```toml
 [tool.hatch.build.targets.sdist]
-exclude = ["AGENTS.md", "CLAUDE.md"]
+exclude = ["AGENTS.md"]
 ```
 
 A backend swap does not need a version bump: it changes neither the code nor

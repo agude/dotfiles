@@ -3,7 +3,7 @@ name: project-standards
 description: Applies the user's repository conventions for task runners, uv-based Python tooling, quality checks, hooks, GitHub Actions, releases, and repository documentation. Use when scaffolding a repository or changing its tooling, CI, hooks, release flow, or standards compliance.
 compatibility: Requires bash for the audit script. The conventions assume uv, just, and GitHub Actions where applicable.
 metadata:
-  updated: "2026-07-27"
+  updated: "2026-10-08"
 ---
 
 # Project Standards
@@ -106,7 +106,7 @@ choice.
 | Tests | Pytest. Packages use `--cov-fail-under=90`; script collections have no coverage gate. |
 | Hook | Calls `just lint` and is installed by `just hooks-install`. Do not inline tool commands. |
 | CI | Workflows call runner recipes and contain no tool-specific commands. Use `ci.yml` as a reusable workflow, with `tests.yml` and `release.yml` as callers. |
-| Documentation | `AGENTS.md` is canonical; `CLAUDE.md` is a compatibility symlink. Include a `README.md`. |
+| Documentation | Include canonical `AGENTS.md` instructions and a `README.md`. |
 | License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
 
 Use these action versions together and propagate the change to every affected
@@ -134,7 +134,7 @@ pin to maintain.
 5. Update CI to call runner recipes.
 6. Align pins and the remaining policy items.
 7. Run `git status` and `git check-ignore -v` for newly added dotfiles, hook
-   files, and agent-document symlinks. Update `.gitignore` rather than
+   files, and agent docs. Update `.gitignore` rather than
    force-adding ignored files.
 8. Re-run the audit. Fix each failure, document a permanent exception, or
    record a migration deferral as described under **Exceptions**.
@@ -150,12 +150,12 @@ line-length reflow its own commit when widening an older repository from 88 to
 work, and record the reason in a comment.
 
 Older `.gitignore` files can hide `.python-version`, `bin/pre-commit.sh`, or
-the `CLAUDE.md` symlink through rules such as `.*`, `bin`, or `CLAUDE.md`.
+`AGENTS.md` through rules such as `.*`, `bin`, or `AGENTS.md`.
 `git add` may not report a file hidden by a directory rule. Check the expected
 files explicitly:
 
 ```bash
-git check-ignore -v .python-version bin/pre-commit.sh CLAUDE.md
+git check-ignore -v .python-version bin/pre-commit.sh AGENTS.md
 ```
 
 Un-ignore the file rather than force-adding it. The audit detects only files
