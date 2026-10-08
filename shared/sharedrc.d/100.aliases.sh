@@ -55,10 +55,12 @@ fi
 
 # Claude Code aliases
 if command -v claude >/dev/null 2>&1; then
-    # Claude Code pinned to Opus 4.6
-    alias opus='claude --model claude-opus-4-6'
-    # Claude Code pinned to Sonnet 5
-    alias sonnet='claude --model claude-sonnet-4-6'
+    # Claude Code pinned to Opus 5.5
+    alias opus='claude --model claude-opus-5-5'
+    # Claude Code pinned to Sonnet 5.5
+    alias sonnet='claude --model claude-sonnet-5-5'
+    # Claude Code pinned to Haiku 5.5
+    alias haiku='claude --model claude-haiku-5-5'
     # Claude Code pinned to Fable 5
     alias fable='claude --model claude-fable-5'
 fi
