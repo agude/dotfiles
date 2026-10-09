@@ -148,7 +148,10 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 #### Codex CLI
 - `llm/codex/agude.config.toml` — portable template for the `agude` profile
 - `llm/codex/hooks.json` — hook definitions for KB session capture
-- `llm/codex/hooks.d/` — session hook shims (same core API as Claude, JSON protocol)
+- `llm/codex/hooks.d/` — session hook shims that `exec` the knowledge-base
+  adapters in `$KNOWLEDGE_BASE/scripts/adapters/codex/`. They hold no capture
+  logic; without an adapter they return `{}`. Capture is on unless
+  `KNOWLEDGE_OBSERVE=0`.
 - `~/.codex/agude.config.toml` is a real mutable file, created from the template
   only when absent. Codex writes project trust and hook state into this file.
 - `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
