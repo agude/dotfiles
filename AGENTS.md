@@ -135,7 +135,6 @@ All LLM configs live under `llm/`:
   state, context usage). Wired via `statusLine` key in settings files.
 - `llm/claude/hooks.d/` — coat-tree hooks (one subdirectory per event):
   - `PreToolUse/010.git-guard.sh` — blocks hook/signing bypass flags
-  - `PreToolUse/020.git-push-guard.sh` — blocks force push and push to main
   - `PreToolUse/030.gh-guard.sh` — gates GitHub CLI operations by risk level
   - `SessionStart/010.knowledge.sh` — initializes KB session capture, injects context
   - `UserPromptSubmit/010.knowledge.sh` — appends user prompts to session buffer

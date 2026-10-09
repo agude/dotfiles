@@ -7,7 +7,6 @@ import json
 import os
 import re
 import shlex
-import subprocess
 import sys
 from dataclasses import dataclass
 
@@ -15,7 +14,6 @@ from dataclasses import dataclass
 CONTROL_OPERATORS = {"&", "&&", "(", ")", ";", "|", "||"}
 REDIRECT_OPERATORS = {"<", "<<", "<<-", ">", ">>", "<>"}
 ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
-PROTECTED_BRANCHES = {"main", "master", "refs/heads/main", "refs/heads/master"}
 NESTED_SHELLS = {"bash", "dash", "ksh", "sh", "zsh"}
 
 
@@ -404,67 +402,6 @@ def git_bypass_blocked(commands: list[ShellCommand]) -> bool:
     return False
 
 
-def _current_branch() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip() if result.returncode == 0 else ""
-
-
-def _push_refspecs(arguments: list[str]) -> tuple[bool, list[str]]:
-    force = False
-    positional: list[str] = []
-    value_options = {"--exec", "--push-option", "--receive-pack", "--repo", "-o"}
-    index = 0
-    while index < len(arguments):
-        token = arguments[index]
-        if token == "--":
-            positional.extend(arguments[index + 1 :])
-            break
-        if token in {"--force", "--force-with-lease", "--mirror"} or token.startswith(
-            "--force-with-lease="
-        ):
-            force = True
-        elif token.startswith("-"):
-            if not token.startswith("--") and "f" in token[1:]:
-                force = True
-            if token in value_options:
-                index += 1
-        else:
-            positional.append(token)
-        index += 1
-
-    refspecs = positional[1:] if positional else []
-    return force or any(refspec.startswith("+") for refspec in refspecs), refspecs
-
-
-def _protected_destination(refspec: str) -> bool:
-    normalized = refspec.lstrip("+")
-    destination = normalized.rsplit(":", 1)[-1]
-    return destination in PROTECTED_BRANCHES
-
-
-def git_push_decision(commands: list[ShellCommand]) -> str:
-    saw_push = False
-    for command in commands:
-        invocation = _git_invocation(command)
-        if invocation is None or invocation[0] != "push":
-            continue
-        saw_push = True
-        force, refspecs = _push_refspecs(invocation[1])
-        if force:
-            return "deny-force"
-        if any(_protected_destination(refspec) for refspec in refspecs):
-            return "deny-protected"
-        if not refspecs or any(refspec in {"@", "HEAD"} for refspec in refspecs):
-            if _current_branch() in {"main", "master"}:
-                return "deny-protected"
-    return "allow" if saw_push else "none"
-
-
 def _gh_invocation(command: ShellCommand) -> tuple[str, str, list[str]] | None:
     if command.executable != "gh":
         return None
@@ -627,7 +564,7 @@ def _handle_parse_failure(mode: str) -> int:
 
 def main() -> int:
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
-    if mode not in {"gh", "git-bypass", "git-push"}:
+    if mode not in {"gh", "git-bypass"}:
         raise SystemExit(f"Unknown guard mode: {mode}")
     try:
         commands = _input_commands()
@@ -637,15 +574,6 @@ def main() -> int:
         if git_bypass_blocked(commands):
             print("Don't bypass git hooks.", file=sys.stderr)
             return 2
-        return 0
-    if mode == "git-push":
-        decision = git_push_decision(commands)
-        if decision == "deny-force":
-            _emit_decision("deny", "Force push is blocked.")
-        elif decision == "deny-protected":
-            _emit_decision("deny", "Don't push directly to main/master.")
-        elif decision == "allow":
-            _emit_decision("allow", "Push to feature branch.")
         return 0
     if mode == "gh":
         decision = gh_decision(commands)

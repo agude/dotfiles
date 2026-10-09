@@ -133,28 +133,6 @@ def test_git_bypass_allows_unrelated_options(text: str) -> None:
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("git push --force origin feature", "deny-force"),
-        ("git push origin +feature:feature", "deny-force"),
-        ("git push origin feature:refs/heads/main", "deny-protected"),
-        ("git push origin feature", "allow"),
-        ("git status", "none"),
-    ],
-)
-def test_git_push_classifies_explicit_refspecs(text: str, expected: str) -> None:
-    assert command_guard.git_push_decision(command_guard.shell_commands(text)) == expected
-
-
-def test_git_push_checks_current_branch(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(command_guard, "_current_branch", lambda: "main")
-
-    decision = command_guard.git_push_decision(command_guard.shell_commands("git push origin"))
-
-    assert decision == "deny-protected"
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
         ("gh repo delete owner/repository", ("deny", "Destructive repo operation blocked.")),
         ("gh pr merge 42", ("ask", "PR merge — confirm.")),
         ("gh api --method DELETE repos/owner/repository", ("ask", "Mutating API call — confirm.")),
@@ -181,7 +159,7 @@ def test_git_bypass_main_blocks_parse_failure(
     assert "Unable to parse shell command safely" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("mode", ["gh", "git-push"])
+@pytest.mark.parametrize("mode", ["gh"])
 def test_decision_guards_ask_on_parse_failure(
     mode: str,
     monkeypatch: pytest.MonkeyPatch,
