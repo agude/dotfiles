@@ -1,21 +1,14 @@
 #!/usr/bin/env bash
-# Codex UserPromptSubmit shim — appends user prompt to session buffer.
+# Codex UserPromptSubmit shim — delegates to the knowledge-base adapter.
+#
+# The adapter owns all capture logic. Without one, consume the hook input
+# and return Codex's required empty response so the session is unaffected.
 set -euo pipefail
 
-INPUT="$(cat)"
-KB="${KNOWLEDGE_BASE:-}"
-
-[[ -z "$KB" ]] && { echo '{}'; exit 0; }
-[[ "${KNOWLEDGE_OBSERVE:-}" != "1" ]] && { echo '{}'; exit 0; }
-command -v jq > /dev/null 2>&1 || { echo '{}'; exit 0; }
-
-SESSION_ID="$(echo "$INPUT" | jq -r '.session_id // empty')"
-PROMPT="$(echo "$INPUT" | jq -r '.prompt // empty')"
-
-if [[ -n "$SESSION_ID" ]] && [[ -n "$PROMPT" ]]; then
-    SESSION_DIR="${SESSION_DIR:-${XDG_RUNTIME_DIR:-/tmp}/knowledge-sessions-$(id -u)}"
-    FILE="$SESSION_DIR/session-${SESSION_ID}.jsonl"
-    "$KB/scripts/session-append" --file "$FILE" --role user --message "$PROMPT" 2>/dev/null || true
+adapter="${KNOWLEDGE_BASE:-}/scripts/adapters/codex/session-prompt"
+if [[ -n "${KNOWLEDGE_BASE:-}" && -x "$adapter" ]]; then
+    exec "$adapter"
 fi
 
+cat > /dev/null
 echo '{}'

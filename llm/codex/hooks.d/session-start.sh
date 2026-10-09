@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
-# Codex SessionStart shim — initializes session capture and injects KB context.
+# Codex SessionStart shim — delegates to the knowledge-base adapter.
+#
+# The adapter owns all capture logic. Without one, consume the hook input
+# and return Codex's required empty response so the session is unaffected.
 set -euo pipefail
 
-KB="${KNOWLEDGE_BASE:-}"
-[[ -z "$KB" ]] && { echo '{}'; exit 0; }
-command -v jq > /dev/null 2>&1 || { echo '{}'; exit 0; }
-
-INPUT="$(cat)"
-SESSION_ID="$(echo "$INPUT" | jq -r '.session_id // empty')"
-
-# Initialize buffer when capture is enabled.
-if [[ "${KNOWLEDGE_OBSERVE:-}" == "1" ]] && [[ -n "$SESSION_ID" ]]; then
-    "$KB/scripts/session-init" --session-id "$SESSION_ID" > /dev/null 2>&1 || true
+adapter="${KNOWLEDGE_BASE:-}/scripts/adapters/codex/session-start"
+if [[ -n "${KNOWLEDGE_BASE:-}" && -x "$adapter" ]]; then
+    exec "$adapter"
 fi
 
-# Always inject context, even if capture is off.
-CONTEXT="$("$KB/scripts/session-context" 2>/dev/null || echo "")"
-
-if [[ -n "$CONTEXT" ]]; then
-    jq -nc --arg ctx "$CONTEXT" '{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": $ctx}}'
-else
-    echo '{}'
-fi
+cat > /dev/null
+echo '{}'

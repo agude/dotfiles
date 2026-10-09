@@ -8,7 +8,7 @@
           {
             "type": "command",
             "command": "bash ~/.codex/hooks.d/session-start.sh",
-            "timeout": 10
+            "timeout": 60
           }
         ]
       }
