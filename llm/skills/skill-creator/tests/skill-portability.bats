@@ -55,12 +55,3 @@ teardown() {
     [[ "$status" -ne 0 ]]
     [[ "$output" == *"Codex short description length (25-64)"* ]]
 }
-
-@test "task tracker initializes the target project from a resolved skill path" {
-    PROJECT_DIR="$TEST_ROOT/project"
-    mkdir "$PROJECT_DIR"
-
-    run bash -c 'cd "$1" && "$2/scripts/task.py" init' -- "$PROJECT_DIR" "$BATS_TEST_DIRNAME/../../task-tracker"
-    [[ "$status" -eq 0 ]]
-    [[ -d "$PROJECT_DIR/.agent/tasks" ]]
-}

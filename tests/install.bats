@@ -484,10 +484,10 @@ EOF
     grep -Fq '"defaultModel": "gpt-6-luna"' "$settings"
     grep -Fq '"defaultThinkingLevel": "xhigh"' "$settings"
     [[ -f "$models" ]]
-    for model in gpt-6-astra gpt-6-sol gpt-6-luna; do
+    for model in gpt-6-astra gpt-6.1-sol gpt-6-sol gpt-6-luna; do
         grep -Fq "\"$model\"" "$models"
     done
-    [[ "$(grep -Fc '"contextWindow": 872000' "$models")" -eq 3 ]]
+    [[ "$(grep -Fc '"contextWindow": 872000' "$models")" -eq 4 ]]
     [[ -L "$extension" ]]
     [[ "$(readlink "$extension")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts" ]]
     [[ -L "$footer" ]]
