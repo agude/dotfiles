@@ -283,6 +283,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
+  "outputStyle": "Concise",
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true

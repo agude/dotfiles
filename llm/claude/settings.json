@@ -245,6 +245,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "outputStyle": "Concise",
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true,
