@@ -33,6 +33,13 @@ uses the `pypi` environment and OIDC only in its publish job; an owner must
 verify that the external publisher registration names the same repository,
 workflow, and environment before enabling a production tag.
 
+The direct hosted check on 2026-10-15 found zero GitHub environments for
+`agude/CCRS-to-SQLite`, repository Actions permissions with SHA pinning
+disabled, the old release workflow still deployed on `main` at `17fb113`, and
+no registered PyPI project (`https://pypi.org/pypi/ccrs-to-sqlite/json`
+returned 404). The local pilot commit has not been pushed, so no hosted release
+run was created.
+
 ## Copier pilot status
 
 Completed as an isolated generated-project pilot. The harness derives its
@@ -57,7 +64,8 @@ dependencies and `uv.lock` maintenance. A local-platform extract dry run with
 Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a
 committed generated fixture. The scheduled support recipe reports candidates
 but never raises support floors or rewrites project files automatically.
-Hosted Renovate activation remains pending.
+The candidate repository has no hosted `renovate.json5` and no reviewable
+Renovate PR; hosted activation remains pending.
 
 ## Root-gate environment boundary
 
