@@ -22,8 +22,12 @@ jobs:
         uses: extractions/setup-just@SETUP_JUST_ACTION # SETUP_JUST_VERSION
       - name: Install workflow linters
         run: |
-          sudo apt-get update
-          sudo apt-get install -y actionlint
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          curl -fsSL \
+            "https://github.com/rhysd/actionlint/releases/download/vACTIONLINT_VERSION/actionlint_ACTIONLINT_VERSION_linux_amd64.tar.gz" \
+            -o "$RUNNER_TEMP/actionlint/actionlint.tar.gz"
+          tar -xzf "$RUNNER_TEMP/actionlint/actionlint.tar.gz" -C "$RUNNER_TEMP/actionlint"
+          echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
           uv tool install zizmor==ZIZMOR_VERSION
       - name: Set up Python PYTHON_LATEST
         run: uv python install PYTHON_LATEST

@@ -85,6 +85,12 @@ grep -Fq "uv tool install zizmor==$(policy_value "$SKILL_DIR/policy.toml" tools.
     echo "policy: generated zizmor version does not match policy" >&2
     exit 1
 }
+actionlint_version="$(policy_value "$SKILL_DIR/policy.toml" tools.actionlint version)"
+grep -Fq "actionlint_${actionlint_version}_linux_amd64.tar.gz" \
+    "$render_root/generated/.github/workflows/ci.yml" || {
+    echo "policy: generated actionlint version does not match policy" >&2
+    exit 1
+}
 for action in checkout setup_uv setup_just upload_artifact download_artifact; do
     ref="$(policy_action "$SKILL_DIR/policy.toml" "$action")"
     version="$(policy_action_version "$SKILL_DIR/policy.toml" "$action")"
