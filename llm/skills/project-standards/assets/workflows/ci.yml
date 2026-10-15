@@ -29,6 +29,7 @@ jobs:
           tar -xzf "$RUNNER_TEMP/actionlint/actionlint.tar.gz" -C "$RUNNER_TEMP/actionlint"
           echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
           uv tool install zizmor==ZIZMOR_VERSION
+          uv tool dir --bin >> "$GITHUB_PATH"
       - name: Set up Python PYTHON_LATEST
         run: uv python install PYTHON_LATEST
       - name: Install dependencies

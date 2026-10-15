@@ -51,6 +51,7 @@ jobs:
           tar -xzf "$RUNNER_TEMP/actionlint/actionlint.tar.gz" -C "$RUNNER_TEMP/actionlint"
           echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
           uv tool install zizmor==1.14.2
+          uv tool dir --bin >> "$GITHUB_PATH"
       - name: Run static checks
         run: just lint
 
