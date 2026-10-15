@@ -7,7 +7,6 @@ import sys
 import tarfile
 import zipfile
 
-
 if len(sys.argv) != 3:
     raise SystemExit("usage: check-archive-path.py ARCHIVE RELATIVE-PATH")
 

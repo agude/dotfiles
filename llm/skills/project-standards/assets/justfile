@@ -56,8 +56,8 @@ build:
 package-check ARTIFACTS="":
     #!/usr/bin/env bash
     package_args=(--import PACKAGE --distribution REPO --license LICENSE.md --typed)
-    if [[ -n "COMMAND_NAME" ]]; then
-        package_args+=(--command "COMMAND_NAME")
+    if [[ -n "PROJECT_COMMAND_NAME" ]]; then
+        package_args+=(--command "PROJECT_COMMAND_NAME")
     fi
     if [[ -n "{{ ARTIFACTS }}" ]]; then
         package_args+=(--artifacts "{{ ARTIFACTS }}")

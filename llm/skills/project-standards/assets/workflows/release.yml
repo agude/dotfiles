@@ -18,14 +18,14 @@ jobs:
     name: Publish to PyPI
     environment: pypi
     permissions:
-      id-token: write
+      id-token: write # PyPI Trusted Publishing is limited to this job.
     steps:
       - name: Download validated distributions
-        uses: actions/download-artifact@DOWNLOAD_ARTIFACT_ACTION
+        uses: actions/download-artifact@DOWNLOAD_ARTIFACT_ACTION # DOWNLOAD_ARTIFACT_VERSION
         with:
           name: PACKAGE-distributions
           path: dist
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@PYPI_PUBLISH_ACTION
+        uses: pypa/gh-action-pypi-publish@PYPI_PUBLISH_ACTION # PYPI_PUBLISH_VERSION
         with:
           packages-dir: dist/

@@ -6,7 +6,6 @@ from __future__ import annotations
 import sys
 import zipfile
 
-
 if len(sys.argv) != 3:
     raise SystemExit("usage: check-wheel-path.py WHEEL RELATIVE-PATH")
 

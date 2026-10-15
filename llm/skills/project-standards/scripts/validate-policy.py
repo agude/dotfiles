@@ -52,8 +52,12 @@ if not isinstance(actions, dict):
 for name, action in actions.items():
     if not isinstance(action, dict) or not isinstance(action.get("ref"), str):
         fail(f"actions.{name}.ref must be a string")
-    if not re.fullmatch(r"(v\d+(?:\.\d+)*|release/v\d+)", action["ref"]):
+    if not re.fullmatch(r"(v\d+(?:\.\d+)*|release/v\d+|[0-9a-f]{40})", action["ref"]):
         fail(f"actions.{name}.ref is not a supported policy reference")
+    if not isinstance(action.get("version"), str) or not re.fullmatch(
+        r"(v\d+(?:\.\d+)*|release/v\d+)", action["version"]
+    ):
+        fail(f"actions.{name}.version must be a readable release reference")
 
 tools = policy.get("tools")
 if not isinstance(tools, dict):

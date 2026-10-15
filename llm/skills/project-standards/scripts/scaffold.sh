@@ -137,11 +137,17 @@ mypy_target="$(policy_value "$POLICY" python mypy_target)"
 coverage_floor="$(policy_value "$POLICY" python coverage_floor)"
 python_matrix="$(policy_array "$POLICY" python matrix | awk 'BEGIN { printf "[" } { if (count++) printf ", "; printf "\"%s\"", $0 } END { print "]" }')"
 checkout_action="$(policy_action "$POLICY" checkout)"
+checkout_version="$(policy_action_version "$POLICY" checkout)"
 setup_uv_action="$(policy_action "$POLICY" setup_uv)"
+setup_uv_version="$(policy_action_version "$POLICY" setup_uv)"
 setup_just_action="$(policy_action "$POLICY" setup_just)"
+setup_just_version="$(policy_action_version "$POLICY" setup_just)"
 upload_artifact_action="$(policy_action "$POLICY" upload_artifact)"
+upload_artifact_version="$(policy_action_version "$POLICY" upload_artifact)"
 download_artifact_action="$(policy_action "$POLICY" download_artifact)"
+download_artifact_version="$(policy_action_version "$POLICY" download_artifact)"
 pypi_publish_action="$(policy_action "$POLICY" pypi_publish)"
+pypi_publish_version="$(policy_action_version "$POLICY" pypi_publish)"
 actionlint_version="$(policy_value "$POLICY" tools.actionlint version)"
 zizmor_version="$(policy_value "$POLICY" tools.zizmor version)"
 
@@ -160,14 +166,20 @@ replace_asset() {
         -e "s/PYTHON_RUFF_TARGET/$ruff_target/g" \
         -e "s/PYTHON_MYPY_TARGET/$mypy_target/g" \
         -e "s/PYTHON_COVERAGE_FLOOR/$coverage_floor/g" \
-        -e "s/COMMAND_NAME/$COMMAND_NAME/g" \
+        -e "s/PROJECT_COMMAND_NAME/$COMMAND_NAME/g" \
         -e "s/PYTHON_MATRIX/$python_matrix/g" \
         -e "s/CHECKOUT_ACTION/$checkout_action/g" \
+        -e "s/CHECKOUT_VERSION/$checkout_version/g" \
         -e "s/SETUP_UV_ACTION/$setup_uv_action/g" \
+        -e "s/SETUP_UV_VERSION/$setup_uv_version/g" \
         -e "s/SETUP_JUST_ACTION/$setup_just_action/g" \
+        -e "s/SETUP_JUST_VERSION/$setup_just_version/g" \
         -e "s/UPLOAD_ARTIFACT_ACTION/$upload_artifact_action/g" \
+        -e "s/UPLOAD_ARTIFACT_VERSION/$upload_artifact_version/g" \
         -e "s/DOWNLOAD_ARTIFACT_ACTION/$download_artifact_action/g" \
+        -e "s/DOWNLOAD_ARTIFACT_VERSION/$download_artifact_version/g" \
         -e "s|PYPI_PUBLISH_ACTION|$pypi_publish_action|g" \
+        -e "s|PYPI_PUBLISH_VERSION|$pypi_publish_version|g" \
         -e "s/ACTIONLINT_VERSION/$actionlint_version/g" \
         -e "s/ZIZMOR_VERSION/$zizmor_version/g" \
         "$source" > "$target"

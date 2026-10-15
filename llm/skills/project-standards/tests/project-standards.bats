@@ -52,6 +52,18 @@ EOF
     ! grep -R -E 'PACKAGE|REPO|PYTHON_|ACTION' "$TEST_ROOT/cli"
 }
 
+@test "generated package checks preserve their command option variable" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
+    [ "$status" -eq 0 ]
+    grep -q '^COMMAND_NAME=""$' "$TEST_ROOT/library/scripts/package-check.sh"
+    grep -q 'if \[\[ -n "" \]\]; then' "$TEST_ROOT/library/justfile"
+
+    run bash "$SCAFFOLD" "$TEST_ROOT/cli" sample_cli --kind cli --command-name run-tool
+    [ "$status" -eq 0 ]
+    grep -q '^COMMAND_NAME=""$' "$TEST_ROOT/cli/scripts/package-check.sh"
+    grep -q 'package_args+=(--command "run-tool")' "$TEST_ROOT/cli/justfile"
+}
+
 @test "CI matrix consumes the single validated artifact set" {
     run bash "$SCAFFOLD" "$TEST_ROOT/published" sample_package --publish
     [ "$status" -eq 0 ]
@@ -59,7 +71,8 @@ EOF
     grep -q 'needs: \[lint, build\]' "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'name: sample-package-distributions' "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'run: just package-check dist' "$TEST_ROOT/published/.github/workflows/ci.yml"
-    grep -q 'actions/download-artifact@v4' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4' \
+        "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'path: dist' "$TEST_ROOT/published/.github/workflows/ci.yml"
 }
 

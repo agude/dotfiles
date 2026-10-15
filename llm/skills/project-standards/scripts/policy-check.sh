@@ -25,18 +25,20 @@ mypy_target="$(policy_value "$SKILL_DIR/policy.toml" python mypy_target)"
 coverage_floor="$(policy_value "$SKILL_DIR/policy.toml" python coverage_floor)"
 matrix="$(policy_array "$SKILL_DIR/policy.toml" python matrix | awk 'BEGIN { printf "[" } { if (count++) printf ", "; printf "\"%s\"", $0 } END { print "]" }')"
 
-for action in checkout setup_uv setup_just upload_artifact download_artifact pypi_publish; do
+for action in checkout setup_uv setup_just upload_artifact download_artifact setup_python pypi_publish; do
     ref="$(policy_action "$SKILL_DIR/policy.toml" "$action")"
+    version="$(policy_action_version "$SKILL_DIR/policy.toml" "$action")"
     case "$action" in
         checkout) name="actions/checkout" ;;
         setup_uv) name="astral-sh/setup-uv" ;;
         setup_just) name="extractions/setup-just" ;;
         upload_artifact) name="actions/upload-artifact" ;;
         download_artifact) name="actions/download-artifact" ;;
+        setup_python) name="actions/setup-python" ;;
         pypi_publish) name="pypa/gh-action-pypi-publish" ;;
     esac
-    grep -Fq "| \`$name\` | \`$ref\` |" "$SKILL_DIR/SKILL.md" || {
-        echo "policy: SKILL.md is stale for $name@$ref" >&2
+    grep -Fq "| \`$name\` | \`$version\`" "$SKILL_DIR/SKILL.md" || {
+        echo "policy: SKILL.md is stale for $name@$version" >&2
         exit 1
     }
 done
@@ -83,7 +85,30 @@ grep -Fq "uv tool install zizmor==$(policy_value "$SKILL_DIR/policy.toml" tools.
     echo "policy: generated zizmor version does not match policy" >&2
     exit 1
 }
-if grep -R -E 'PACKAGE|REPO|PYTHON_|COMMAND_NAME|ACTIONLINT_VERSION|ZIZMOR_VERSION' \
+for action in checkout setup_uv setup_just upload_artifact download_artifact; do
+    ref="$(policy_action "$SKILL_DIR/policy.toml" "$action")"
+    version="$(policy_action_version "$SKILL_DIR/policy.toml" "$action")"
+    case "$action" in
+        checkout) name="actions/checkout" ;;
+        setup_uv) name="astral-sh/setup-uv" ;;
+        setup_just) name="extractions/setup-just" ;;
+        upload_artifact) name="actions/upload-artifact" ;;
+        download_artifact) name="actions/download-artifact" ;;
+    esac
+    grep -Fq "$name@$ref # $version" "$render_root/generated/.github/workflows/ci.yml" || {
+        echo "policy: generated workflow is stale for $name@$version" >&2
+        exit 1
+    }
+done
+publish_ref="$(policy_action "$SKILL_DIR/policy.toml" pypi_publish)"
+publish_version="$(policy_action_version "$SKILL_DIR/policy.toml" pypi_publish)"
+bash "$SCRIPT_DIR/scaffold.sh" "$render_root/published" policy_check_fixture --publish >/dev/null
+grep -Fq "pypa/gh-action-pypi-publish@$publish_ref # $publish_version" \
+    "$render_root/published/.github/workflows/release.yml" || {
+    echo "policy: generated release workflow is stale for the PyPI publisher" >&2
+    exit 1
+}
+if grep -R -E 'PACKAGE|REPO|PYTHON_|PROJECT_COMMAND_NAME|CHECKOUT_VERSION|SETUP_UV_VERSION|SETUP_JUST_VERSION|UPLOAD_ARTIFACT_VERSION|DOWNLOAD_ARTIFACT_VERSION|PYPI_PUBLISH_VERSION|ACTIONLINT_VERSION|ZIZMOR_VERSION' \
     "$render_root/generated" >/dev/null; then
     echo "policy: generated fixture contains unresolved placeholders" >&2
     exit 1

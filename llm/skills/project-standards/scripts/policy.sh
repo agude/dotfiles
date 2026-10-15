@@ -30,3 +30,7 @@ policy_array() {
 policy_action() {
     policy_value "$1" "actions.$2" ref
 }
+
+policy_action_version() {
+    policy_value "$1" "actions.$2" version
+}

@@ -13,11 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Lint and type check
     steps:
-      - uses: actions/checkout@CHECKOUT_ACTION
+      - uses: actions/checkout@CHECKOUT_ACTION # CHECKOUT_VERSION
+        with:
+          persist-credentials: false
       - name: Set up uv
-        uses: astral-sh/setup-uv@SETUP_UV_ACTION
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION # SETUP_UV_VERSION
       - name: Set up just
-        uses: extractions/setup-just@SETUP_JUST_ACTION
+        uses: extractions/setup-just@SETUP_JUST_ACTION # SETUP_JUST_VERSION
       - name: Install workflow linters
         run: |
           sudo apt-get update
@@ -43,17 +45,19 @@ jobs:
     env:
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@CHECKOUT_ACTION
+      - uses: actions/checkout@CHECKOUT_ACTION # CHECKOUT_VERSION
+        with:
+          persist-credentials: false
       - name: Set up uv
-        uses: astral-sh/setup-uv@SETUP_UV_ACTION
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION # SETUP_UV_VERSION
       - name: Set up just
-        uses: extractions/setup-just@SETUP_JUST_ACTION
+        uses: extractions/setup-just@SETUP_JUST_ACTION # SETUP_JUST_VERSION
       - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
+        run: uv python install "$UV_PYTHON"
       - name: Install dependencies
         run: just sync
       - name: Download validated distributions
-        uses: actions/download-artifact@DOWNLOAD_ARTIFACT_ACTION
+        uses: actions/download-artifact@DOWNLOAD_ARTIFACT_ACTION # DOWNLOAD_ARTIFACT_VERSION
         with:
           name: REPO-distributions
           path: dist
@@ -67,11 +71,13 @@ jobs:
     needs: lint
     name: Build and validate distributions
     steps:
-      - uses: actions/checkout@CHECKOUT_ACTION
+      - uses: actions/checkout@CHECKOUT_ACTION # CHECKOUT_VERSION
+        with:
+          persist-credentials: false
       - name: Set up uv
-        uses: astral-sh/setup-uv@SETUP_UV_ACTION
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION # SETUP_UV_VERSION
       - name: Set up just
-        uses: extractions/setup-just@SETUP_JUST_ACTION
+        uses: extractions/setup-just@SETUP_JUST_ACTION # SETUP_JUST_VERSION
       - name: Set up Python PYTHON_LATEST
         run: uv python install PYTHON_LATEST
       - name: Install dependencies
@@ -83,7 +89,7 @@ jobs:
       - name: Package check
         run: just package-check dist
       - name: Upload validated distributions
-        uses: actions/upload-artifact@UPLOAD_ARTIFACT_ACTION
+        uses: actions/upload-artifact@UPLOAD_ARTIFACT_ACTION # UPLOAD_ARTIFACT_VERSION
         with:
           name: PACKAGE-distributions
           path: dist/*
