@@ -109,8 +109,15 @@ lint-workflows:
     "$zizmor" --pedantic .github/workflows
 
 # Review the declared interpreter support without changing it automatically.
-project-standards-support-check:
-    bash llm/skills/project-standards/scripts/check-support.sh
+project-standards-support-check CANDIDATE="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    bash llm/skills/project-standards/scripts/policy-check.sh
+    if [[ -n "{{ CANDIDATE }}" ]]; then
+        bash llm/skills/project-standards/scripts/check-support.sh --candidate "{{ CANDIDATE }}"
+    else
+        bash llm/skills/project-standards/scripts/check-support.sh
+    fi
 
 # Run every test suite.
 test: test-shell test-python test-pdf test-project-standards test-integration

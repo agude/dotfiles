@@ -418,6 +418,17 @@ PY
     cmp "$TEST_ROOT/uv.lock.before" "$TEST_ROOT/lock-fixture/uv.lock"
 }
 
+@test "support review keeps new interpreter claims explicit" {
+    cp "$SKILL_ROOT/policy.toml" "$TEST_ROOT/policy.before"
+    run bash "$SKILL_ROOT/scripts/check-support.sh" --candidate 3.16
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"requires a reviewed policy change and matrix validation"* ]]
+    run bash "$SKILL_ROOT/scripts/check-support.sh" --candidate 3.15
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already declared"* ]]
+    cmp "$TEST_ROOT/policy.before" "$SKILL_ROOT/policy.toml"
+}
+
 @test "release validation compares the tag with the source version" {
     mkdir -p "$TEST_ROOT/release/src/release_fixture"
     printf '__version__: str = "1.2.3rc1"\n' > "$TEST_ROOT/release/src/release_fixture/__init__.py"

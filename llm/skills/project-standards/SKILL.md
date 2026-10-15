@@ -89,7 +89,7 @@ Use uv-managed environments for every Python invocation.
 | Repository without a project environment | `uvx <tool>@<pinned-version>` |
 | Standalone script | PEP 723 metadata and `uv run script.py` |
 | Long-lived command-line tool | `uv tool install` |
-| CI | `astral-sh/setup-uv`, `uv python install`, and `uv sync` |
+| CI | `astral-sh/setup-uv`, `uv python install`, and `just sync` (`uv sync --locked --dev`) |
 
 Do not use `pip install`, activate a virtual environment, depend on globally
 installed tools, or use `uv pip install --system`. Put development tools in
