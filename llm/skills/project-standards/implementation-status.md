@@ -69,7 +69,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
 | 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; no supported fresh-context agent runner is available here for previous-versus-revised traces. |
 | 11.1 | Partial by environment | Local affected gates pass; CPython 3.15 integration and root `just check` remain limited by host interpreter/tooling and unrelated OpenCode `ServeError`. |
-| 11.2 | Complete | 41 reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
+| 11.2 | Complete | Reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |
 
 The remaining items are external or environment-dependent. They are not
