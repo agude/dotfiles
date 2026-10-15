@@ -110,7 +110,7 @@ fi
 for asset in justfile pre-commit.sh pre-commit-config.yaml package-check.sh \
              read-distribution-metadata.py check-wheel-path.py release.sh \
              hooks-install.sh pyproject-tooling.toml workflows/ci.yml \
-             workflows/tests.yml LICENSE-CC0-1.0; do
+             workflows/tests.yml LICENSE-CC0-1.0 renovate.json5; do
     [ -f "$ASSETS/$asset" ] || { echo "scaffold.sh: missing asset $asset" >&2; exit 1; }
 done
 [ -f "$POLICY" ] || { echo "scaffold.sh: missing policy $POLICY" >&2; exit 1; }
@@ -206,6 +206,7 @@ chmod +x bin/pre-commit.sh scripts/*.sh scripts/*.py
 replace_asset "$ASSETS/justfile" justfile
 replace_asset "$ASSETS/workflows/ci.yml" .github/workflows/ci.yml
 replace_asset "$ASSETS/workflows/tests.yml" .github/workflows/tests.yml
+replace_asset "$ASSETS/renovate.json5" .github/renovate.json5
 if [ "$PUBLISH" = "true" ]; then
     replace_asset "$ASSETS/workflows/release.yml" .github/workflows/release.yml
 fi

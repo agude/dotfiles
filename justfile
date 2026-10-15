@@ -91,6 +91,10 @@ lint-python:
 lint-project-standards:
     bash llm/skills/project-standards/scripts/policy-check.sh
 
+# Review the declared interpreter support without changing it automatically.
+project-standards-support-check:
+    bash llm/skills/project-standards/scripts/check-support.sh
+
 # Run every test suite.
 test: test-shell test-python test-pdf test-project-standards test-integration
 

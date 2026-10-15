@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["github-actions", "pep621", "uv"],
+  "schedule": ["before 6am on monday"],
+  "packageRules": [
+    {
+      "description": "Group routine GitHub Actions maintenance",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "GitHub Actions maintenance"
+    },
+    {
+      "description": "Group development dependency maintenance",
+      "matchManagers": ["pep621", "uv"],
+      "matchDepTypes": ["dependency-groups"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "Python development dependencies"
+    },
+    {
+      "description": "Keep major updates separately reviewable",
+      "matchUpdateTypes": ["major"],
+      "separateMajorMinor": true
+    }
+  ]
+}

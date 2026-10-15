@@ -179,3 +179,31 @@ PY
     [ "$status" -eq 0 ]
     [[ "$output" == *"imported demo_pkg"* ]]
 }
+
+@test "hook installation preserves a foreign hook and honors Git hooksPath" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/project" sample_package
+    [ "$status" -eq 0 ]
+    mkdir "$TEST_ROOT/project/custom-hooks"
+    (cd "$TEST_ROOT/project" && git config core.hooksPath custom-hooks)
+    cat > "$TEST_ROOT/project/custom-hooks/pre-commit" <<'EOF'
+#!/bin/sh
+echo foreign
+EOF
+    chmod +x "$TEST_ROOT/project/custom-hooks/pre-commit"
+    mkdir "$TEST_ROOT/bin"
+    cat > "$TEST_ROOT/bin/uv" <<'EOF'
+#!/bin/sh
+set -eu
+hook_path="$(git rev-parse --git-path hooks/pre-commit)"
+cat > "$hook_path" <<'HOOK'
+#!/bin/sh
+# pre-commit framework
+HOOK
+chmod +x "$hook_path"
+EOF
+    chmod +x "$TEST_ROOT/bin/uv"
+    run env PATH="$TEST_ROOT/bin:$PATH" bash -c "cd '$TEST_ROOT/project' && bash scripts/hooks-install.sh"
+    [ "$status" -eq 0 ]
+    [ -f "$TEST_ROOT/project/custom-hooks/pre-commit.project-standards-backup" ]
+    grep -q 'pre-commit framework' "$TEST_ROOT/project/custom-hooks/pre-commit"
+}

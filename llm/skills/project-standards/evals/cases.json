@@ -1,0 +1,11 @@
+{
+  "revision": "post-implementation",
+  "cases": [
+    {"id": "new-library", "prompt": "Generate a Python library and validate it."},
+    {"id": "new-cli", "prompt": "Generate a CLI with distinct import, distribution, and command names."},
+    {"id": "script-collection", "prompt": "Audit a shell script collection without adding package requirements."},
+    {"id": "constrained-package", "prompt": "Migrate a package while preserving its documented exception."},
+    {"id": "audit-only", "prompt": "Audit this repository and report findings without editing files."},
+    {"id": "nearby-request", "prompt": "Update prose without changing repository tooling."}
+  ]
+}
