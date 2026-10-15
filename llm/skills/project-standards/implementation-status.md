@@ -5,7 +5,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | Plan area | Status | Evidence or dependency |
 |---|---|---|
 | 0 Baseline | Complete | Review findings are covered by isolated fixtures and adoption records. |
-| 1 Generated-project tests | Complete locally; integration required in CI | 15 offline Bats cases pass; `test-project-standards-integration` bootstraps library and CLI projects in CI. |
+| 1 Generated-project tests | Complete locally; integration required in CI | 17 offline Bats cases pass; `test-project-standards-integration` bootstraps library and CLI projects in CI. |
 | 2 Locked dependencies | Complete | Generated `lock`, locked `sync`, locked tool recipes, and explicit update recipe. |
 | 3 Distribution validation | Complete locally | Wheel/sdist metadata, package-content, isolated import, version, typed-marker, and optional CLI checks are implemented; deterministic fixture passes. |
 | 4 Publishing | Local implementation complete; external setup pending | Artifact transfer, tag validation, named `pypi` environment, and publish-only OIDC job are rendered. GitHub/PyPI configuration was not changed or verified. |

@@ -51,6 +51,30 @@ EOF
     [ ! -e "$TEST_ROOT/existing/pyproject.toml" ]
 }
 
+@test "scaffold rejects invalid usage before creating output" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/unknown" package_name --unknown
+    [ "$status" -ne 0 ]
+    [ ! -e "$TEST_ROOT/unknown" ]
+    run bash "$SCAFFOLD" "$TEST_ROOT/invalid" 'not-a-package'
+    [ "$status" -ne 0 ]
+    [ ! -e "$TEST_ROOT/invalid" ]
+}
+
+@test "bootstrap failure leaves generated files for recovery" {
+    mkdir "$TEST_ROOT/bin"
+    cat > "$TEST_ROOT/bin/uv" <<'EOF'
+#!/bin/sh
+echo "simulated bootstrap failure" >&2
+exit 42
+EOF
+    chmod +x "$TEST_ROOT/bin/uv"
+    run env PATH="$TEST_ROOT/bin:$PATH" bash "$SCAFFOLD" "$TEST_ROOT/project" sample_package --bootstrap
+    [ "$status" -ne 0 ]
+    [ -f "$TEST_ROOT/project/pyproject.toml" ]
+    [ -f "$TEST_ROOT/project/justfile" ]
+    [ -f "$TEST_ROOT/project/src/sample_package/__init__.py" ]
+}
+
 @test "audit accepts a generated library's runner contract" {
     run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
     [ "$status" -eq 0 ]
