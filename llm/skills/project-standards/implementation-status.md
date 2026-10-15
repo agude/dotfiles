@@ -51,7 +51,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 6.2 | Complete locally | Policy check detects stale docs/templates and verifies generated Python/action/linter values. |
 | 6.3 | Complete locally; hosted activation pending | Renovate’s official validator 44.164.5 accepts the preset. A local-platform extract dry run with Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a committed generated fixture; no hosted bot or PR was configured. |
 | 6.4 | Complete locally | Scheduled support review runs policy consistency and explicit candidate-version checks without raising floors automatically. |
-| 6.5 | Local pilot complete; hosted adoption pending | `ccrs-to-sqlite` committed the bounded standards pilot as `6108fc4`; its remote `main` lacks the local pilot and `renovate.json5`, and no reviewable hosted update PR exists. |
+| 6.5 | Local pilot complete; hosted adoption pending | `ccrs-to-sqlite` committed the bounded standards pilot as `6108fc4` and the validated local Renovate preset as `e900509`; its remote `main` lacks both changes, and no reviewable hosted update PR exists. |
 | 7.1 | Complete locally; required in CI | Framework hook, unconditional lint trigger, staged-content fixture, and restore behavior are implemented. |
 | 7.2 | Complete locally | Git effective hook paths, worktree paths, foreign-hook backups, and repeatable installation are tested. |
 | 7.3 | Complete locally | Audit recognizes configured versus installed hooks and missing/foreign wiring. |
