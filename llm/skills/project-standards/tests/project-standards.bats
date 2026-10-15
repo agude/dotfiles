@@ -124,6 +124,21 @@ EOF
     [[ "$output" == *$'FAIL\tci.callsrunner'* ]]
 }
 
+@test "audit scopes a named workflow waiver to its declared rule" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
+    [ "$status" -eq 0 ]
+    cat >> "$TEST_ROOT/library/.github/workflows/tests.yml" <<'EOF'
+
+# project-standards: allow ci-inline — fixture intentionally invokes pytest
+run: pytest -q
+EOF
+    run bash "$AUDIT" "$TEST_ROOT/library" --porcelain
+    [ "$status" -ne 0 ]
+    [[ "$output" == *$'FAIL\tdeps.isolation'* ]]
+    [[ "$output" == *$'PASS\tci.waived'* ]]
+    [[ "$output" == *$'PASS\tci.callsrunner'* ]]
+}
+
 @test "audit does not flag a checker named in a package install step" {
     mkdir -p "$TEST_ROOT/shell/bin" "$TEST_ROOT/shell/.github/workflows"
     cat > "$TEST_ROOT/shell/justfile" <<'EOF'
