@@ -22,7 +22,10 @@ case "$1" in
 esac
 DEST_PARENT="$(dirname "$DEST")"
 DEST_BASE="$(basename "$DEST")"
-mkdir -p "$DEST_PARENT"
+if [[ ! -d "$DEST_PARENT" ]]; then
+    echo "Error: destination parent does not exist: $DEST_PARENT" >&2
+    exit 1
+fi
 DEST_PARENT="$(cd "$DEST_PARENT" && pwd)"
 DEST="$DEST_PARENT/$DEST_BASE"
 PROJECT_NAME="$2"
