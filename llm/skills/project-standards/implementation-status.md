@@ -14,7 +14,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 7 Hooks | Complete locally; staged-content integration required in CI | Framework config, effective hooks path, foreign-hook backup, custom-path fixture, and the disposable staged-content integration case are implemented. |
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
 | 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
-| 10 Skill/evaluations | Structural and fixture validation complete; fresh-context agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but this environment exposes no fresh-context agent evaluation runner. |
+| 10 Skill/evaluations | Complete locally; hosted integrations remain separate | Structural validation, repository fixtures, and six paired fresh-context Codex evaluations pass; detailed traces and grading remain outside the shipped skill. |
 | 11 Final verification | Partial by unrelated repository tests | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, audit, and CPython 3.15 generated integration pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
 
 ## Step-level disposition
@@ -67,7 +67,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.1 | Complete locally | Entrypoint documents archetype selection, policy use, helper interfaces, and verification workflow. |
 | 10.2 | Complete locally | Runner, lock, package, hook, release, Jekyll, matrix, coverage, and licensing guidance is aligned. |
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
-| 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; no supported fresh-context agent runner is available here for previous-versus-revised traces. |
+| 10.4 | Complete locally | Six paired fresh-context Codex CLI cases cover new library, CLI, script collection, constrained package, audit-only, and nearby documentation requests. Final revised grading was 18/18 assertions versus 13/18 for the baseline; traces remain outside the shipped skill. |
 | 11.1 | Partial by unrelated repository tests | Local affected gates, CPython 3.15 generated integration, and portability checks pass; root `just check` remains limited by unrelated OpenCode `ServeError` tests. |
 | 11.2 | Complete | Reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |

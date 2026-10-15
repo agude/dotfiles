@@ -51,3 +51,16 @@ Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a
 committed generated fixture. The scheduled support recipe reports candidates
 but never raises support floors or rewrites project files automatically.
 Hosted Renovate activation remains pending.
+
+## Agent evaluation
+
+On 2026-10-15, six representative prompts were run in fresh paired Codex CLI
+contexts against the baseline skill at `main` and the revised skill at
+`4abbe64`: new library, new CLI, script collection, constrained package,
+audit-only, and nearby documentation request. The revised skill passed 18 of
+18 objective assertions; the baseline passed 13 of 18. The revised traces
+confirmed offline generation, distinct CLI naming, preserved package
+constraints, read-only auditing, and scope restraint. The detailed traces,
+grading, and feedback are stored outside the shipped skill for this
+evaluation run. Dependency resolution was DNS-blocked in the generation cases;
+hosted CI and account integrations were not part of the local comparison.
