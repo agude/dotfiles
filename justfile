@@ -18,7 +18,7 @@ bootstrap-pi:
     ./bin/bootstrap-pi-packages.sh
 
 # Run every static check.
-lint: lint-shell lint-zsh lint-data lint-python lint-opencode lint-project-standards
+lint: lint-shell lint-zsh lint-data lint-python lint-opencode lint-project-standards lint-workflows
 
 # Check tracked Bash and shared shell modules.
 lint-shell:
@@ -90,6 +90,23 @@ lint-python:
 # Validate the shared project-standards policy and its consumers.
 lint-project-standards:
     bash llm/skills/project-standards/scripts/policy-check.sh
+
+# Validate workflow syntax and security findings.
+lint-workflows:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    actionlint="$(command -v actionlint || true)"
+    zizmor="$(command -v zizmor || true)"
+    if [[ -z "$actionlint" ]]; then
+        echo "lint-workflows: actionlint is required; install the policy-pinned version before linting workflows" >&2
+        exit 1
+    fi
+    if [[ -z "$zizmor" ]]; then
+        echo "lint-workflows: zizmor is required; install the policy-pinned version before linting workflows" >&2
+        exit 1
+    fi
+    "$actionlint" .github/workflows/*.yaml
+    "$zizmor" --pedantic .github/workflows
 
 # Review the declared interpreter support without changing it automatically.
 project-standards-support-check:

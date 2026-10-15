@@ -51,6 +51,36 @@ grep -Fq -- "--cov-fail-under=$coverage_floor" "$SKILL_DIR/SKILL.md" || {
     exit 1
 }
 
+# The dotfiles repository also consumes the policy for its own workflow gate.
+# Keep this optional so the isolated skill copy used by the Bats tests remains
+# self-contained.
+repo_dir="$(cd "$SKILL_DIR/../../.." && pwd)"
+root_workflow="$repo_dir/.github/workflows/test.yaml"
+if [ -f "$root_workflow" ]; then
+    for action in checkout setup_uv; do
+        ref="$(policy_action "$SKILL_DIR/policy.toml" "$action")"
+        version="$(policy_action_version "$SKILL_DIR/policy.toml" "$action")"
+        case "$action" in
+            checkout) name="actions/checkout" ;;
+            setup_uv) name="astral-sh/setup-uv" ;;
+        esac
+        grep -Fq "$name@$ref # $version" "$root_workflow" || {
+            echo "policy: root workflow is stale for $name@$version" >&2
+            exit 1
+        }
+    done
+    actionlint_version="$(policy_value "$SKILL_DIR/policy.toml" tools.actionlint version)"
+    zizmor_version="$(policy_value "$SKILL_DIR/policy.toml" tools.zizmor version)"
+    grep -Fq "ACTIONLINT_VERSION: \"$actionlint_version\"" "$root_workflow" || {
+        echo "policy: root workflow is stale for actionlint@$actionlint_version" >&2
+        exit 1
+    }
+    grep -Fq "uv tool install zizmor==$zizmor_version" "$root_workflow" || {
+        echo "policy: root workflow is stale for zizmor@$zizmor_version" >&2
+        exit 1
+    }
+fi
+
 render_root="$(mktemp -d)"
 cleanup() { rm -rf "$render_root"; }
 trap cleanup EXIT
