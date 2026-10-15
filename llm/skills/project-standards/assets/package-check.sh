@@ -90,6 +90,8 @@ fi
 if [ "$REQUIRE_TYPED" = "true" ]; then
     python3 "$SCRIPT_DIR/check-wheel-path.py" "$wheel" "$IMPORT_NAME/py.typed"
 fi
+python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$IMPORT_NAME/__init__.py"
+python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$IMPORT_NAME/__init__.py"
 
 venv="$(mktemp -d)"
 check_root="$(mktemp -d)"

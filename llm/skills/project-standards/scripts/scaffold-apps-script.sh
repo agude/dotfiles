@@ -16,7 +16,15 @@ usage() {
 
 [[ $# -eq 2 ]] || usage
 
-DEST="$(realpath "$1")"
+case "$1" in
+    /*) DEST="$1" ;;
+    *) DEST="$PWD/$1" ;;
+esac
+DEST_PARENT="$(dirname "$DEST")"
+DEST_BASE="$(basename "$DEST")"
+mkdir -p "$DEST_PARENT"
+DEST_PARENT="$(cd "$DEST_PARENT" && pwd)"
+DEST="$DEST_PARENT/$DEST_BASE"
 PROJECT_NAME="$2"
 
 if [[ -z "$PROJECT_NAME" ]]; then
@@ -31,6 +39,11 @@ fi
 
 if [[ -d "$DEST" ]] && [[ -n "$(ls -A "$DEST")" ]]; then
     echo "Error: '$DEST' exists and is not empty." >&2
+    exit 1
+fi
+
+if [[ ! -f "$ASSETS/LICENSE-CC0-1.0" ]]; then
+    echo "Error: missing asset LICENSE-CC0-1.0." >&2
     exit 1
 fi
 

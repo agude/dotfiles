@@ -114,6 +114,10 @@ test-pdf:
 test-project-standards:
     bats llm/skills/project-standards/tests/
 
+# Dependency-backed generated-project validation. Network access is required.
+test-project-standards-integration:
+    bash llm/skills/project-standards/tests/run-integration.sh
+
 # Install and verify in an isolated throwaway HOME.
 test-integration:
     #!/usr/bin/env bash

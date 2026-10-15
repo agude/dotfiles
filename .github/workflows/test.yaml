@@ -52,6 +52,23 @@ jobs:
       - name: Run tests
         run: just test-shell test-python test-pdf test-project-standards
 
+  project-standards-integration:
+    name: Generated project integration
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install system dependencies
+        run: |
+          timeout 10m sudo apt-get update -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30
+          sudo apt-get install -y actionlint bats just python3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+      - name: Install zizmor
+        run: uv tool install zizmor==1.14.2
+      - name: Run generated project integration
+        run: just test-project-standards-integration
+
   bash-3-2:
     name: Shell Tests on Bash 3.2
     needs: lint

@@ -108,7 +108,7 @@ if [ -d "$DEST" ] && [ -n "$(ls -A "$DEST")" ]; then
 fi
 
 for asset in justfile pre-commit.sh pre-commit-config.yaml package-check.sh \
-             read-distribution-metadata.py check-wheel-path.py release.sh \
+             read-distribution-metadata.py check-wheel-path.py check-archive-path.py release.sh \
              hooks-install.sh pyproject-tooling.toml workflows/ci.yml \
              workflows/tests.yml LICENSE-CC0-1.0 renovate.json5; do
     [ -f "$ASSETS/$asset" ] || { echo "scaffold.sh: missing asset $asset" >&2; exit 1; }
@@ -198,7 +198,7 @@ fi
 
 replace_asset "$ASSETS/pre-commit.sh" bin/pre-commit.sh
 replace_asset "$ASSETS/pre-commit-config.yaml" .pre-commit-config.yaml
-for asset in package-check.sh read-distribution-metadata.py check-wheel-path.py \
+for asset in package-check.sh read-distribution-metadata.py check-wheel-path.py check-archive-path.py \
              hooks-install.sh release.sh; do
     replace_asset "$ASSETS/$asset" "scripts/$asset"
 done
