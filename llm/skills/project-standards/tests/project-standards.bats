@@ -107,6 +107,23 @@ EOF
     [[ "$output" == *$'FAIL\tci.callsrunner'* ]]
 }
 
+@test "audit detects direct checker execution inside a multiline step" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
+    [ "$status" -eq 0 ]
+    cat >> "$TEST_ROOT/library/.github/workflows/tests.yml" <<'EOF'
+
+jobs:
+  invalid:
+    steps:
+      - run: |
+          echo before
+          pytest -q
+EOF
+    run bash "$AUDIT" "$TEST_ROOT/library" --porcelain
+    [ "$status" -ne 0 ]
+    [[ "$output" == *$'FAIL\tci.callsrunner'* ]]
+}
+
 @test "audit does not flag a checker named in a package install step" {
     mkdir -p "$TEST_ROOT/shell/bin" "$TEST_ROOT/shell/.github/workflows"
     cat > "$TEST_ROOT/shell/justfile" <<'EOF'
