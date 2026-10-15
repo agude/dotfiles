@@ -136,3 +136,46 @@ EOF
     grep -q 'runProjectTests' "$TEST_ROOT/apps/AGENTS.md"
     [ ! -e "$TEST_ROOT/apps/justfile" ]
 }
+
+@test "package-check installs the exact wheel outside the source tree" {
+    mkdir "$TEST_ROOT/artifacts"
+    python3 - "$TEST_ROOT/artifacts" <<'PY'
+import sys
+import tarfile
+import zipfile
+from io import BytesIO
+from pathlib import Path
+
+root = Path(sys.argv[1])
+wheel = root / "demo_pkg-1.0.0-py3-none-any.whl"
+dist_info = "demo_pkg-1.0.0.dist-info"
+metadata = "Metadata-Version: 2.1\nName: demo-pkg\nVersion: 1.0.0\n"
+wheel_text = "Wheel-Version: 1.0\nGenerator: fixture\nRoot-Is-Purelib: true\nTag: py3-none-any\n"
+files = {
+    "demo_pkg/__init__.py": "__version__ = '1.0.0'\n",
+    "demo_pkg/py.typed": "",
+    f"{dist_info}/METADATA": metadata,
+    f"{dist_info}/WHEEL": wheel_text,
+    f"{dist_info}/RECORD": "",
+}
+with zipfile.ZipFile(wheel, "w") as opened:
+    for name, content in files.items():
+        opened.writestr(name, content)
+
+sdist = root / "demo-pkg-1.0.0.tar.gz"
+with tarfile.open(sdist, "w:gz") as opened:
+    for name, content in {
+        "demo-pkg-1.0.0/PKG-INFO": metadata,
+        "demo-pkg-1.0.0/demo_pkg/__init__.py": files["demo_pkg/__init__.py"],
+    }.items():
+        data = content.encode()
+        info = tarfile.TarInfo(name)
+        info.size = len(data)
+        opened.addfile(info, BytesIO(data))
+PY
+    run env UV_CACHE_DIR="$TEST_ROOT/cache" bash "$SKILL_ROOT/assets/package-check.sh" \
+        --artifacts "$TEST_ROOT/artifacts" --import demo_pkg --distribution demo-pkg \
+        --version 1.0.0 --typed
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"imported demo_pkg"* ]]
+}

@@ -3,7 +3,7 @@ name: project-standards
 description: Applies the user's repository conventions for task runners, uv-based Python tooling, quality checks, hooks, GitHub Actions, releases, and repository documentation. Use when scaffolding a repository or changing its tooling, CI, hooks, release flow, or standards compliance.
 compatibility: Requires bash for the audit script. The conventions assume uv, just, and GitHub Actions where applicable.
 metadata:
-  updated: "2026-10-08"
+  updated: "2026-10-15"
 ---
 
 # Project Standards
@@ -13,7 +13,9 @@ call that recipe; they do not repeat the underlying commands. This prevents
 local, hook, and CI behavior from drifting.
 
 `$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Run bundled scripts from the repository being created or assessed.
+Run bundled scripts from the repository being created or assessed. Read
+`policy.toml` before changing generated defaults; the scaffold and audit share
+that source.
 
 ## Choose the repository archetype
 
@@ -48,7 +50,9 @@ it does not apply. When present, use these names and meanings.
 | Recipe | Meaning | Caller |
 | --- | --- | --- |
 | `default` | List available recipes | Developer |
-| `sync` | Install and lock dependencies | Developer and CI |
+| `lock` | Create or deliberately update `uv.lock` | Developer, never CI |
+| `sync` | Consume the committed lock with `uv sync --locked --dev` | Developer and CI |
+| `deps-update` | Deliberately upgrade dependencies, optionally by package | Developer |
 | `lint` | Run every read-only static check | Hook and CI |
 | `format` | Run mutating formatters and fixers | Developer |
 | `type-check` | Run mypy | CI |
@@ -56,6 +60,8 @@ it does not apply. When present, use these names and meanings.
 | `check` | Run `lint`, `type-check`, and `test` | Pre-push and release |
 | `hooks-install` | Install the pre-commit hook | Once per clone |
 | `build` / `clean` | Build artifacts or remove generated output | When applicable |
+| `package-check` | Validate wheel/sdist metadata and an isolated install | Python packages |
+| `release` | Validate checks and create a local tag; never push or publish | Python packages |
 
 `lint` is complete and read-only. For Python, it includes both `ruff check`
 and `ruff format --check`. Add every applicable static checker, such as
@@ -66,8 +72,9 @@ Do not create aliases such as `fmt`, `lint-fix`, or `format-check`. Keep
 project-specific recipes alongside this contract. Standard recipes are a
 floor, not a limit on recipes such as `just decode` or `just test-fast`.
 `check` must cover at least what CI runs. It may run more, but never less. A
-green local `check` must mean CI will pass. Use `syntax-check` rather than
-`check` for a narrower operation.
+green local `check` covers the applicable checks for the current environment;
+CI additionally validates the declared interpreter matrix and hosted workflow
+services. Use `syntax-check` rather than `check` for a narrower operation.
 
 For Jekyll sites, use `lint-scripts`, `format-scripts`, and `test-scripts`
 where Ruby owns the base recipe names.
@@ -78,7 +85,7 @@ Use uv-managed environments for every Python invocation.
 
 | Situation | Required approach |
 | --- | --- |
-| Repository with `pyproject.toml` | `uv sync`, then `uv run <tool>` |
+| Repository with `pyproject.toml` | `just sync`, then `uv run --locked <tool>` |
 | Repository without a project environment | `uvx <tool>@<pinned-version>` |
 | Standalone script | PEP 723 metadata and `uv run script.py` |
 | Long-lived command-line tool | `uv tool install` |
@@ -100,11 +107,11 @@ choice.
 | Dependencies | uv only. Commit `uv.lock`; never ignore it. |
 | Build backend | Hatchling. Read the package version from `__init__.py`. |
 | Versioning | Keep the version in `__init__.py` only. `just release` creates the tag. |
-| Python support | `requires-python`, the CI floor, and the oldest supported non-EOL CPython match. Test the floor through latest; set `.python-version` to latest. |
+| Python support | `requires-python`, the CI floor, and the oldest supported non-EOL CPython match. The policy currently tests 3.11 through 3.15 and pins `.python-version` to 3.15. |
 | Linting | Ruff configuration in `pyproject.toml`, or `ruff.toml` without a project file. Use `assets/pyproject-tooling.toml`. |
 | Types | `mypy --strict` for `src/` packages. Script collections are exempt. |
 | Tests | Pytest. Packages use `--cov-fail-under=90`; script collections have no coverage gate. |
-| Hook | Calls `just lint` and is installed by `just hooks-install`. Do not inline tool commands. |
+| Hook | A local pre-commit framework hook calls `just lint` with filenames disabled; install it with `just hooks-install`. The fallback wrapper also calls the runner. |
 | CI | Workflows call runner recipes and contain no tool-specific commands. Use `ci.yml` as a reusable workflow, with `tests.yml` and `release.yml` as callers. |
 | Documentation | Include canonical `AGENTS.md` instructions and a `README.md`. |
 | License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
@@ -118,6 +125,8 @@ repository. This table is the authoritative pin set.
 | `astral-sh/setup-uv` | `v9.0.0` |
 | `extractions/setup-just` | `v4` |
 | `actions/setup-python` | `v6`, only when uv does not manage Python |
+| `actions/upload-artifact` | `v4` |
+| `actions/download-artifact` | `v4` |
 | `pypa/gh-action-pypi-publish` | `release/v1` |
 
 Prefer `uv python install ${{ matrix.python-version }}` to
@@ -129,16 +138,21 @@ pin to maintain.
 1. Run the audit:
    `bash "$SKILL_DIR/scripts/audit.sh" <repo-path>`.
 2. Read the archetype reference.
-3. Establish the task-runner contract first.
-4. Update the pre-commit hook to call `just lint`.
-5. Update CI to call runner recipes.
-6. Align pins and the remaining policy items.
-7. Run `git status` and `git check-ignore -v` for newly added dotfiles, hook
+3. Validate the shared policy:
+   `bash "$SKILL_DIR/scripts/policy-check.sh"`.
+4. Establish the task-runner contract first. Add `lock`, locked `sync`, and
+   `package-check` where the archetype requires them.
+5. Update the pre-commit hook to call `just lint` through the local framework.
+6. Update CI to call runner recipes and validate the declared matrix.
+7. Align pins and the remaining policy items.
+8. Run `git status` and `git check-ignore -v` for newly added dotfiles, hook
    files, and agent docs. Update `.gitignore` rather than
    force-adding ignored files.
-8. Re-run the audit. Fix each failure, document a permanent exception, or
+9. Re-run the audit. Fix each failure, document a permanent exception, or
    record a migration deferral as described under **Exceptions**.
-9. Run `just check` before committing.
+10. Run `just check` before committing. For a generated Python project this
+    includes an isolated wheel/sdist package check; CI additionally runs the
+    workflow linters and every supported Python version.
 
 For a Google Apps Script repository, use the documented bound-project test
 entry point until `clasp` is configured.
@@ -175,10 +189,21 @@ Create a Python package with:
 bash "$SKILL_DIR/scripts/scaffold.sh" <dest-dir> <package-name>
 ```
 
-`package-name` is the Python import name. The scaffold derives the
-distribution name, initializes Git, copies and substitutes the standard
-assets, and runs `just sync` and `just hooks-install`. Fill in `AGENTS.md` and
-`README.md`, then run `just check`.
+`package-name` is the Python import name. Generation is offline and defaults to
+a library without publishing configuration. Select other supported shapes
+explicitly:
+
+```bash
+bash "$SKILL_DIR/scripts/scaffold.sh" <dest-dir> <package-name> \
+  --kind cli --distribution-name <distribution> --command-name <command> \
+  --publish --bootstrap
+```
+
+`--bootstrap` is the only scaffold option that resolves dependencies or
+installs hooks. It runs `just lock`, `just sync`, and `just hooks-install`.
+Without it, the generated directory is inspectable and the printed resume
+command is the next step. Nonempty destinations are refused without changes;
+bootstrap failures leave generated files in place for recovery.
 
 Create a Google Apps Script repository with:
 
@@ -191,6 +216,21 @@ anonymized-fixture guidance, and CC0 licensing. It does not install Node.js,
 configure a script ID, or create CI. In the target Google Sheet, select
 **Extensions → Apps Script**, then copy the JavaScript files from `src/` into
 the bound project before adding runtime behavior.
+
+## Package and release validation
+
+`package-check` accepts an existing artifact directory or builds a fresh
+temporary set. It verifies wheel and sdist metadata, checks the typed marker
+for generated libraries, installs the exact wheel into a clean temporary
+environment outside the checkout, and verifies the imported module location
+and version. CLI projects pass their console command separately; libraries do
+not assume a command exists.
+
+The reusable CI workflow builds once, runs `package-check`, and uploads that
+validated artifact set. The publish-only job downloads the set and has
+`id-token: write` only at the publication boundary. `just release` validates a
+clean worktree and creates a local `v<version>` tag after `just check`; it does
+not push tags, create hosted releases, or publish to PyPI.
 
 ## Bump a tool or action version
 
@@ -210,7 +250,8 @@ Add a reason to every Ruff ignore entry.
 requires-python = ">=3.8"
 ```
 
-Use a permanent inline waiver only when a rule will never apply:
+Use a permanent inline waiver only when a rule will never apply. The marker
+must name a known rule and include a nonempty reason after an em dash:
 
 ```yaml
 # project-standards: allow ci-inline — minimal Alpine container
@@ -218,7 +259,8 @@ Use a permanent inline waiver only when a rule will never apply:
 
 The audit reports a documented permanent waiver as an exception rather than a
 failure. Use waivers only for permanent constraints; unexplained standing
-failures make later audit results less credible.
+failures make later audit results less credible. Bare markers, unknown rules,
+unrelated prose, and migration deferrals do not suppress findings.
 
 For a migration blocked by code work, leave the audit failure visible and
 record the reason in `AGENTS.md`. Do not weaken the rule or add an unworkable

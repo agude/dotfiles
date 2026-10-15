@@ -18,7 +18,7 @@ bootstrap-pi:
     ./bin/bootstrap-pi-packages.sh
 
 # Run every static check.
-lint: lint-shell lint-zsh lint-data lint-python lint-opencode
+lint: lint-shell lint-zsh lint-data lint-python lint-opencode lint-project-standards
 
 # Check tracked Bash and shared shell modules.
 lint-shell:
@@ -86,6 +86,10 @@ lint-opencode CONFIG="llm/opencode/opencode.json":
 # Parse Python without writing bytecode caches.
 lint-python:
     git ls-files -z '*.py' | xargs -0 python3 -c 'import ast, pathlib, sys; [ast.parse(pathlib.Path(path).read_text(), filename=path) for path in sys.argv[1:]]'
+
+# Validate the shared project-standards policy and its consumers.
+lint-project-standards:
+    bash llm/skills/project-standards/scripts/policy-check.sh
 
 # Run every test suite.
 test: test-shell test-python test-pdf test-project-standards test-integration

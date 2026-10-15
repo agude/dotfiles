@@ -24,8 +24,9 @@ repo/
 
 uv manages everything. Dev tools go in `[dependency-groups] dev`, not in
 `[project.optional-dependencies]` — the dependency group is uv's native
-mechanism and `uv sync --dev` installs it without touching the package's
-public extras.
+mechanism and `uv sync --locked --dev` installs it without touching the
+package's public extras. Use `just lock` for deliberate resolution and never
+let ordinary lint, tests, or CI repair `uv.lock`.
 
 **Commit `uv.lock`.** A gitignored lockfile means CI resolves fresh on every
 run, so a new release of a linter can fail a build that touched nothing.
@@ -55,10 +56,11 @@ Adopting it would mean either duplicating the version string or moving
 Astral's own docs point at hatchling when you need more than the basics.
 Revisit if uv#14946 lands.
 
-Releasing: bump `__version__`, commit, tag `vX.Y.Z`, push the tag, publish a
-GitHub release. `release.yml` runs CI, then publishes to PyPI via trusted
-publishing. Have it verify the tag against `__version__` and fail on a
-mismatch — otherwise a mistyped tag ships a version nobody can reproduce.
+Releasing: bump `__version__`, commit, run `just release --dry-run`, then run
+`just release` to create the local `vX.Y.Z` tag. Push the tag explicitly when
+ready. The tag workflow builds and validates distributions once, transfers
+those exact artifacts, and gives OIDC permission only to the publish job. A
+tag/version mismatch fails before publication.
 
 ### Swapping the build backend
 
@@ -92,8 +94,8 @@ not as one.
 
 - `requires-python` floor = the CI matrix floor = the oldest CPython that
   still receives security fixes.
-- The matrix runs floor through latest, plus PyPy where the package is pure
-  Python and cheap to test there.
+- The matrix runs floor through latest CPython. Add another interpreter only
+  after running the full suite on it and recording the support decision.
 - `.python-version` pins the latest supported version for local work.
 
 **`.python-version` and the CI matrix fight each other.** uv honours the pin
@@ -119,7 +121,7 @@ matrix entry is a support claim, and adding one during a tooling migration
 is exactly when it goes unverified. Run it first:
 
 ```bash
-uv run --python 3.14 pytest -q
+uv run --locked --python 3.14 pytest -q
 ```
 
 This is not hypothetical: adding 3.14 to `shapez_2_tools` alongside its
@@ -129,8 +131,9 @@ Heavy native dependencies (ortools, scipy, numpy) are the usual cause — they
 lag new CPython releases even when a wheel exists.
 
 `.python-version` should name a version the matrix actually covers, latest
-by default. It does not have to be the newest release in existence — only
-one the repo genuinely supports.
+by default. The shared generated-project policy currently covers CPython
+3.11–3.15; existing repositories may retain a documented lower range when
+their dependencies require it.
 
 ## Types
 
@@ -179,9 +182,10 @@ addopts = "--cov=package_name --cov-fail-under=83"
 Set the number a point or two below the measured value so ordinary variation
 does not fail the build.
 
-Keep the CI smoke test (`uv pip install . && <console-script> --help`). It
-catches packaging errors — a missing `[project.scripts]` entry, a module
-that imports only from the source tree — that the unit tests never see.
+Keep `just package-check` in the gate. It validates both wheel and sdist
+metadata, installs the exact wheel into a clean environment outside the source
+tree, verifies the import location and version, and invokes a console command
+only when the project declares one.
 
 ## CI
 
@@ -192,11 +196,13 @@ a copy of it:
 |---|---|---|
 | `ci.yml` | `workflow_call` | the `lint` and `test` jobs |
 | `tests.yml` | `on: [push, pull_request]` — all branches, not just main | one job that calls `ci.yml` |
-| `release.yml` | release published | calls `ci.yml`, then publishes |
+| `release.yml` | `v*` tag push | calls `ci.yml`, then publishes its validated artifact |
 
-Every step calls a runner verb. If a CI step contains `ruff`, `mypy`, or
-`pytest` directly, that step is a bug: the developer can no longer reproduce
-CI by running `just check`.
+Every quality step calls a runner verb. If a CI step contains `ruff`, `mypy`,
+or `pytest` directly, that step is a bug: the developer can no longer
+reproduce CI by running `just check`. System package installation and
+workflow-linter provisioning are exceptions because uv cannot provide those
+host tools.
 
 The exception is system packages, which uv cannot install. A Python
 dependency binding to a C library needs its runtime installed on the runner
