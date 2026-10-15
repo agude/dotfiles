@@ -24,6 +24,7 @@ Session.vim
 # Deliberately ignore dotfiles unless explicitly tracked.
 !.gitignore
 !.github
+!llm/skills/project-standards/tests/copier-pilot/.copier-answers.yml.jinja
 
 # Editor-managed Black installation
 vim/black

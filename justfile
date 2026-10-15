@@ -118,6 +118,10 @@ test-project-standards:
 test-project-standards-integration:
     bash llm/skills/project-standards/tests/run-integration.sh
 
+# Exercise the opt-in Copier template update pilot. Requires Copier.
+test-project-standards-copier:
+    bash llm/skills/project-standards/tests/run-copier-pilot.sh
+
 # Install and verify in an isolated throwaway HOME.
 test-integration:
     #!/usr/bin/env bash

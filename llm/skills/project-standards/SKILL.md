@@ -218,6 +218,15 @@ configure a script ID, or create CI. In the target Google Sheet, select
 **Extensions → Apps Script**, then copy the JavaScript files from `src/` into
 the bound project before adding runtime behavior.
 
+The opt-in Copier pilot is available from the dotfiles repository as
+`just test-project-standards-copier`. It derives its temporary template from
+the tested offline scaffold, requires a separately installed Copier, and
+records a project-owned customization through one template update. Set
+`COPIER_PILOT_CHECK=1` to bootstrap the temporary project and run its full
+`just check` when uv, just, actionlint, zizmor, and the declared Python
+interpreter are available. It is a pilot only; do not infer fleet-wide
+adoption from it.
+
 ## Package and release validation
 
 `package-check` accepts an existing artifact directory or builds a fresh

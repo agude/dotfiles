@@ -13,7 +13,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 6 Maintenance | Local implementation complete; hosted adoption pending | Policy, Renovate preset, scheduled support review, and pilot inventory are present. No hosted bot was activated. |
 | 7 Hooks | Complete locally; staged-content integration required in CI | Framework config, effective hooks path, foreign-hook backup, custom-path fixture, and the disposable staged-content integration case are implemented. |
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
-| 9 Copier pilot | Pending external prerequisite | The pilot harness is prepared, but its isolated Copier run and adoption decision are committed separately from the workflow hardening. |
+| 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
 | 10 Skill/evaluations | Structural and fixture validation complete; agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but no hosted agent evaluation trace was generated. |
 | 11 Final verification | Partial by environment | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, and audit pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
 
