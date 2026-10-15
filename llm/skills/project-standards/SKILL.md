@@ -117,7 +117,9 @@ choice.
 | License | New repositories use CC0. Do not add, remove, or relicense an existing repository without owner direction. |
 
 Use these action versions together and propagate the change to every affected
-repository. This table is the authoritative pin set.
+repository. The shared policy stores immutable commit SHAs and this table
+retains the corresponding readable release labels. This table is the
+authoritative release-label set.
 
 | Action | Version |
 | --- | --- |
