@@ -25,12 +25,12 @@ uses the `pypi` environment and OIDC only in its publish job; an owner must
 verify that the external publisher registration names the same repository,
 workflow, and environment before enabling a production tag.
 
-## Copier pilot decision
+## Copier pilot status
 
-Deferred. Copier is not installed in this checkout and no existing customized
+Pending. Copier is not installed in this checkout and no existing customized
 Python repository was authorized as a template pilot. The tested generator,
 shared policy, and explicit update record are the current maintenance boundary.
-Revisit Copier only with one selected project, a real customization to
+Run the pilot only with one selected project, a real customization to
 preserve, and a measured update diff; do not infer fleet-wide adoption from
 this implementation.
 

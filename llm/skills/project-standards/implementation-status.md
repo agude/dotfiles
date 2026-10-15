@@ -13,7 +13,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 6 Maintenance | Local implementation complete; hosted adoption pending | Policy, Renovate preset, scheduled support review, and pilot inventory are present. No hosted bot was activated. |
 | 7 Hooks | Complete locally | Framework config, effective hooks path, foreign-hook backup, and custom-path fixture pass. |
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
-| 9 Copier pilot | Deferred | Copier is not installed and no customized project was authorized; criteria are recorded in `adoption.md`. |
+| 9 Copier pilot | Pending external prerequisite | Copier is not installed and no customized project was authorized; the required pilot criteria are recorded in `adoption.md`. |
 | 10 Skill/evaluations | Structural and fixture validation complete; agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but no hosted agent evaluation trace was generated. |
 | 11 Final verification | Partial by environment | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, and audit pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
 
