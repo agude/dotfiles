@@ -270,8 +270,57 @@ with zipfile.ZipFile(wheel, "w") as opened:
         opened.writestr(name, content)
 
 sdist = root / "demo-pkg-1.0.0.tar.gz"
+backend = '''
+from pathlib import Path
+import zipfile
+
+NAME = "demo_pkg"
+VERSION = "1.0.0"
+
+
+def _metadata(root: Path) -> Path:
+    dist_info = root / f"{NAME}-{VERSION}.dist-info"
+    dist_info.mkdir()
+    (dist_info / "METADATA").write_text(
+        "Metadata-Version: 2.1\\nName: demo-pkg\\nVersion: 1.0.0\\n"
+    )
+    (dist_info / "WHEEL").write_text(
+        "Wheel-Version: 1.0\\nGenerator: fixture\\n"
+        "Root-Is-Purelib: true\\nTag: py3-none-any\\n"
+    )
+    return dist_info
+
+
+def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
+    root = Path(metadata_directory)
+    return _metadata(root).name
+
+
+def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+    filename = f"{NAME}-{VERSION}-py3-none-any.whl"
+    dist_info = f"{NAME}-{VERSION}.dist-info"
+    files = {
+        "demo_pkg/__init__.py": "__version__ = '1.0.0'\\n",
+        "demo_pkg/py.typed": "",
+        "LICENSE.md": "public domain\\n",
+        f"{dist_info}/METADATA":
+            "Metadata-Version: 2.1\\nName: demo-pkg\\nVersion: 1.0.0\\n",
+        f"{dist_info}/WHEEL":
+            "Wheel-Version: 1.0\\nGenerator: fixture\\n"
+            "Root-Is-Purelib: true\\nTag: py3-none-any\\n",
+        f"{dist_info}/RECORD": "",
+    }
+    with zipfile.ZipFile(Path(wheel_directory) / filename, "w") as opened:
+        for name, content in files.items():
+            opened.writestr(name, content)
+    return filename
+'''
 with tarfile.open(sdist, "w:gz") as opened:
     for name, content in {
+        "demo-pkg-1.0.0/pyproject.toml":
+            "[build-system]\nrequires = []\nbuild-backend = \"backend\"\n"
+            "backend-path = [\".\"]\n",
+        "demo-pkg-1.0.0/backend.py": backend,
         "demo-pkg-1.0.0/PKG-INFO": metadata,
         "demo-pkg-1.0.0/demo_pkg/__init__.py": files["demo_pkg/__init__.py"],
         "demo-pkg-1.0.0/LICENSE.md": files["LICENSE.md"],
