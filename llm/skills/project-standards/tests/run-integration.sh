@@ -5,8 +5,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=../scripts/policy.sh
+# shellcheck disable=SC1091
+. "$SKILL_ROOT/scripts/policy.sh"
 ROOT="$(mktemp -d)"
 trap 'rm -rf "$ROOT"' EXIT
+
+python_latest="$(policy_value "$SKILL_ROOT/policy.toml" python latest)"
+export UV_PYTHON_INSTALL_DIR="$ROOT/python"
+uv python install "$python_latest"
 
 bash "$SKILL_ROOT/scripts/scaffold.sh" "$ROOT/library" integration_library --bootstrap
 (cd "$ROOT/library" && just check)

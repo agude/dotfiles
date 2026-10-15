@@ -23,6 +23,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y actionlint
           uv tool install zizmor==ZIZMOR_VERSION
+      - name: Set up Python PYTHON_LATEST
+        run: uv python install PYTHON_LATEST
       - name: Install dependencies
         run: just sync
       - name: Lint
@@ -63,6 +65,8 @@ jobs:
         uses: astral-sh/setup-uv@SETUP_UV_ACTION
       - name: Set up just
         uses: extractions/setup-just@SETUP_JUST_ACTION
+      - name: Set up Python PYTHON_LATEST
+        run: uv python install PYTHON_LATEST
       - name: Install dependencies
         run: just sync
       - name: Validate release tag
