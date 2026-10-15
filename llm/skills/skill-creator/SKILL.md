@@ -147,10 +147,10 @@ its TODOs before use. Validation parses YAML, checks shared fields and naming,
 and reports unfinished scaffold markers. It warns about size recommendations,
 nonstandard fields, host-specific tool-hint types, angle brackets in
 descriptions, and names reserved by Claude API uploads. It does not validate
-host extensions, installation,
-links, script behavior, or output quality. Inspect those separately. The
-upstream `skills-ref validate <skill-directory>` is an additional format check
-when available; this helper is not a replacement for host testing.
+host extensions, installation, links, script behavior, or output quality.
+Inspect those separately. The upstream `skills-ref validate <skill-directory>`
+is an additional format check when available; this helper is not a replacement
+for host testing.
 
 ## Evaluate and revise
 
