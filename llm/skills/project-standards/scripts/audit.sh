@@ -388,6 +388,23 @@ EOF
         report PASS ci.callsrunner "steps call runner verbs"
     fi
 
+    if command -v actionlint >/dev/null 2>&1; then
+        local syntax_fail="" syntax_output
+        for f in "$dir"/*.yml "$dir"/*.yaml; do
+            [ -f "$f" ] || continue
+            syntax_output="$(actionlint "$f" 2>&1)" || {
+                syntax_fail="$syntax_fail ${f#"$dir/"}: $syntax_output"
+            }
+        done
+        if [ -n "$syntax_fail" ]; then
+            report FAIL ci.syntax "actionlint findings:$syntax_fail"
+        else
+            report PASS ci.syntax "actionlint accepted workflow syntax"
+        fi
+    else
+        report WARN ci.syntax "actionlint unavailable; workflow syntax not established"
+    fi
+
     # Pinned action versions (the table in SKILL.md is authoritative).
     local drift="" action expected
     while IFS='|' read -r action _ref expected; do

@@ -174,6 +174,30 @@ EOF
     [[ "$output" == *$'FAIL\tci.callsrunner'* ]]
 }
 
+@test "audit reports malformed workflow syntax when actionlint is available" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
+    [ "$status" -eq 0 ]
+    mkdir "$TEST_ROOT/bin"
+    cat > "$TEST_ROOT/bin/actionlint" <<'EOF'
+#!/bin/sh
+if grep -q 'invalid-workflow-fixture' "$1"; then
+    echo "invalid workflow fixture" >&2
+    exit 1
+fi
+exit 0
+EOF
+    chmod +x "$TEST_ROOT/bin/actionlint"
+    cat >> "$TEST_ROOT/library/.github/workflows/tests.yml" <<'EOF'
+
+# invalid-workflow-fixture
+jobs:
+  invalid: [
+EOF
+    run env PATH="$TEST_ROOT/bin:$PATH" bash "$AUDIT" "$TEST_ROOT/library" --porcelain
+    [ "$status" -ne 0 ]
+    [[ "$output" == *$'FAIL\tci.syntax'* ]]
+}
+
 @test "audit scopes a named workflow waiver to its declared rule" {
     run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
     [ "$status" -eq 0 ]
