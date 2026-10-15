@@ -46,10 +46,48 @@ EOF
         --kind cli --distribution-name distribution-name --command-name run-tool --publish
     [ "$status" -eq 0 ]
     grep -q 'name = "distribution-name"' "$TEST_ROOT/cli/pyproject.toml"
-    grep -q 'run-tool = "import_name.cli:main"' "$TEST_ROOT/cli/pyproject.toml"
+    grep -q '"run-tool" = "import_name.cli:main"' "$TEST_ROOT/cli/pyproject.toml"
     grep -q 'name: Release' "$TEST_ROOT/cli/.github/workflows/release.yml"
     grep -q 'def main' "$TEST_ROOT/cli/src/import_name/cli.py"
     ! grep -R -E 'PACKAGE|REPO|PYTHON_|ACTION' "$TEST_ROOT/cli"
+}
+
+@test "CLI names containing dots remain literal TOML keys" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/dotted" import_name \
+        --kind cli --command-name run.tool
+    [ "$status" -eq 0 ]
+    python3 - "$TEST_ROOT/dotted/pyproject.toml" <<'PY'
+import sys
+import tomllib
+
+with open(sys.argv[1], "rb") as source:
+    assert tomllib.load(source)["project"]["scripts"] == {"run.tool": "import_name.cli:main"}
+PY
+}
+
+@test "scaffold rejects reserved import names and invalid distribution names" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/keyword" class
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"reserved Python keyword"* ]]
+    [ ! -e "$TEST_ROOT/keyword" ]
+
+    run bash "$SCAFFOLD" "$TEST_ROOT/distribution" sample_package --distribution-name invalid-
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"not a valid distribution name"* ]]
+    [ ! -e "$TEST_ROOT/distribution" ]
+
+    run bash "$SCAFFOLD" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Usage:"* ]]
+}
+
+@test "scaffold checks every required asset before writing output" {
+    cp -R "$SKILL_ROOT" "$TEST_ROOT/skill"
+    rm "$TEST_ROOT/skill/assets/validate-release.sh"
+    run bash "$TEST_ROOT/skill/scripts/scaffold.sh" "$TEST_ROOT/project" sample_package
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"missing asset validate-release.sh"* ]]
+    [ ! -e "$TEST_ROOT/project" ]
 }
 
 @test "generated package checks preserve their command option variable" {
@@ -374,7 +412,7 @@ with tarfile.open(sdist, "w:gz") as opened:
         opened.addfile(info, BytesIO(data))
 PY
     run env UV_CACHE_DIR="$TEST_ROOT/cache" bash "$SKILL_ROOT/assets/package-check.sh" \
-        --artifacts "$TEST_ROOT/artifacts" --import demo_pkg --distribution demo-pkg \
+        --artifacts "$TEST_ROOT/artifacts" --import demo_pkg --distribution Demo.._Pkg \
         --version 1.0.0 --license LICENSE.md --typed
     [ "$status" -eq 0 ]
     [[ "$output" == *"imported demo_pkg"* ]]

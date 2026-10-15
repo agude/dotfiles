@@ -25,9 +25,10 @@ Options:
 Generation is offline and refuses non-empty or symbolic-link destinations.
 --bootstrap is the only option that contacts dependency services.
 EOF
-    exit 2
+    exit "${1:-2}"
 }
 
+case "${1:-}" in -h|--help) usage 0 ;; esac
 [ $# -ge 2 ] || usage
 DEST_INPUT="$1"
 PACKAGE="$2"
@@ -60,7 +61,7 @@ while [ $# -gt 0 ]; do
         --command-name=*) COMMAND_NAME="${1#--command-name=}"; shift ;;
         --publish) PUBLISH="true"; shift ;;
         --bootstrap) BOOTSTRAP="true"; shift ;;
-        -h|--help) usage ;;
+        -h|--help) usage 0 ;;
         *) echo "scaffold.sh: unknown option: $1" >&2; usage ;;
     esac
 done
@@ -69,11 +70,17 @@ if [[ ! "$PACKAGE" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
     echo "scaffold.sh: '$PACKAGE' is not a valid Python identifier" >&2
     exit 1
 fi
+case "$PACKAGE" in
+    False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield)
+        echo "scaffold.sh: '$PACKAGE' is a reserved Python keyword" >&2
+        exit 1
+        ;;
+esac
 case "$KIND" in
     library|cli) ;;
     *) echo "scaffold.sh: --kind must be library or cli" >&2; exit 1 ;;
 esac
-if [[ ! "$REPO" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]; then
+if [[ ! "$REPO" =~ ^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$ ]]; then
     echo "scaffold.sh: '$REPO' is not a valid distribution name" >&2
     exit 1
 fi
@@ -115,7 +122,7 @@ if [ -d "$DEST" ] && [ -n "$(ls -A "$DEST")" ]; then
 fi
 
 for asset in justfile pre-commit.sh pre-commit-config.yaml package-check.sh \
-             read-distribution-metadata.py check-wheel-path.py check-archive-path.py release.sh \
+             read-distribution-metadata.py check-wheel-path.py check-archive-path.py release.sh validate-release.sh \
              hooks-install.sh pyproject-tooling.toml workflows/ci.yml \
              workflows/tests.yml LICENSE-CC0-1.0 renovate.json5; do
     [ -f "$ASSETS/$asset" ] || { echo "scaffold.sh: missing asset $asset" >&2; exit 1; }
@@ -261,7 +268,7 @@ readme = "README.md"
 license = {file = "LICENSE.md"}
 TOML
     if [ "$KIND" = "cli" ]; then
-        printf '\n[project.scripts]\n%s = "%s.cli:main"\n' "$COMMAND_NAME" "$PACKAGE"
+        printf '\n[project.scripts]\n"%s" = "%s.cli:main"\n' "$COMMAND_NAME" "$PACKAGE"
     fi
     awk '/^\[/{found=1} found{print}' "$ASSETS/pyproject-tooling.toml" |
         sed \

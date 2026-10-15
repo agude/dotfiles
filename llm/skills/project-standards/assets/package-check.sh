@@ -95,7 +95,7 @@ cleanup_all() {
 trap cleanup_all EXIT
 
 run_helper "$SCRIPT_DIR/read-distribution-metadata.py" "$wheel" "$sdist" > "$metadata"
-normalize_name() { printf '%s' "$1" | tr '[:upper:]_' '[:lower:]-'; }
+normalize_name() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[-_.]+/-/g'; }
 
 distribution="$(awk -F= '$1 == "Name" {print $2; exit}' "$metadata")"
 version="$(awk -F= '$1 == "Version" {print $2; exit}' "$metadata")"
