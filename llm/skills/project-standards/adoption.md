@@ -64,9 +64,11 @@ dependencies and `uv.lock` maintenance. A local-platform extract dry run with
 Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a
 committed generated fixture. The scheduled support recipe reports candidates
 but never raises support floors or rewrites project files automatically.
-The candidate repository has no hosted `renovate.json5` and no reviewable
-Renovate PR; the local candidate now carries the validated preset in commit
-`e900509`, while hosted activation remains pending.
+The selected candidate extraction found 17 GitHub Actions and 7 PEP 621
+dependencies, plus its committed lockfile and Python pin. The remote
+repository has no hosted `renovate.json5` and no reviewable Renovate PR; the
+local candidate carries the validated preset in commit `e900509`, while
+hosted activation remains pending.
 
 ## Root-gate environment boundary
 
