@@ -70,7 +70,10 @@ EOF
     grep -q 'needs: lint$' "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'needs: \[lint, build\]' "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'name: sample-package-distributions' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    [ "$(grep -c 'name: sample-package-distributions' "$TEST_ROOT/published/.github/workflows/ci.yml")" -eq 2 ]
     grep -q 'run: just package-check dist' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    [ -f "$TEST_ROOT/published/scripts/validate-release.sh" ]
+    grep -q 'scripts/validate-release.sh' "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -Fq 'uv tool dir --bin >> "$GITHUB_PATH"' \
         "$TEST_ROOT/published/.github/workflows/ci.yml"
     grep -q 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4' \

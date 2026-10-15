@@ -238,7 +238,7 @@ fi
 replace_asset "$ASSETS/pre-commit.sh" bin/pre-commit.sh
 replace_asset "$ASSETS/pre-commit-config.yaml" .pre-commit-config.yaml
 for asset in package-check.sh read-distribution-metadata.py check-wheel-path.py check-archive-path.py \
-             hooks-install.sh release.sh; do
+             hooks-install.sh release.sh validate-release.sh; do
     replace_asset "$ASSETS/$asset" "scripts/$asset"
 done
 chmod +x bin/pre-commit.sh scripts/*.sh scripts/*.py

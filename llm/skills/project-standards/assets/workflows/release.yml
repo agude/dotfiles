@@ -23,7 +23,7 @@ jobs:
       - name: Download validated distributions
         uses: actions/download-artifact@DOWNLOAD_ARTIFACT_ACTION # DOWNLOAD_ARTIFACT_VERSION
         with:
-          name: PACKAGE-distributions
+          name: REPO-distributions
           path: dist
       - name: Publish
         uses: pypa/gh-action-pypi-publish@PYPI_PUBLISH_ACTION # PYPI_PUBLISH_VERSION

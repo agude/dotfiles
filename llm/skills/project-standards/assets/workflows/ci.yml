@@ -96,7 +96,7 @@ jobs:
       - name: Upload validated distributions
         uses: actions/upload-artifact@UPLOAD_ARTIFACT_ACTION # UPLOAD_ARTIFACT_VERSION
         with:
-          name: PACKAGE-distributions
+          name: REPO-distributions
           path: dist/*
           if-no-files-found: error
           retention-days: 7
