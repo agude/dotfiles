@@ -15,7 +15,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
 | 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
 | 10 Skill/evaluations | Complete locally; hosted integrations remain separate | Structural validation, repository fixtures, and six paired fresh-context Codex evaluations pass; detailed traces and grading remain outside the shipped skill. |
-| 11 Final verification | Partial by unrelated repository tests | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, audit, and CPython 3.15 generated integration pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
+| 11 Final verification | Partial by a pre-existing OpenCode runtime failure | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, audit, and CPython 3.15 generated integration pass. `bats --print-output-on-failure tests/opencode-plugin.bats` fails under local OpenCode 1.18.23 before `/session` becomes available; the OpenCode test and plugin files are byte-identical to `main`. |
 
 ## Step-level disposition
 
@@ -68,7 +68,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.2 | Complete locally | Runner, lock, package, hook, release, Jekyll, matrix, coverage, and licensing guidance is aligned. |
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
 | 10.4 | Complete locally | Six paired fresh-context Codex CLI cases cover new library, CLI, script collection, constrained package, audit-only, and nearby documentation requests. Final revised grading was 18/18 assertions versus 13/18 for the baseline; traces remain outside the shipped skill. |
-| 11.1 | Partial by unrelated repository tests | Local affected gates, CPython 3.15 generated integration, and portability checks pass; root `just check` remains limited by unrelated OpenCode `ServeError` tests. |
+| 11.1 | Partial by a pre-existing OpenCode runtime failure | Local affected gates, CPython 3.15 generated integration, and portability checks pass. Root `just check` remains limited by unchanged OpenCode server tests: OpenCode 1.18.23 exits with `ServeError` before the disposable server accepts `/session`. |
 | 11.2 | Complete | Reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |
 

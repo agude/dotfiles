@@ -52,6 +52,16 @@ committed generated fixture. The scheduled support recipe reports candidates
 but never raises support floors or rewrites project files automatically.
 Hosted Renovate activation remains pending.
 
+## Root-gate environment boundary
+
+The local OpenCode 1.18.23 binary cannot start the disposable server used by
+`tests/opencode-plugin.bats`: it exits with `ServeError` before `/session`
+becomes available. The plugin test, config test, and plugin implementation are
+byte-identical to `main`, so this failure is outside the project-standards
+change. OpenCode tracks the generic `ServeError` output for server bind
+failures in [issue #38738](https://github.com/anomalyco/opencode/issues/38738).
+The project-standards work does not weaken or skip those existing tests.
+
 ## Agent evaluation
 
 On 2026-10-15, six representative prompts were run in fresh paired Codex CLI
