@@ -10,7 +10,7 @@
 
 if ! command -v just >/dev/null 2>&1; then
     echo "❌ just is not on PATH; cannot run the pre-commit checks." >&2
-    echo "   Install just, or commit with --no-verify if you accept the risk." >&2
+    echo "   Install just, then retry the commit." >&2
     exit 1
 fi
 

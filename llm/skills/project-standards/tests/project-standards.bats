@@ -366,6 +366,7 @@ PY
 @test "hook installation preserves a foreign hook and honors Git hooksPath" {
     run bash "$SCAFFOLD" "$TEST_ROOT/project" sample_package
     [ "$status" -eq 0 ]
+    ! grep -q -- '--no-verify' "$TEST_ROOT/project/bin/pre-commit.sh"
     mkdir "$TEST_ROOT/project/custom-hooks"
     (cd "$TEST_ROOT/project" && git config core.hooksPath custom-hooks)
     cat > "$TEST_ROOT/project/custom-hooks/pre-commit" <<'EOF'
