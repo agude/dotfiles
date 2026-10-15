@@ -1,0 +1,33 @@
+# Shared defaults consumed by scaffold.sh and audit.sh.
+
+[python]
+floor = "3.11"
+latest = "3.15"
+matrix = ["3.11", "3.12", "3.13", "3.14", "3.15"]
+ruff_target = "py311"
+mypy_target = "3.11"
+coverage_floor = 90
+
+[actions.checkout]
+ref = "v7"
+
+[actions.setup_uv]
+ref = "v9.0.0"
+
+[actions.setup_just]
+ref = "v4"
+
+[actions.upload_artifact]
+ref = "v4"
+
+[actions.download_artifact]
+ref = "v4"
+
+[actions.setup_python]
+ref = "v6"
+
+[actions.pypi_publish]
+ref = "release/v1"
+
+[recipes.python]
+required = "default lock sync lint format type-check test check hooks-install build package-check"

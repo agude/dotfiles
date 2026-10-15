@@ -1,73 +1,75 @@
-# Callable CI for PACKAGE. Every step calls a task-runner recipe, so this
-# file never needs editing when the tooling changes — only when the shape of
-# the pipeline does.
-#
-# Called by tests.yml (push/PR) and release.yml (before publishing).
+# Callable CI for PACKAGE. It builds and validates one artifact set, then
+# matrix-tests the source project. Release publication downloads that set.
 name: CI
 
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Lint
+    name: Lint and type check
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@CHECKOUT_ACTION
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
-
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION
       - name: Set up just
-        uses: extractions/setup-just@v4
-
+        uses: extractions/setup-just@SETUP_JUST_ACTION
       - name: Install dependencies
         run: just sync
-
       - name: Lint
         run: just lint
-
       - name: Type check
         run: just type-check
 
   test:
     runs-on: ubuntu-latest
+    needs: lint
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - "3.10"
-          - "3.11"
-          - "3.12"
-          - "3.13"
-          - "3.14"
+        python-version: PYTHON_MATRIX
     name: Python ${{ matrix.python-version }}
-    # Required whenever .python-version exists: uv honours that pin, so
-    # without this override every matrix leg silently tests the same
-    # interpreter while reporting different version names.
     env:
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v7
-
+      - uses: actions/checkout@CHECKOUT_ACTION
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
-
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION
       - name: Set up just
-        uses: extractions/setup-just@v4
-
+        uses: extractions/setup-just@SETUP_JUST_ACTION
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
-
       - name: Install dependencies
         run: just sync
-
       - name: Test
         run: just test
 
-      # Catches packaging mistakes the test suite cannot: a console script
-      # that imports fine from the source tree but not from a built wheel.
-      - name: Smoke test
-        run: |
-          uv pip install .
-          uv run PACKAGE --help
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    name: Build and validate distributions
+    steps:
+      - uses: actions/checkout@CHECKOUT_ACTION
+      - name: Set up uv
+        uses: astral-sh/setup-uv@SETUP_UV_ACTION
+      - name: Set up just
+        uses: extractions/setup-just@SETUP_JUST_ACTION
+      - name: Install dependencies
+        run: just sync
+      - name: Validate release tag
+        run: bash scripts/validate-release.sh
+      - name: Build
+        run: just build
+      - name: Package check
+        run: just package-check dist
+      - name: Upload validated distributions
+        uses: actions/upload-artifact@UPLOAD_ARTIFACT_ACTION
+        with:
+          name: PACKAGE-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7

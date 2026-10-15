@@ -1,50 +1,73 @@
-# Task runner for PACKAGE. See the project-standards skill for the verb
-# contract: lint is read-only and total, format is its mutating twin, and
-# check is the full gate that CI runs.
+# Task runner for PACKAGE. Quality checks are read-only and locked; deliberate
+# dependency changes use `just lock` or `just deps-update`.
 
-# Default: list available recipes
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
 default:
     @just --list
 
-# Install dependencies
+lock:
+    uv lock
+
 sync:
-    uv sync --dev
+    uv sync --locked --dev
 
-# All read-only static checks
-lint:
-    uv run ruff check .
-    uv run ruff format --check .
+deps-update PACKAGE="":
+    #!/usr/bin/env bash
+    if [[ -n "{{ PACKAGE }}" ]]; then
+        uv lock --upgrade-package "{{ PACKAGE }}"
+    else
+        uv lock --upgrade
+    fi
 
-# Apply formatting and safe lint fixes
+lint: lint-workflows
+    uv run --locked ruff check .
+    uv run --locked ruff format --check .
+
+lint-workflows:
+    #!/usr/bin/env bash
+    if command -v actionlint >/dev/null 2>&1; then
+        actionlint
+    else
+        echo "lint-workflows: actionlint is required; install it before linting workflows" >&2
+        exit 1
+    fi
+    if command -v zizmor >/dev/null 2>&1; then
+        zizmor .github/workflows
+    else
+        echo "lint-workflows: zizmor is required; install it before linting workflows" >&2
+        exit 1
+    fi
+
 format:
-    uv run ruff format .
-    uv run ruff check --fix .
+    uv run --locked ruff format .
+    uv run --locked ruff check --fix .
 
-# Type check
-# New repos: include tests/. Migrating an existing repo: start with the
-# package alone — widening to tests usually surfaces real errors that
-# belong in their own change.
 type-check:
-    uv run mypy src/PACKAGE/ tests/
+    uv run --locked mypy src/PACKAGE/ tests/
 
-# Run tests
 test *args:
-    uv run pytest -vv {{ args }}
+    uv run --locked pytest -vv {{ args }}
 
-# Everything CI runs
-check: lint type-check test
-
-# Build the package
 build:
-    uv build
+    rm -rf dist/
+    uv build --out-dir dist
 
-# Remove build and cache artifacts
+package-check ARTIFACTS="":
+    #!/usr/bin/env bash
+    package_args=(--import PACKAGE --distribution REPO --typed)
+    if [[ -n "{{ ARTIFACTS }}" ]]; then
+        package_args+=(--artifacts "{{ ARTIFACTS }}")
+    fi
+    bash scripts/package-check.sh "${package_args[@]}"
+
+check: lint type-check test package-check
+
+release *ARGS:
+    bash scripts/release.sh {{ ARGS }}
+
 clean:
-    rm -rf dist/ build/ *.egg-info .pytest_cache .ruff_cache .mypy_cache
+    rm -rf dist/ build/ *.egg-info .pytest_cache .ruff_cache .mypy_cache .venv
 
-# Install the pre-commit hook into this clone
 hooks-install:
-    @mkdir -p .git/hooks
-    @cp bin/pre-commit.sh .git/hooks/pre-commit
-    @chmod +x .git/hooks/pre-commit
-    @echo "Pre-commit hook installed."
+    bash scripts/hooks-install.sh

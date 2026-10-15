@@ -1,16 +1,12 @@
 #!/bin/bash
 #
-# Pre-commit hook: runs the repo's read-only checks via the task runner.
+# Pre-commit fallback hook: runs the repo's read-only checks via the task
+# runner. Generated projects normally install the framework hook from
+# .pre-commit-config.yaml, which isolates unstaged changes automatically.
 #
 # This script deliberately contains no tool commands. `just lint` is the one
 # definition of what "clean" means; the hook, CI, and the developer all call
 # it. Install with `just hooks-install`.
-
-STAGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
-
-if [ -z "$STAGED" ]; then
-    exit 0
-fi
 
 if ! command -v just >/dev/null 2>&1; then
     echo "❌ just is not on PATH; cannot run the pre-commit checks." >&2
@@ -19,7 +15,7 @@ if ! command -v just >/dev/null 2>&1; then
 fi
 
 echo "---"
-echo "Running lint on staged Python files..."
+echo "Running repository lint..."
 echo "---"
 
 if ! just lint; then

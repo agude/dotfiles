@@ -11,6 +11,7 @@ build-backend = "hatchling.build"
 # Version has one home: the package's __init__.py. Nothing else stores it,
 # so nothing else can disagree with it.
 path = "src/PACKAGE/__init__.py"
+pattern = "^__version__(?::\\s*str)?\\s*=\\s*['\"](?P<version>[^'\"]+)['\"]"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/PACKAGE"]
@@ -19,13 +20,14 @@ packages = ["src/PACKAGE"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=6.0",
+    "pre-commit>=4.0",
     "ruff>=0.16",
     "mypy>=1.15",
 ]
 
 [tool.ruff]
 # Match requires-python.
-target-version = "py310"
+target-version = "PYTHON_RUFF_TARGET"
 line-length = 100
 
 [tool.ruff.lint]
@@ -47,7 +49,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "PYTHON_MYPY_TARGET"
 strict = true
 # Required with a src/ layout and no tests/__init__.py: without them mypy
 # resolves tests/test_x.py as top-level `test_x`, so the `tests.*` override
@@ -67,4 +69,4 @@ disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=PACKAGE --cov-fail-under=90"
+addopts = "--cov=PACKAGE --cov-fail-under=PYTHON_COVERAGE_FLOOR"
