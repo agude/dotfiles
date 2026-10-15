@@ -249,3 +249,23 @@ PY
     [ "$status" -ne 0 ]
     [[ "$output" == *"does not match package version"* ]]
 }
+
+@test "release dry-run creates no tag and normal release creates only the local tag" {
+    mkdir -p "$TEST_ROOT/release/src/release_fixture" "$TEST_ROOT/release/scripts" "$TEST_ROOT/bin"
+    printf '__version__: str = "2.0.0"\n' > "$TEST_ROOT/release/src/release_fixture/__init__.py"
+    cp "$SKILL_ROOT/assets/release.sh" "$TEST_ROOT/release/scripts/release.sh"
+    chmod +x "$TEST_ROOT/release/scripts/release.sh"
+    cat > "$TEST_ROOT/bin/just" <<'EOF'
+#!/bin/sh
+[ "$1" = check ]
+EOF
+    chmod +x "$TEST_ROOT/bin/just"
+    (cd "$TEST_ROOT/release" && git init -q && git add . && git -c user.name=fixture -c user.email=fixture@example.invalid commit -qm initial)
+    run env PATH="$TEST_ROOT/bin:$PATH" bash -c "cd '$TEST_ROOT/release' && bash scripts/release.sh --dry-run"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"would create local tag 'v2.0.0'"* ]]
+    [ -z "$(cd "$TEST_ROOT/release" && git tag --list)" ]
+    run env PATH="$TEST_ROOT/bin:$PATH" bash -c "cd '$TEST_ROOT/release' && bash scripts/release.sh"
+    [ "$status" -eq 0 ]
+    [ "$(cd "$TEST_ROOT/release" && git tag --list)" = "v2.0.0" ]
+}
