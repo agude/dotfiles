@@ -52,6 +52,17 @@ EOF
     ! grep -R -E 'PACKAGE|REPO|PYTHON_|ACTION' "$TEST_ROOT/cli"
 }
 
+@test "CI matrix consumes the single validated artifact set" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/published" sample_package --publish
+    [ "$status" -eq 0 ]
+    grep -q 'needs: lint$' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'needs: \[lint, build\]' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'name: sample-package-distributions' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'run: just package-check dist' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'actions/download-artifact@v4' "$TEST_ROOT/published/.github/workflows/ci.yml"
+    grep -q 'path: dist' "$TEST_ROOT/published/.github/workflows/ci.yml"
+}
+
 @test "scaffold refuses a nonempty destination without changing it" {
     mkdir "$TEST_ROOT/existing"
     printf 'keep\n' > "$TEST_ROOT/existing/owned.txt"

@@ -194,7 +194,7 @@ a copy of it:
 
 | File | Trigger | Contents |
 |---|---|---|
-| `ci.yml` | `workflow_call` | the `lint` and `test` jobs |
+| `ci.yml` | `workflow_call` | the `lint`, `build`, and `test` jobs |
 | `tests.yml` | `on: [push, pull_request]` — all branches, not just main | one job that calls `ci.yml` |
 | `release.yml` | `v*` tag push | calls `ci.yml`, then publishes its validated artifact |
 
