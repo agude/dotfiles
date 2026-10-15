@@ -68,6 +68,8 @@ done
 [ -n "$sdist" ] || { echo "package-check: no sdist found in $ARTIFACTS" >&2; exit 1; }
 
 metadata="$(mktemp)"
+cleanup_metadata() { rm -f "$metadata"; cleanup; }
+trap cleanup_metadata EXIT
 python3 "$SCRIPT_DIR/read-distribution-metadata.py" "$wheel" "$sdist" > "$metadata"
 normalize_name() { printf '%s' "$1" | tr '[:upper:]_' '[:lower:]-'; }
 
@@ -93,6 +95,8 @@ fi
 python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$IMPORT_NAME/__init__.py"
 python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$IMPORT_NAME/__init__.py"
 
+venv=""
+check_root=""
 venv="$(mktemp -d)"
 check_root="$(mktemp -d)"
 cleanup_all() { rm -f "$metadata"; rm -rf "$venv" "$check_root"; cleanup; }
