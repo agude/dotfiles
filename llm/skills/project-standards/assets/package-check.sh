@@ -45,17 +45,24 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TEMP_ROOT=""
+HELPER_CACHE="$(mktemp -d)"
+
+cleanup() {
+    [ -z "$TEMP_ROOT" ] || rm -rf "$TEMP_ROOT"
+    rm -rf "$HELPER_CACHE"
+}
+trap cleanup EXIT
+
+run_helper() {
+    UV_CACHE_DIR="$HELPER_CACHE" uv run --no-project python "$@"
+}
+
 if [ -z "$ARTIFACTS" ]; then
     TEMP_ROOT="$(mktemp -d)"
     ARTIFACTS="$TEMP_ROOT/dist"
     mkdir -p "$ARTIFACTS"
     uv build --out-dir "$ARTIFACTS" >/dev/null
 fi
-
-cleanup() {
-    [ -z "$TEMP_ROOT" ] || rm -rf "$TEMP_ROOT"
-}
-trap cleanup EXIT
 
 wheel=""
 sdist=""
@@ -73,7 +80,7 @@ done
 metadata="$(mktemp)"
 cleanup_metadata() { rm -f "$metadata"; cleanup; }
 trap cleanup_metadata EXIT
-python3 "$SCRIPT_DIR/read-distribution-metadata.py" "$wheel" "$sdist" > "$metadata"
+run_helper "$SCRIPT_DIR/read-distribution-metadata.py" "$wheel" "$sdist" > "$metadata"
 normalize_name() { printf '%s' "$1" | tr '[:upper:]_' '[:lower:]-'; }
 
 distribution="$(awk -F= '$1 == "Name" {print $2; exit}' "$metadata")"
@@ -93,13 +100,13 @@ fi
 [ "$wheel_version" = "$version" ] || { echo "package-check: wheel and sdist versions disagree" >&2; exit 1; }
 
 if [ "$REQUIRE_TYPED" = "true" ]; then
-    python3 "$SCRIPT_DIR/check-wheel-path.py" "$wheel" "$IMPORT_NAME/py.typed"
+    run_helper "$SCRIPT_DIR/check-wheel-path.py" "$wheel" "$IMPORT_NAME/py.typed"
 fi
-python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$IMPORT_NAME/__init__.py"
-python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$IMPORT_NAME/__init__.py"
+run_helper "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$IMPORT_NAME/__init__.py"
+run_helper "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$IMPORT_NAME/__init__.py"
 if [ -n "$LICENSE_FILE" ]; then
-    python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$LICENSE_FILE"
-    python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$LICENSE_FILE"
+    run_helper "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$LICENSE_FILE"
+    run_helper "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$LICENSE_FILE"
 fi
 
 venv=""
