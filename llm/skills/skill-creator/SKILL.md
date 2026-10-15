@@ -1,276 +1,201 @@
 ---
 name: skill-creator
-description: Creates, scaffolds, evaluates, and validates Agent Skills. Use when creating or updating a skill, packaging a reusable workflow, writing or reviewing a SKILL.md, or validating a skill against the specification.
-compatibility: Requires bash. curl is required for update-references.
+description: Create, revise, review, and evaluate Agent Skills. Use when turning a reusable workflow into a skill, editing SKILL.md or its bundled resources, checking specification compliance, or improving skill selection and task results.
+compatibility: Bundled helpers require Bash; validation requires uv and Python 3.11+ (PyYAML is resolved by uv); reference updates require curl and network access.
 ---
 
 # Skill Creator
 
-Create portable Agent Skills that conform to the agentskills.io specification.
-Keep shared workflow guidance portable. Document client-specific behavior
-separately and use the client's supported mechanism: Claude Code extends
-frontmatter, while Codex uses `agents/openai.yaml`.
+Write Agent Skills that carry useful expertise between agents and projects.
+Use the [Agent Skills specification](https://agentskills.io/specification) for
+the shared format. Keep host extensions separate from the reusable workflow.
 
-`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Resolve it before running a bundled script. Run scripts from the directory
-where the target skill is created or evaluated.
+## Establish the task
 
-## Workflow
+For a new skill, identify the recurring task, expected inputs and outputs,
+activation conditions, and expertise the agent lacks. Use real tasks,
+corrections, project artifacts, and known failure cases as evidence. Run a
+representative task without the skill when that would expose a useful gap;
+do not repeat work whose evidence is already available.
 
-1. Capture the skill's capability, trigger conditions, and required scripts,
-   references, or assets.
-2. Identify the gap. Perform the task without a skill and record only context
-   that the model could not reliably infer.
-3. Scaffold a new skill when needed.
-4. Write or update `SKILL.md` and the required supporting files.
-5. Validate the skill.
-6. Test it in a fresh session. Compare triggering and output quality with the
-   skill disabled, then fix the observed gap.
+For an update, inspect the existing skill, its resources, callers, and tests.
+Preserve useful domain rules and user choices. Fix the demonstrated problem
+without accumulating universal rules for every past example.
 
-For destructive or batch workflows, use plan-validate-execute: write the plan
-to a file, validate it with a script, then execute it.
+Use the requested destination. In the dotfiles repository (`~/.dotfiles`),
+shared skills belong in `llm/skills/`. Elsewhere, check project instructions
+and the intended host's discovery rules. Do not assume one product's
+installation path is universal.
+Read [portability.md](references/portability.md) when installation, invocation,
+tools, permissions, or host extensions affect the task.
 
-## Portable structure
+## Define the skill boundary
+
+Choose one coherent capability. Querying business data and presenting results
+can be coherent; adding database administration usually needs a separate
+skill. Include only instructions that change decisions or improve results
+beyond what the agent already knows.
+
+Write the description for selection: state the capability, the user's intent,
+and concrete contexts where it applies. Add an exclusion when it prevents a
+likely collision with another skill. Avoid generic names and keyword lists
+that attract unrelated work. Put trigger information in the description;
+the body may not be visible until after selection.
+
+```yaml
+name: invoice-reconciliation
+description: Reconcile supplier invoices against purchase orders and flag mismatched quantities, prices, and missing orders. Use when checking invoice batches against purchasing records.
+```
+
+There is no required grammatical style for descriptions. Choose wording that
+makes the boundary clear, then test it. Read
+[optimizing descriptions](references/skill-creation-optimizing-descriptions.md)
+when selection misses relevant tasks or loads the skill for near misses.
+
+## Write the portable core
+
+A skill needs a directory with `SKILL.md`: YAML frontmatter followed by
+Markdown instructions. Add resources only when they have a concrete use.
 
 ```text
 skill-name/
-├── SKILL.md          # Required
-├── scripts/          # Optional executable code
-├── references/       # Optional on-demand documentation
-├── assets/           # Optional templates, images, or data
-└── agents/           # Optional client-specific metadata
+├── SKILL.md
+├── scripts/       # Optional deterministic helpers
+├── references/    # Optional documentation read when needed
+└── assets/        # Optional templates or files used in output
 ```
 
-### Frontmatter
-
-| Field | Requirement |
+| Field | Shared format |
 | --- | --- |
-| `name` | Required. 1–64 lowercase letters, digits, and hyphens. |
-| `description` | Required. At most 1,024 characters; states what the skill does and when to use it. |
-| `license` | Optional license name or bundled license file. |
-| `compatibility` | Optional environment requirements; at most 500 characters. |
-| `metadata` | Optional string key-value map. |
-| `allowed-tools` | Optional experimental space-separated tool hints. Client support varies. |
+| `name` | Required, 1–64 lowercase alphanumeric characters or hyphens; match the directory; no leading, trailing, or consecutive hyphens. Prefer ASCII for interoperability. |
+| `description` | Required, nonempty string, at most 1,024 characters. |
+| `license` | Optional string identifying a license or bundled license file. |
+| `compatibility` | Optional nonempty string, at most 500 characters, for actual environment requirements. |
+| `metadata` | Optional map of string keys to string values. Quote versions and values YAML might interpret as numbers or booleans. |
+| `allowed-tools` | Optional experimental string; tool names and enforcement depend on the host. Omit by default for portable skills. |
 
-The name must match the parent directory. It cannot start or end with a
-hyphen, contain consecutive hyphens, or contain XML tags. Avoid `claude` and
-`anthropic`, which are reserved by the Skills API. Prefer a gerund or noun
-phrase, such as `processing-pdfs` or `pdf-processing`; avoid generic names
-such as `helper`, `utils`, `tools`, and `data`.
+Use valid YAML, including quoting scalars containing YAML punctuation when
+needed. Folded and literal block strings are valid YAML, but a single-line
+description is the safest choice across hosts because block-string parsing
+has varied between implementations and versions. Consult the
+[specification](references/specification.md) for exact format rules.
 
-### Description
+In the body, state the outcome, essential context, decision points, procedure,
+and how to check the result. Explain non-obvious constraints. Use exact steps
+for fragile operations; give judgment and defaults where several approaches
+work. Include input/output examples when they resolve ambiguity.
 
-The description is always in context and controls automatic triggering.
+Keep the user's scope and authorization intact. Describe side effects where
+they occur and preserve required approval boundaries. A skill's presence or
+invocation does not authorize unrelated actions. For fragile batch operations,
+a saved plan, deterministic validation, and execution can prevent partial or
+incorrect changes; use that pattern when the task needs it.
 
-- Write in third person.
-- State the main capability first, then concrete triggers such as file types,
-  tools, and user phrases.
-- Use phrases users would actually say.
-- Do not use generic descriptions such as “Helps with documents.”
+Keep `SKILL.md` short enough to use directly. Under 500 lines and roughly
+5,000 tokens are authoring recommendations, not hard format limits. Move
+conditional detail into focused references, link them from the entrypoint,
+and say when each should be read. Keep essential constraints in the body.
+Use relative resource paths from the skill root and avoid long reference
+chains. Additional directories are permitted by the format. For deeper
+instruction design, read [best practices](references/skill-creation-best-practices.md).
 
-```yaml
-description: Extracts text and tables from PDF files, fills forms, and merges
-  documents. Use when working with PDF files or when the user mentions PDFs,
-  forms, or document extraction.
-```
+## Bundle resources deliberately
 
-Read `references/skill-creation-optimizing-descriptions.md` when a skill
-triggers too broadly or misses expected prompts.
+Use a script when repeated or complex mechanics benefit from deterministic
+execution. Prefer an existing tool or a short command for simple work.
+Document prerequisites, inputs, outputs, side effects, failure behavior, and
+whether the agent should run the script or inspect it.
 
-## Write concise instructions
+In runnable examples, resolve bundled scripts from the loaded skill's absolute
+directory. Keep the working directory in the target project; a bare
+`scripts/helper.py` path would incorrectly look for the helper in that project.
 
-Include only context the model needs to perform the task safely and
-consistently. Do not explain basic language or library concepts.
+Agent-facing helpers should accept flags or stdin without interactive prompts,
+offer concise help, use meaningful exit codes, and send diagnostics to stderr.
+Use structured stdout when another program consumes it. Add dry-run or
+idempotent behavior when repeated execution could cause damage. Test actual
+behavior, including relevant failures. Read
+[using scripts](references/skill-creation-using-scripts.md) when adding helpers.
 
-| Task shape | Guidance to provide |
-| --- | --- |
-| Several valid approaches | Prose heuristics that let context decide. |
-| Preferred pattern with variation | Pseudocode or a parameterized script. |
-| Fragile, ordered, or high-stakes task | Exact command and an instruction not to modify it. |
+Follow the destination project's tooling conventions. In the dotfiles
+repository (`~/.dotfiles`), standalone Python helpers use PEP 723 dependency
+metadata and `uv run`.
+Helpers shared with humans use the repository's `--porcelain` pattern when
+human output would otherwise add interaction, color, or ambiguous paths.
+These are local conventions, not Agent Skills requirements.
 
-For multi-step work, use ordered steps and a copyable checklist. Close any
-quality-critical loop: run the validator, fix failures, and validate again.
+Put domain documentation in `references/` and output templates or other
+deliverable material in `assets/`. Keep every required resource available
+with the skill. Do not depend on an undocumented local file, another skill,
+or a tool unique to one host without declaring that requirement.
 
-Use one term for one concept. Avoid time-sensitive instructions; keep
-superseded material under an **Old patterns** heading. Use forward slashes in
-paths, fully qualify MCP tools as `ServerName:tool_name`, and prefer concrete
-input/output examples when output format matters. Provide one default with an
-escape hatch rather than several equal options.
+## Scaffold and validate
 
-### Progressive disclosure
-
-Metadata is always loaded, the body loads when the skill activates, and
-references load on demand. Keep `SKILL.md` below 500 lines and ideally below
-5,000 tokens. Put detailed material in direct, one-level-deep references.
-Give a reference over 100 lines a table of contents. State when to read each
-reference. Do not bury required instructions behind several reference hops.
-
-## Scripts
-
-Scripts must be self-contained or document their dependencies. They must
-support `--help`, accept non-interactive input through flags or stdin, and put
-data on stdout and diagnostics on stderr. Prefer structured output such as
-JSON or CSV. Make scripts idempotent when possible.
-
-Handle known errors in the script rather than leaving the agent to guess. Name
-and justify timeout values. State whether an agent should run a script or read
-it as reference; running is usually preferable because only its output enters
-context.
-
-For Python scripts, use PEP 723 metadata and invoke them with `uv run`:
-
-```python
-# /// script
-# requires-python = ">=3.11"
-# dependencies = ["beautifulsoup4>=4.12", "requests>=2.31"]
-# ///
-```
-
-```bash
-uv run "$SKILL_DIR/scripts/myscript.py"
-```
-
-Scripts that serve both humans and agents should support `--porcelain`.
-
-| Feature | Human mode | `--porcelain` |
-| --- | --- | --- |
-| Paths | Basenames | Full absolute paths |
-| Output | Colored and decorated | Plain and structured |
-| Interaction | Opens `$EDITOR` | Requires all arguments |
-| Errors | Colored stderr | Plain stderr |
-
-See `llm/skills/README.md` for the full porcelain pattern.
-
-## Client extensions
-
-Keep `SKILL.md` portable. Read the extension reference before adding a
-client-specific feature.
-
-### Codex CLI
-
-Codex supports portable frontmatter and optional `agents/openai.yaml`. Use the
-extension file only for Codex interface metadata, invocation policy, or MCP
-tool dependencies; do not move core workflow guidance there. Claude Code
-ignores `agents/openai.yaml`, so both clients can use the same skill. Most
-skills do not need this file.
-
-```yaml
-# agents/openai.yaml
-interface:
-  display_name: "User-facing name"
-  short_description: "User-facing description"
-  brand_color: "#3B82F6"
-
-policy:
-  allow_implicit_invocation: false
-
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "server-name"
-      transport: "streamable_http"
-      url: "https://example.com/mcp"
-```
-
-`policy.allow_implicit_invocation` defaults to `true`. Read
-`references/codex-build-skills.md` for the complete Codex extension model. It
-is the inverse of Claude’s `disable-model-invocation` setting.
-
-### Claude Code
-
-Claude Code supports these additional frontmatter fields:
-
-| Field | Purpose |
-| --- | --- |
-| `when_to_use` | Additional trigger phrases. |
-| `argument-hint` | Autocomplete hint. |
-| `arguments` | Named positional arguments for substitutions. |
-| `disable-model-invocation` | User-only invocation. |
-| `user-invocable` | Hide a model-only skill from the user menu. |
-| `disallowed-tools` | Remove tools while the skill is active. |
-| `model` / `effort` | Override model or effort. |
-| `context: fork` | Run the skill as a subagent prompt. |
-| `agent` / `background` | Set subagent type or blocking behavior. |
-| `hooks` | Attach lifecycle hooks. |
-| `paths` | Limit automatic activation to path globs. |
-
-Use default invocation for most skills. Use
-`disable-model-invocation: true` for side effects such as deploy, commit, or
-send. Use `user-invocable: false` for model-only background knowledge.
-
-Claude Code rewrites a skill's body before the model reads it. It
-substitutes the argument placeholders and the skill-directory,
-project-directory, session-ID, and effort variables, and it runs
-dynamic-context shell commands inline. Command output is not rescanned for
-substitutions. The directory variables also expand in `allowed-tools` Bash
-rules; reuse the same path in the rule and the skill body so a bundled script
-runs without an extra permission prompt. Invoked skill content persists for
-the session, so write standing instructions rather than one-time directions.
-
-Read `references/claude-code-skills.md` for the exact syntax before using
-these features. Do not quote that syntax in a `SKILL.md` as an example, even
-in a code span: the preprocessor expands or runs it there too.
-
-## Scaffold, validate, and evaluate
-
-Create a skill directory:
+In the commands below, set `SKILL_DIR` to the absolute directory containing
+this creator's `SKILL.md`. It is a local command variable, not a standard
+variable supplied by skill hosts. Keep the working directory in the target
+project and use the resolved creator path for its helpers.
 
 ```bash
 bash "$SKILL_DIR/scripts/scaffold.sh" <name> \
-  [--scripts] [--references] [--assets] [--codex] [--dir <path>]
+  [--scripts] [--references] [--assets] [--dir <parent-directory>]
+bash "$SKILL_DIR/scripts/validate.sh" <skill-directory>
 ```
 
-The scaffold validates the name, refuses an existing directory, and creates
-the skill in `--dir` or the current directory. It creates a `SKILL.md` stub
-and optionally creates the requested directories and `agents/openai.yaml`.
+Scaffolding refuses existing paths and emits only portable metadata. Replace
+its TODOs before use. Validation parses YAML, checks shared fields and naming,
+and reports unfinished scaffold markers. It warns about size recommendations,
+nonstandard fields, host-specific tool-hint types, angle brackets in
+descriptions, and names reserved by Claude API uploads. It does not validate
+host extensions, installation,
+links, script behavior, or output quality. Inspect those separately. The
+upstream `skills-ref validate <skill-directory>` is an additional format check
+when available; this helper is not a replacement for host testing.
 
-Validate a skill:
+## Evaluate and revise
 
-```bash
-bash "$SKILL_DIR/scripts/validate.sh" [--client <name>] <skill-directory>
-```
+Test two separate questions:
 
-Validation fails for missing or malformed required frontmatter, an invalid or
-mismatched name, XML tags in name or description, overlong description or
-compatibility fields, or a `SKILL.md` over 500 lines. It warns about reserved
-names, first- or second-person descriptions, weak trigger wording,
-unrecognized fields, unexpected top-level entries, and unsupported
-client-specific frontmatter. Claude validation also checks its listing-length
-convention; Codex validation checks optional `agents/openai.yaml` metadata. It
-prints PASS, FAIL, or WARN for each check; exits 0 on pass and 1 on failure.
+1. **Selection:** In a clean session with the skill discoverable, does a
+   realistic prompt cause the host to load it? Include relevant requests and
+   similar requests that should use something else. Explicit invocation tests
+   access, not automatic selection. Check traces or host logs rather than
+   trusting the agent's claim that it used the skill.
+2. **Task results:** Does the loaded skill improve the work? Start with a few
+   representative cases, including a meaningful boundary or failure case.
+   Compare with no skill for a new skill, or the previous version for an
+   update, using equivalent fresh contexts and inputs.
 
-Evaluate two independent outcomes in fresh sessions:
+Define observable success criteria. Check mechanical properties with code;
+review judgment and presentation with a clear human or model rubric. Inspect
+traces for wasted steps and missed instructions. Keep inputs, outputs,
+settings, and results so failures can be reproduced. Keep evaluation artifacts
+outside the distributable skill unless they are reusable fixtures.
 
-1. **Triggering:** test prompts that should and should not activate the skill.
-   Fix misses or false positives in the description and `when_to_use`.
-2. **Output quality:** compare realistic prompts with and without the skill.
+Repeat variable cases when confidence matters. Hold back some prompts when
+tuning descriptions so improvements generalize. Scale evaluation to the
+change; a small edit need not trigger a costly benchmark. Do not prescribe a
+particular model, subagent system, CLI, or evaluation file schema as universal.
+Read [evaluating skills](references/skill-creation-evaluating-skills.md) for
+the comparison protocol and optional fixture examples.
 
-Write at least three test cases before adding extensive guidance. Test every
-target model because their inference differs. See
-`references/skill-creation-evaluating-skills.md` for the eval-file format.
+Revise from observed failures, then repeat affected checks. Report the exact
+checks run and their limits. Structural validation proves format properties;
+a small behavioral sample does not prove reliability across hosts or models.
+If runtime testing is unavailable, say so and provide concrete test cases.
 
-## References and updates
+## Maintain the references
 
-Check `references/.last-updated` for freshness. Update vendored specification
-and client documentation with:
+[Research notes](references/research.md) record sources, findings, and the
+reasoning behind this portable workflow. Use them when reviewing or updating
+the creator itself. The bundled upstream pages are snapshots; check current
+official documentation before relying on changing host behavior.
 
 ```bash
 bash "$SKILL_DIR/scripts/update-references.sh"
 ```
 
-The update records the date and removes only vendored files listed in
-`.vendored`; hand-written references remain unchanged. Run it periodically.
-
-| Reference | Use when |
-| --- | --- |
-| `specification.md` | Checking the complete portable specification. |
-| `skill-creation-best-practices.md` | Scoping or calibrating a skill. |
-| `skill-creation-optimizing-descriptions.md` | Tuning activation. |
-| `skill-creation-using-scripts.md` | Writing scripts. |
-| `skill-creation-evaluating-skills.md` | Creating or running evaluations. |
-| `skill-creation-quickstart.md` | Following a complete starter walkthrough. |
-| `clients.md` | Checking supported skill clients. |
-| `claude-code-skills.md` | Adding Claude Code extensions. |
-| `anthropic-best-practices.md` | Applying detailed Anthropic authoring guidance. |
-| `anthropic-overview.md` | Understanding Anthropic skill architecture. |
-| `codex-build-skills.md` | Adding Codex extensions. |
+The updater fetches an explicit set of Agent Skills pages and records source
+URLs and fetch time. A failed or empty download leaves existing snapshots
+unchanged. It never refreshes hand-written references. It does not certify
+that downloaded advice is portable; review changed content before adopting it.

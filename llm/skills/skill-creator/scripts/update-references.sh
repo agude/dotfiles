@@ -1,148 +1,87 @@
 #!/usr/bin/env bash
-# update-references.sh — Fetch the latest Agent Skills docs into references/.
-#
-# Usage: update-references.sh
-#
-# Sources:
-#   - agentskills.io (the portable Agent Skills specification), discovered
-#     through the sitemap
-#   - Anthropic's Claude Code and platform docs, which cover the Claude-only
-#     extensions to the specification
-#   - OpenAI's Codex CLI docs, which cover the Codex-only extensions
-
+# Refresh only the explicitly selected portable authoring documentation.
 set -euo pipefail
 
-usage() {
-    cat <<'EOF'
+if [[ "${1:-}" == "--help" ]]; then
+    cat <<'HELP'
 Usage: update-references.sh
 
-Fetch the latest Agent Skills docs from agentskills.io, Anthropic, and OpenAI.
-
-Discovers agentskills.io pages through the sitemap, fetches each page's .md
-variant, and adds Anthropic's Claude Code and platform skill docs. Writes
-everything to references/ and records the fetch date in
-references/.last-updated.
-
-Only files this script vendored are removed when they disappear upstream;
-hand-written files in references/ are left alone.
-EOF
-}
-
-if [[ "${1:-}" == "--help" ]]; then
-    usage
+Fetch selected agentskills.io pages into references/. Requires curl and network
+access. Stage every page before replacing snapshots; any failed or empty
+response exits nonzero without changing existing references. Record source URLs
+and UTC fetch time. Remove obsolete files only from the previous vendored.txt
+manifest; leave hand-written references untouched.
+HELP
     exit 0
 fi
+if [[ $# -ne 0 ]]; then
+    echo "Error: unexpected arguments; use --help." >&2
+    exit 1
+fi
 
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REF_DIR="${SCRIPT_DIR}/../references"
-
-# Tracks which files this script owns, so hand-written references survive.
-MANIFEST="${REF_DIR}/.vendored"
-
-# Anthropic docs, as "url filename" pairs. These cover the Claude Code
-# extensions and authoring guidance that agentskills.io does not.
-ANTHROPIC_DOCS=(
-    "https://code.claude.com/docs/en/skills.md claude-code-skills.md"
-    "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md anthropic-best-practices.md"
-    "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview.md anthropic-overview.md"
-)
-
-# OpenAI docs covering Codex CLI skill extensions.
-OPENAI_DOCS=(
-    "https://learn.chatgpt.com/docs/build-skills.md codex-build-skills.md"
-)
-
 mkdir -p "$REF_DIR"
+STAGING_DIR="$(mktemp -d "${REF_DIR}/.refresh.XXXXXX")"
+trap 'rm -rf "$STAGING_DIR"' EXIT
 
-FETCHED=0
-FAILED=()
-REFRESHED_FILES=()
+PAGES=(
+    specification
+    skill-creation/best-practices
+    skill-creation/optimizing-descriptions
+    skill-creation/using-scripts
+    skill-creation/evaluating-skills
+    skill-creation/quickstart
+)
 
-# Fetch one markdown page. Leaves no file behind on failure.
-fetch_doc() {
-    local url="$1"
-    local filename="$2"
-    local destination="${REF_DIR}/${filename}"
-
-    echo "Fetching ${url} ..."
-    if ! curl -sfL "$url" -o "$destination"; then
-        rm -f "$destination"
-        echo "  Warning: failed to fetch ${url}" >&2
-        FAILED+=("$url")
-        return
+for page in "${PAGES[@]}"; do
+    filename="${page//\//-}.md"
+    url="https://agentskills.io/${page}.md"
+    echo "Fetching ${url}" >&2
+    # Bound connection setup and each complete transfer; avoid an indefinite
+    # refresh while allowing retries for transient documentation-site errors.
+    if ! curl --fail --silent --show-error --location --connect-timeout 10 \
+        --max-time 60 --retry 2 "$url" -o "${STAGING_DIR}/${filename}"; then
+        echo "Error: fetch failed; existing references are unchanged." >&2
+        exit 1
     fi
-
-    if [[ ! -s "$destination" ]]; then
-        rm -f "$destination"
-        echo "  Warning: empty response from ${url}, removing" >&2
-        FAILED+=("$url")
-        return
+    if [[ ! -s "${STAGING_DIR}/${filename}" ]] || \
+        ! LC_ALL=C grep -q '[^[:space:]]' "${STAGING_DIR}/${filename}" || \
+        LC_ALL=C awk 'NF { print; exit }' "${STAGING_DIR}/${filename}" | \
+            grep -qiE '^[[:space:]]*<!doctype html|^[[:space:]]*<html([[:space:]>])'; then
+        echo "Error: empty or HTML response for ${url}; references are unchanged." >&2
+        exit 1
     fi
-
-    FETCHED=$((FETCHED + 1))
-    REFRESHED_FILES+=("$filename")
-}
-
-# --- agentskills.io, discovered through the sitemap ---
-
-SITEMAP=$(curl -sL "https://agentskills.io/sitemap.xml")
-URLS=$(echo "$SITEMAP" | grep -o '<loc>[^<]*' | sed 's/<loc>//')
-
-for url in $URLS; do
-    # Extract path: https://agentskills.io/foo/bar -> foo/bar
-    path="${url#https://agentskills.io/}"
-
-    # Skip pages not relevant to skill authoring
-    case "$path" in
-        home|client-implementation*) continue ;;
-    esac
-
-    # Convert slashes to hyphens for filename: foo/bar -> foo-bar.md
-    fetch_doc "${url}.md" "${path//\//-}.md"
+    printf '%s\n' "$filename" >> "${STAGING_DIR}/vendored.txt"
+    printf '%s\t%s\n' "$filename" "$url" >> "${STAGING_DIR}/sources.tsv"
 done
 
-# --- Anthropic docs ---
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "${STAGING_DIR}/last-updated.txt"
 
-for doc in "${ANTHROPIC_DOCS[@]}"; do
-    fetch_doc "${doc% *}" "${doc#* }"
-done
-
-# --- OpenAI docs ---
-
-for doc in "${OPENAI_DOCS[@]}"; do
-    fetch_doc "${doc% *}" "${doc#* }"
-done
-
-# --- Remove vendored files that vanished upstream ---
-# Skipped when nothing was fetched, so a network outage can't wipe references/.
-
-REMOVED=()
-if [[ $FETCHED -gt 0 && -f "$MANIFEST" ]]; then
-    while IFS= read -r previous_file; do
-        [[ -n "$previous_file" ]] || continue
-        if ! printf '%s\n' "${REFRESHED_FILES[@]}" | grep -qxF "$previous_file"; then
-            echo "Removing stale: ${previous_file}"
-            rm -f "${REF_DIR}/${previous_file}"
-            REMOVED+=("$previous_file")
+# Validate all old manifest paths before modifying anything. Never let a
+# malformed manifest remove a directory or escape references/.
+if [[ -f "${REF_DIR}/vendored.txt" ]]; then
+    while IFS= read -r filename; do
+        [[ -n "$filename" ]] || continue
+        if ! [[ "$filename" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*\.md$ ]]; then
+            echo "Error: invalid vendored path: ${filename}" >&2
+            exit 1
         fi
-    done < "$MANIFEST"
+    done < "${REF_DIR}/vendored.txt"
 fi
 
-if [[ $FETCHED -gt 0 ]]; then
-    printf '%s\n' "${REFRESHED_FILES[@]}" | sort > "$MANIFEST"
-    date -Iseconds > "${REF_DIR}/.last-updated"
+if [[ -f "${REF_DIR}/vendored.txt" ]]; then
+    while IFS= read -r filename; do
+        [[ -n "$filename" ]] || continue
+        if ! grep -qxF "$filename" "${STAGING_DIR}/vendored.txt"; then
+            rm -f "${REF_DIR}/${filename}"
+        fi
+    done < "${REF_DIR}/vendored.txt"
 fi
-
-# --- Summary ---
-echo ""
-echo "Fetched ${FETCHED} reference file(s) into ${REF_DIR}/"
-if [[ ${#REMOVED[@]} -gt 0 ]]; then
-    echo "Removed ${#REMOVED[@]} stale file(s): ${REMOVED[*]}"
-fi
-if [[ ${#FAILED[@]} -gt 0 ]]; then
-    echo "Failed to fetch ${#FAILED[@]} URL(s):"
-    for failure in "${FAILED[@]}"; do
-        echo "  - $failure"
-    done
-fi
-echo "Last updated: $(cat "${REF_DIR}/.last-updated")"
+for filename in "${STAGING_DIR}"/*.md; do
+    mv "$filename" "${REF_DIR}/"
+done
+for filename in vendored.txt sources.tsv last-updated.txt; do
+    mv "${STAGING_DIR}/${filename}" "${REF_DIR}/${filename}"
+done
+printf 'Updated %s reference pages.\n' "${#PAGES[@]}"

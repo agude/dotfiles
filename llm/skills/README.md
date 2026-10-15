@@ -8,9 +8,8 @@ multiple LLM CLI tools (Claude Code, Goose, etc.).
 Agent Skills are folders of instructions, scripts, and resources that LLM agents
 can discover and use to perform tasks more accurately and efficiently. The
 [Agent Skills spec](https://agentskills.io) is an open standard supported by
-Claude Code, Codex CLI, and others. Unlike slash commands (which you invoke
-explicitly), skills are passive knowledge that agents draw on automatically
-when relevant.
+Claude Code, Codex CLI, and others. Hosts can select skills automatically or
+expose explicit invocation. Discovery, invocation, and permissions vary by host.
 
 ## Structure
 
@@ -52,10 +51,10 @@ allowed-tools: "tool names" # Optional, experimental; support varies by client
 - Best practice 2
 ```
 
-Claude Code implements this spec and adds optional fields of its own —
-`when_to_use`, `disable-model-invocation`, `user-invocable`, `arguments`,
-`model`, `context: fork`, and others. Other clients ignore them. See
-`skill-creator/references/claude-code-skills.md`.
+Keep shared workflows independent of host extensions. Unsupported fields are
+not guaranteed to be ignored. See
+[portability checks](skill-creator/references/portability.md) before adding
+host-specific invocation, tool, or permission settings.
 
 ## Creating a Skill
 
@@ -66,6 +65,9 @@ authoring guidance. Manually:
 2. Create `SKILL.md` with required frontmatter
 3. Add optional `scripts/`, `references/`, or `assets/` as needed
 4. Validate: `bash skill-creator/scripts/validate.sh ./skill-name/`
+
+The validator requires uv and Python 3.11+; uv resolves its pinned PyYAML
+dependency. It checks shared metadata, not host behavior or task quality.
 
 ## Bundled Resource Paths
 

@@ -1,0 +1,6 @@
+specification.md
+skill-creation-best-practices.md
+skill-creation-optimizing-descriptions.md
+skill-creation-using-scripts.md
+skill-creation-evaluating-skills.md
+skill-creation-quickstart.md
