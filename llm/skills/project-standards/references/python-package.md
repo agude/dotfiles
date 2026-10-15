@@ -28,6 +28,11 @@ mechanism and `uv sync --locked --dev` installs it without touching the
 package's public extras. Use `just lock` for deliberate resolution and never
 let ordinary lint, tests, or CI repair `uv.lock`.
 
+The project lock does not pin isolated build-system resolution. `uv build` and
+the sdist-to-wheel package check may resolve Hatchling or another backend in a
+temporary build environment, so that network/cache boundary must be validated
+separately from runtime and development dependency locking.
+
 **Commit `uv.lock`.** A gitignored lockfile means CI resolves fresh on every
 run, so a new release of a linter can fail a build that touched nothing.
 That has happened here: `wayback-machine-archiver` silently moved to a new
