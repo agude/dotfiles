@@ -215,6 +215,18 @@ EOF
     [[ "$output" == *$'PASS\tci.callsrunner'* ]]
 }
 
+@test "audit reports missing action release comments" {
+    run bash "$SCAFFOLD" "$TEST_ROOT/library" sample_package
+    [ "$status" -eq 0 ]
+    sed 's/ # v7$//' "$TEST_ROOT/library/.github/workflows/ci.yml" > \
+        "$TEST_ROOT/library/.github/workflows/ci.yml.new"
+    mv "$TEST_ROOT/library/.github/workflows/ci.yml.new" \
+        "$TEST_ROOT/library/.github/workflows/ci.yml"
+    run bash "$AUDIT" "$TEST_ROOT/library" --porcelain
+    [ "$status" -eq 0 ]
+    [[ "$output" == *$'WARN\tci.pin-comments'* ]]
+}
+
 @test "audit does not flag a checker named in a package install step" {
     mkdir -p "$TEST_ROOT/shell/bin" "$TEST_ROOT/shell/.github/workflows"
     cat > "$TEST_ROOT/shell/justfile" <<'EOF'

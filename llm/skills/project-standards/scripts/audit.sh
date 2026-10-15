@@ -406,26 +406,38 @@ EOF
     fi
 
     # Pinned action versions (the table in SKILL.md is authoritative).
-    local drift="" action expected
-    while IFS='|' read -r action _ref expected; do
+    local drift="" comment_missing="" action expected version
+    while IFS='|' read -r action _ref expected version; do
         [ -n "$action" ] || continue
         while IFS= read -r actual; do
             [ -n "$actual" ] || continue
             [ "$actual" = "$expected" ] || drift="$drift $action@$actual"
         done < <(grep -rhoE "$action@[^[:space:]]+" "$dir" 2>/dev/null | sed "s|^$action@||" | sort -u)
+        while IFS= read -r line; do
+            [ -n "$line" ] || continue
+            case "$line" in
+                *"# $version"*) ;;
+                *) comment_missing="$comment_missing $action" ;;
+            esac
+        done < <(grep -rhE "$action@$expected([[:space:]]|$)" "$dir" 2>/dev/null | sort -u)
     done <<EOF
-actions/checkout|$(policy_action "$POLICY" checkout)|$(policy_action "$POLICY" checkout)
-astral-sh/setup-uv|$(policy_action "$POLICY" setup_uv)|$(policy_action "$POLICY" setup_uv)
-extractions/setup-just|$(policy_action "$POLICY" setup_just)|$(policy_action "$POLICY" setup_just)
-actions/setup-python|$(policy_action "$POLICY" setup_python)|$(policy_action "$POLICY" setup_python)
-actions/upload-artifact|$(policy_action "$POLICY" upload_artifact)|$(policy_action "$POLICY" upload_artifact)
-actions/download-artifact|$(policy_action "$POLICY" download_artifact)|$(policy_action "$POLICY" download_artifact)
-pypa/gh-action-pypi-publish|$(policy_action "$POLICY" pypi_publish)|$(policy_action "$POLICY" pypi_publish)
+actions/checkout|$(policy_action "$POLICY" checkout)|$(policy_action "$POLICY" checkout)|$(policy_action_version "$POLICY" checkout)
+astral-sh/setup-uv|$(policy_action "$POLICY" setup_uv)|$(policy_action "$POLICY" setup_uv)|$(policy_action_version "$POLICY" setup_uv)
+extractions/setup-just|$(policy_action "$POLICY" setup_just)|$(policy_action "$POLICY" setup_just)|$(policy_action_version "$POLICY" setup_just)
+actions/setup-python|$(policy_action "$POLICY" setup_python)|$(policy_action "$POLICY" setup_python)|$(policy_action_version "$POLICY" setup_python)
+actions/upload-artifact|$(policy_action "$POLICY" upload_artifact)|$(policy_action "$POLICY" upload_artifact)|$(policy_action_version "$POLICY" upload_artifact)
+actions/download-artifact|$(policy_action "$POLICY" download_artifact)|$(policy_action "$POLICY" download_artifact)|$(policy_action_version "$POLICY" download_artifact)
+pypa/gh-action-pypi-publish|$(policy_action "$POLICY" pypi_publish)|$(policy_action "$POLICY" pypi_publish)|$(policy_action_version "$POLICY" pypi_publish)
 EOF
     if [ -n "$drift" ]; then
         report WARN ci.pins "off-standard pins: $drift"
     else
         report PASS ci.pins "action versions match the pinned set"
+    fi
+    if [ -n "$comment_missing" ]; then
+        report WARN ci.pin-comments "missing readable release comments:$comment_missing"
+    else
+        report PASS ci.pin-comments "action release comments match the pinned set"
     fi
 }
 

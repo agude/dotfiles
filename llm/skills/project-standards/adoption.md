@@ -7,7 +7,7 @@ hosted account setup and fleet rollout.
 
 | Pilot | Scope | Evidence | Result |
 |---|---|---|---|
-| Generated Python library | Offline library scaffold, audit, package fixture | `bats llm/skills/project-standards/tests/` (25 cases) | Passes generation, audit, and isolated package fixture |
+| Generated Python library | Offline library scaffold, audit, package fixture | `bats llm/skills/project-standards/tests/` (26 cases) | Passes generation, audit, and isolated package fixture |
 | Generated Python CLI | Separate import, distribution, and command names | Bats CLI scaffold case | Passes rendering and placeholder checks |
 | Apps Script | Offline source and manual test entry point | Bats Apps Script case | Passes structural generation; runtime remains bound-project work |
 | Existing shell repository | `/home/agude/.dotfiles` audit and root lint | `bash llm/skills/project-standards/scripts/audit.sh . --porcelain`; `just lint` | Passes applicable local checks |
