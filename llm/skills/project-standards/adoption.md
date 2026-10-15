@@ -44,6 +44,8 @@ the current generator's manual maintenance before adopting it broadly.
 
 `policy.toml` is authoritative for generated Python versions, action refs,
 workflow-linter versions, and required Python recipes. `renovate.json5` is a
-reviewable update preset for GitHub Actions and Python dependencies. The
-scheduled support recipe reports candidates but never raises support floors or
-rewrites project files automatically.
+reviewable update preset for GitHub Actions and Python dependencies. Renovate
+44.164.5 validates the preset; its `pep621` manager owns both `pyproject.toml`
+dependencies and `uv.lock` maintenance. The scheduled support recipe reports
+candidates but never raises support floors or rewrites project files
+automatically. Hosted Renovate activation remains pending.

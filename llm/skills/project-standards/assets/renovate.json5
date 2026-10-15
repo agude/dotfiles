@@ -1,8 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["github-actions", "pep621", "uv"],
+  "enabledManagers": ["github-actions", "pep621"],
   "schedule": ["before 6am on monday"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "separateMajorMinor": true,
   "packageRules": [
     {
       "description": "Group routine GitHub Actions maintenance",
@@ -16,11 +21,6 @@
       "matchDepTypes": ["dependency-groups"],
       "matchUpdateTypes": ["patch", "minor"],
       "groupName": "Python development dependencies"
-    },
-    {
-      "description": "Keep major updates separately reviewable",
-      "matchUpdateTypes": ["major"],
-      "separateMajorMinor": true
     }
   ]
 }

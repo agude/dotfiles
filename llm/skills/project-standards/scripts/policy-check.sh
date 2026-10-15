@@ -17,6 +17,14 @@ for required_file in "$SKILL_DIR/SKILL.md" "$SKILL_DIR/assets/justfile" \
 done
 
 jq empty "$SKILL_DIR/assets/renovate.json5" >/dev/null
+jq -e '
+    .enabledManagers == ["github-actions", "pep621"] and
+    .lockFileMaintenance.enabled == true and
+    .separateMajorMinor == true
+' "$SKILL_DIR/assets/renovate.json5" >/dev/null || {
+    echo "policy: Renovate preset does not enable GitHub Actions/PEP 621 lock maintenance" >&2
+    exit 1
+}
 
 floor="$(policy_value "$SKILL_DIR/policy.toml" python floor)"
 latest="$(policy_value "$SKILL_DIR/policy.toml" python latest)"

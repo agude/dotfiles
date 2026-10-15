@@ -49,7 +49,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 5.5 | Complete locally | Waiver identity, scope, reason, and machine-readable reporting cases pass. |
 | 6.1 | Complete | `policy.toml` is validated and consumed by scaffold, audit, documentation, and maintenance checks. |
 | 6.2 | Complete locally | Policy check detects stale docs/templates and verifies generated Python/action/linter values. |
-| 6.3 | Prepared locally | Renovate preset is rendered and syntax-checked; hosted Renovate validation/dry-run is not configured. |
+| 6.3 | Config complete locally; hosted dry-run pending | Renovate’s official validator 44.164.5 accepts the preset; it uses `pep621` for uv dependencies and lock maintenance. No hosted Renovate dry-run was configured. |
 | 6.4 | Complete locally | Scheduled support review runs policy consistency and explicit candidate-version checks without raising floors automatically. |
 | 6.5 | Pending hosted adoption | No hosted bot was activated and no reviewable hosted update PR was created. |
 | 7.1 | Complete locally; required in CI | Framework hook, unconditional lint trigger, staged-content fixture, and restore behavior are implemented. |
