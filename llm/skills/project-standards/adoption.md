@@ -46,6 +46,8 @@ the current generator's manual maintenance before adopting it broadly.
 workflow-linter versions, and required Python recipes. `renovate.json5` is a
 reviewable update preset for GitHub Actions and Python dependencies. Renovate
 44.164.5 validates the preset; its `pep621` manager owns both `pyproject.toml`
-dependencies and `uv.lock` maintenance. The scheduled support recipe reports
-candidates but never raises support floors or rewrites project files
-automatically. Hosted Renovate activation remains pending.
+dependencies and `uv.lock` maintenance. A local-platform extract dry run with
+Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a
+committed generated fixture. The scheduled support recipe reports candidates
+but never raises support floors or rewrites project files automatically.
+Hosted Renovate activation remains pending.
