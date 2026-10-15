@@ -14,7 +14,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 7 Hooks | Complete locally; staged-content integration required in CI | Framework config, effective hooks path, foreign-hook backup, custom-path fixture, and the disposable staged-content integration case are implemented. |
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
 | 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
-| 10 Skill/evaluations | Structural and fixture validation complete; agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but no hosted agent evaluation trace was generated. |
+| 10 Skill/evaluations | Structural and fixture validation complete; fresh-context agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but this environment exposes no fresh-context agent evaluation runner. |
 | 11 Final verification | Partial by environment | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, and audit pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
 
 ## Step-level disposition
@@ -67,7 +67,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.1 | Complete locally | Entrypoint documents archetype selection, policy use, helper interfaces, and verification workflow. |
 | 10.2 | Complete locally | Runner, lock, package, hook, release, Jekyll, matrix, coverage, and licensing guidance is aligned. |
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
-| 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; fresh previous-versus-revised agent traces were not generated. |
+| 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; no supported fresh-context agent runner is available here for previous-versus-revised traces. |
 | 11.1 | Partial by environment | Local affected gates pass; CPython 3.15 integration and root `just check` remain limited by host interpreter/tooling and unrelated OpenCode `ServeError`. |
 | 11.2 | Complete | 41 reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |
