@@ -13,6 +13,7 @@ Options:
   --distribution NAME   Expected distribution name.
   --command NAME        Console command to invoke after installation.
   --version VERSION     Expected package version.
+  --license PATH        Require PATH in both distributions.
   --typed               Require PACKAGE/py.typed in the wheel.
 EOF
     exit 2
@@ -23,6 +24,7 @@ IMPORT_NAME=""
 DISTRIBUTION_NAME=""
 COMMAND_NAME=""
 EXPECTED_VERSION=""
+LICENSE_FILE=""
 REQUIRE_TYPED="false"
 
 while [ $# -gt 0 ]; do
@@ -32,6 +34,7 @@ while [ $# -gt 0 ]; do
         --distribution) [ $# -ge 2 ] || usage; DISTRIBUTION_NAME="$2"; shift 2 ;;
         --command) [ $# -ge 2 ] || usage; COMMAND_NAME="$2"; shift 2 ;;
         --version) [ $# -ge 2 ] || usage; EXPECTED_VERSION="$2"; shift 2 ;;
+        --license) [ $# -ge 2 ] || usage; LICENSE_FILE="$2"; shift 2 ;;
         --typed) REQUIRE_TYPED="true"; shift ;;
         -h|--help) usage ;;
         *) echo "package-check.sh: unknown option: $1" >&2; usage ;;
@@ -94,6 +97,10 @@ if [ "$REQUIRE_TYPED" = "true" ]; then
 fi
 python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$IMPORT_NAME/__init__.py"
 python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$IMPORT_NAME/__init__.py"
+if [ -n "$LICENSE_FILE" ]; then
+    python3 "$SCRIPT_DIR/check-archive-path.py" "$wheel" "$LICENSE_FILE"
+    python3 "$SCRIPT_DIR/check-archive-path.py" "$sdist" "$LICENSE_FILE"
+fi
 
 venv=""
 check_root=""

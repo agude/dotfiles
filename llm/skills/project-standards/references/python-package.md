@@ -183,9 +183,9 @@ Set the number a point or two below the measured value so ordinary variation
 does not fail the build.
 
 Keep `just package-check` in the gate. It validates both wheel and sdist
-metadata, installs the exact wheel into a clean environment outside the source
-tree, verifies the import location and version, and invokes a console command
-only when the project declares one.
+metadata and required package/license content, installs the exact wheel into a
+clean environment outside the source tree, verifies the import location and
+version, and invokes a console command only when the project declares one.
 
 ## CI
 

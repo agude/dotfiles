@@ -220,8 +220,9 @@ the bound project before adding runtime behavior.
 ## Package and release validation
 
 `package-check` accepts an existing artifact directory or builds a fresh
-temporary set. It verifies wheel and sdist metadata, checks the typed marker
-for generated libraries, installs the exact wheel into a clean temporary
+temporary set. It verifies wheel and sdist metadata, package content, the
+declared license file, and the typed marker for generated libraries, then
+installs the exact wheel into a clean temporary
 environment outside the checkout, and verifies the imported module location
 and version. CLI projects pass their console command separately; libraries do
 not assume a command exists.

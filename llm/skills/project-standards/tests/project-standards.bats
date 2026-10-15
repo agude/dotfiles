@@ -154,6 +154,7 @@ wheel_text = "Wheel-Version: 1.0\nGenerator: fixture\nRoot-Is-Purelib: true\nTag
 files = {
     "demo_pkg/__init__.py": "__version__ = '1.0.0'\n",
     "demo_pkg/py.typed": "",
+    "LICENSE.md": "public domain\n",
     f"{dist_info}/METADATA": metadata,
     f"{dist_info}/WHEEL": wheel_text,
     f"{dist_info}/RECORD": "",
@@ -167,6 +168,7 @@ with tarfile.open(sdist, "w:gz") as opened:
     for name, content in {
         "demo-pkg-1.0.0/PKG-INFO": metadata,
         "demo-pkg-1.0.0/demo_pkg/__init__.py": files["demo_pkg/__init__.py"],
+        "demo-pkg-1.0.0/LICENSE.md": files["LICENSE.md"],
     }.items():
         data = content.encode()
         info = tarfile.TarInfo(name)
@@ -175,7 +177,7 @@ with tarfile.open(sdist, "w:gz") as opened:
 PY
     run env UV_CACHE_DIR="$TEST_ROOT/cache" bash "$SKILL_ROOT/assets/package-check.sh" \
         --artifacts "$TEST_ROOT/artifacts" --import demo_pkg --distribution demo-pkg \
-        --version 1.0.0 --typed
+        --version 1.0.0 --license LICENSE.md --typed
     [ "$status" -eq 0 ]
     [[ "$output" == *"imported demo_pkg"* ]]
 }
