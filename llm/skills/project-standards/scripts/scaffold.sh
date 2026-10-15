@@ -198,14 +198,15 @@ touch "src/$PACKAGE/py.typed"
 if [ "$KIND" = "cli" ]; then
     cat > "tests/test_package.py" <<TEST
 import sys
+from importlib.metadata import version
 from unittest.mock import patch
 
 from $PACKAGE import __version__
 from $PACKAGE.cli import main
 
 
-def test_version_is_available() -> None:
-    assert __version__ == "0.1.0"
+def test_version_matches_distribution() -> None:
+    assert __version__ == version("$REPO")
 
 
 def test_cli_main() -> None:
@@ -214,11 +215,13 @@ def test_cli_main() -> None:
 TEST
 else
     cat > "tests/test_package.py" <<TEST
+from importlib.metadata import version
+
 from $PACKAGE import __version__
 
 
-def test_version_is_available() -> None:
-    assert __version__ == "0.1.0"
+def test_version_matches_distribution() -> None:
+    assert __version__ == version("$REPO")
 TEST
 fi
 if [ "$KIND" = "cli" ]; then

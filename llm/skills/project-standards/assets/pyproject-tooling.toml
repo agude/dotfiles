@@ -16,6 +16,10 @@ pattern = "^__version__(?::\\s*str)?\\s*=\\s*['\"](?P<version>[^'\"]+)['\"]"
 [tool.hatch.build.targets.wheel]
 packages = ["src/PACKAGE"]
 
+[tool.uv]
+# Rebuild editable metadata when the single source of the version changes.
+cache-keys = [{ file = "pyproject.toml" }, { file = "src/PACKAGE/__init__.py" }]
+
 [dependency-groups]
 dev = [
     "pytest>=8.0",

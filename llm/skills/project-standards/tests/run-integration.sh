@@ -13,7 +13,8 @@ trap 'rm -rf "$ROOT"' EXIT
 
 python_latest="$(policy_value "$SKILL_ROOT/policy.toml" python latest)"
 export UV_PYTHON_INSTALL_DIR="$ROOT/python"
-uv python install "$python_latest"
+export PRE_COMMIT_HOME="$ROOT/pre-commit"
+uv python install --no-bin "$python_latest"
 
 bash "$SKILL_ROOT/scripts/scaffold.sh" "$ROOT/library" integration_library --bootstrap
 (cd "$ROOT/library" && git add -A)
@@ -26,6 +27,10 @@ if (cd "$ROOT/library" && uv run --locked pre-commit run); then
 fi
 grep -q '__version__: str = "0.1.0"' "$ROOT/library/src/integration_library/__init__.py"
 (cd "$ROOT/library" && just check)
+
+# A source version bump must not require rewriting the generated test.
+printf '__version__: str = "0.2.0"\n' > "$ROOT/library/src/integration_library/__init__.py"
+(cd "$ROOT/library" && just lock && just sync && just test)
 
 bash "$SKILL_ROOT/scripts/scaffold.sh" "$ROOT/cli" integration_cli \
     --kind cli --distribution-name integration-cli --command-name integration-tool \
