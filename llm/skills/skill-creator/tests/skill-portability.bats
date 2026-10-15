@@ -55,3 +55,11 @@ teardown() {
     [[ "$status" -ne 0 ]]
     [[ "$output" == *"Codex short description length (25-64)"* ]]
 }
+
+@test "SKILL.md does not quote Claude Code substitution syntax" {
+    # Claude Code expands these in a skill body, even inside code spans, so
+    # documenting them here garbles the loaded skill. They belong in
+    # references/claude-code-skills.md, which is read without preprocessing.
+    run grep -n -E '!`|```!|\$ARGUMENTS|\$[0-9]|\$\{CLAUDE_' "$SKILL_CREATOR/SKILL.md"
+    [[ "$status" -ne 0 ]]
+}

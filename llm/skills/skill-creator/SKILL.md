@@ -198,19 +198,18 @@ Use default invocation for most skills. Use
 `disable-model-invocation: true` for side effects such as deploy, commit, or
 send. Use `user-invocable: false` for model-only background knowledge.
 
-Claude expands `$ARGUMENTS` as typed; `$0`, `$1`, and later positional
-arguments with shell-style quoting; named `$name` arguments; and the
-`${CLAUDE_SKILL_DIR}`, `${CLAUDE_PROJECT_DIR}`, `${CLAUDE_SESSION_ID}`, and
-`${CLAUDE_EFFORT}` variables. Dynamic context uses `` !`command` `` or a
-` ```! ` fenced command. It runs before the skill is read, and its output is
-not rescanned for substitutions. Invoked skill content persists for the
-session, so write standing instructions rather than one-time directions.
+Claude Code rewrites a skill's body before the model reads it. It
+substitutes the argument placeholders and the skill-directory,
+project-directory, session-ID, and effort variables, and it runs
+dynamic-context shell commands inline. Command output is not rescanned for
+substitutions. The directory variables also expand in `allowed-tools` Bash
+rules; reuse the same path in the rule and the skill body so a bundled script
+runs without an extra permission prompt. Invoked skill content persists for
+the session, so write standing instructions rather than one-time directions.
 
-`${CLAUDE_SKILL_DIR}` and `${CLAUDE_PROJECT_DIR}` also expand in Claude
-`allowed-tools` rules. Reuse the same path in the rule and the skill body so a
-bundled script runs without an extra permission prompt.
-
-Read `references/claude-code-skills.md` before using these features.
+Read `references/claude-code-skills.md` for the exact syntax before using
+these features. Do not quote that syntax in a `SKILL.md` as an example, even
+in a code span: the preprocessor expands or runs it there too.
 
 ## Scaffold, validate, and evaluate
 
