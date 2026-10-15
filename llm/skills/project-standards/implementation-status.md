@@ -10,7 +10,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 3 Distribution validation | Complete locally | Wheel/sdist metadata, package-content, sdist-to-wheel rebuild, isolated import, version, typed-marker, and optional CLI checks are implemented; deterministic fixture and Copier gate pass through uv-managed helper execution. |
 | 4 Publishing | Local implementation complete; external setup pending | Artifact transfer, tag validation, named `pypi` environment, and publish-only OIDC job are rendered. GitHub/PyPI configuration was not changed or verified. |
 | 5 Audit | Complete for implemented rules | Runner graph, workflow syntax, lock tracking, policy, waiver, hook, single-file, action-SHA, and release-comment fixtures pass. Rendered publishing and non-publishing workflows pass actionlint 1.7.7 and zizmor 1.14.2. |
-| 6 Maintenance | Local implementation complete; hosted adoption pending | Policy, Renovate preset, scheduled support review, policy/template consistency gate, and candidate-version regression are present. No hosted bot was activated. |
+| 6 Maintenance | Local implementation and bounded adoption complete; hosted adoption pending | Policy, Renovate preset, scheduled support review, policy/template consistency gate, candidate-version regression, and the `ccrs-to-sqlite` pilot are present. No hosted bot was activated. |
 | 7 Hooks | Complete locally; staged-content integration required in CI | Framework config, effective hooks path, foreign-hook backup, custom-path fixture, and the disposable staged-content integration case are implemented. |
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
 | 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
@@ -51,7 +51,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 6.2 | Complete locally | Policy check detects stale docs/templates and verifies generated Python/action/linter values. |
 | 6.3 | Complete locally; hosted activation pending | Renovate’s official validator 44.164.5 accepts the preset. A local-platform extract dry run with Renovate 42.99.0 found 14 GitHub Actions and 7 PEP 621 dependencies in a committed generated fixture; no hosted bot or PR was configured. |
 | 6.4 | Complete locally | Scheduled support review runs policy consistency and explicit candidate-version checks without raising floors automatically. |
-| 6.5 | Pending hosted adoption | No hosted bot was activated and no reviewable hosted update PR was created. |
+| 6.5 | Local pilot complete; hosted adoption pending | `ccrs-to-sqlite` committed the bounded standards pilot as `6108fc4`; no hosted bot was activated and no reviewable hosted update PR was created. |
 | 7.1 | Complete locally; required in CI | Framework hook, unconditional lint trigger, staged-content fixture, and restore behavior are implemented. |
 | 7.2 | Complete locally | Git effective hook paths, worktree paths, foreign-hook backups, and repeatable installation are tested. |
 | 7.3 | Complete locally | Audit recognizes configured versus installed hooks and missing/foreign wiring. |

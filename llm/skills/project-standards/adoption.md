@@ -11,12 +11,19 @@ hosted account setup and fleet rollout.
 | Generated Python CLI | Separate import, distribution, and command names | Bats CLI scaffold case | Passes rendering and placeholder checks |
 | Apps Script | Offline source and manual test entry point | Bats Apps Script case | Passes structural generation; runtime remains bound-project work |
 | Existing shell repository | `/home/agude/.dotfiles` audit and root lint | `bash llm/skills/project-standards/scripts/audit.sh . --porcelain`; `just lint` | Passes applicable local checks |
+| Existing Python package | `/home/agude/Projects/ccrs-to-sqlite` | Baseline audit failed only the runner contract because `check` did not reach `package-check`; bounded pilot committed as `6108fc4` | Post-change audit passes; `just check` passes on CPython 3.15 with 469 tests, 99.27% coverage, isolated wheel/sdist validation, and the installed pre-commit hook |
 | Copier update pilot | Scaffold-derived Python template with one committed customization | `COPIER_PILOT_CHECK=1 just test-project-standards-copier` using Copier 9.19.1, CPython 3.13.6, actionlint 1.7.7, and zizmor 1.14.2 | Custom README and project-owned file survive one template update; repeated update is clean; defer fleet adoption |
 
 The dependency-backed generated-project integration now passes locally on
 CPython 3.15 with Hatchling and the declared workflow linters, using temporary
 cache and interpreter paths. CI remains responsible for the full declared
 interpreter matrix.
+
+The existing-package pilot used the clean `ccrs-to-sqlite` main branch. It
+added the locked runner contract, distribution checks, staged-content hook,
+SHA-pinned workflows, and publish-only artifact transfer in one atomic commit.
+The local audit and full gate pass after the change; GitHub environment,
+Trusted Publisher, TestPyPI, and hosted Renovate setup remain untouched.
 
 ## Hosted release setup
 
