@@ -207,3 +207,30 @@ EOF
     [ -f "$TEST_ROOT/project/custom-hooks/pre-commit.project-standards-backup" ]
     grep -q 'pre-commit framework' "$TEST_ROOT/project/custom-hooks/pre-commit"
 }
+
+@test "locked uv execution rejects stale metadata without changing the lock" {
+    mkdir -p "$TEST_ROOT/lock-fixture/src/lock_fixture"
+    python3 - "$TEST_ROOT/lock-fixture" <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+(root / "pyproject.toml").write_text(
+    "[project]\n"
+    'name = "lock-fixture"\n'
+    'version = "0.1.0"\n'
+    'requires-python = ">=3.12"\n'
+    "dependencies = []\n"
+)
+(root / "src/lock_fixture/__init__.py").write_text('__version__ = "0.1.0"\n')
+PY
+    run bash -c "cd '$TEST_ROOT/lock-fixture' && UV_CACHE_DIR='$TEST_ROOT/uv-cache' uv lock"
+    [ "$status" -eq 0 ]
+    cp "$TEST_ROOT/lock-fixture/uv.lock" "$TEST_ROOT/uv.lock.before"
+    sed 's/>=3.12/>=3.13/' "$TEST_ROOT/lock-fixture/pyproject.toml" > "$TEST_ROOT/lock-fixture/pyproject.new"
+    mv "$TEST_ROOT/lock-fixture/pyproject.new" "$TEST_ROOT/lock-fixture/pyproject.toml"
+    run bash -c "cd '$TEST_ROOT/lock-fixture' && UV_CACHE_DIR='$TEST_ROOT/uv-cache' uv run --locked python -c 'print(\"unexpected success\")'"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"needs to be updated"* ]]
+    cmp "$TEST_ROOT/uv.lock.before" "$TEST_ROOT/lock-fixture/uv.lock"
+}

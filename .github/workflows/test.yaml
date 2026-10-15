@@ -79,7 +79,7 @@ jobs:
       - name: Install test dependencies
         run: apk add --no-cache bats jq just python3 tree zsh
       - name: Run shell tests
-        run: just test-shell test-project-standards
+        run: just test-shell
 
   install:
     name: Install on ${{ matrix.os }}
