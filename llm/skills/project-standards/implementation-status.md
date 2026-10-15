@@ -25,7 +25,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 0.2 | Complete | Temporary Bats fixtures reproduce the reviewed scaffold, lock, audit, package, hook, and staged-content defects. |
 | 0.3 | Complete | `SKILL.md`, policy, runner contracts, and adoption notes define offline, locked, read-only, and matrix boundaries. |
 | 1.1 | Complete locally | Bats owns temporary directories and controlled fixtures; missing required tools fail with diagnostics. |
-| 1.2 | Complete locally | 25 Bats cases cover runner, workflow, waiver, lock, package, hook, and single-file rules. |
+| 1.2 | Complete locally | 26 Bats cases cover runner, workflow, waiver, lock, package, hook, and single-file rules. |
 | 1.3 | Complete locally | Library, CLI, publishing, non-publishing, Apps Script, naming, destination, and placeholder cases pass. |
 | 1.4 | Required in CI | Local generated integration is blocked before scaffold creation by host uv 0.8.8 lacking a CPython 3.15 download; the CI job runs the declared matrix workflow. |
 | 1.5 | Complete | Root CI calls the offline and dependency-backed project-standards recipes without duplicating their test commands. |
@@ -69,7 +69,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
 | 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; fresh previous-versus-revised agent traces were not generated. |
 | 11.1 | Partial by environment | Local affected gates pass; CPython 3.15 integration and root `just check` remain limited by host interpreter/tooling and unrelated OpenCode `ServeError`. |
-| 11.2 | Complete | 36 reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
+| 11.2 | Complete | 41 reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |
 
 The remaining items are external or environment-dependent. They are not
