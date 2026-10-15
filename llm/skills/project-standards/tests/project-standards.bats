@@ -234,3 +234,16 @@ PY
     [[ "$output" == *"needs to be updated"* ]]
     cmp "$TEST_ROOT/uv.lock.before" "$TEST_ROOT/lock-fixture/uv.lock"
 }
+
+@test "release validation compares the tag with the source version" {
+    mkdir -p "$TEST_ROOT/release/src/release_fixture"
+    printf '__version__: str = "1.2.3rc1"\n' > "$TEST_ROOT/release/src/release_fixture/__init__.py"
+    cp "$SKILL_ROOT/assets/validate-release.sh" "$TEST_ROOT/release/validate-release.sh"
+    chmod +x "$TEST_ROOT/release/validate-release.sh"
+    run env GITHUB_REF_NAME=v1.2.3rc1 bash -c "cd '$TEST_ROOT/release' && ./validate-release.sh"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"matches package version"* ]]
+    run env GITHUB_REF_NAME=v1.2.4 bash -c "cd '$TEST_ROOT/release' && ./validate-release.sh"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"does not match package version"* ]]
+}
