@@ -37,7 +37,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
       - name: Run tests
-        run: just test-shell test-python test-pdf
+        run: just test-shell test-python test-pdf test-project-standards
 
   bash-3-2:
     name: Shell Tests on Bash 3.2
@@ -49,7 +49,7 @@ jobs:
       - name: Install test dependencies
         run: apk add --no-cache bats jq just python3 tree zsh
       - name: Run shell tests
-        run: just test-shell
+        run: just test-shell test-project-standards
 
   install:
     name: Install on ${{ matrix.os }}

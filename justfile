@@ -88,7 +88,7 @@ lint-python:
     git ls-files -z '*.py' | xargs -0 python3 -c 'import ast, pathlib, sys; [ast.parse(pathlib.Path(path).read_text(), filename=path) for path in sys.argv[1:]]'
 
 # Run every test suite.
-test: test-shell test-python test-pdf test-integration
+test: test-shell test-python test-pdf test-project-standards test-integration
 
 # Run shell-based regression suites.
 test-shell:
@@ -101,6 +101,10 @@ test-python:
 # Run PDF skill tests.
 test-pdf:
     uv run llm/skills/pdf/tests/run.py
+
+# Exercise the project-standards generator and audit in disposable fixtures.
+test-project-standards:
+    bats llm/skills/project-standards/tests/
 
 # Install and verify in an isolated throwaway HOME.
 test-integration:

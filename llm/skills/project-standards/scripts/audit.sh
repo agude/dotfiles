@@ -7,9 +7,17 @@
 
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+POLICY="$SKILL_DIR/policy.toml"
+# shellcheck source=policy.sh
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/policy.sh"
+
 PORCELAIN="false"
 REPO=""
 FAILURES=0
+ARCHETYPE_OVERRIDE=""
 
 usage() {
     cat <<'EOF'
@@ -20,6 +28,7 @@ PASS/WARN/FAIL per rule. Changes nothing.
 
 Options:
   --porcelain   Tab-separated STATUS<TAB>CHECK<TAB>DETAIL, no colour
+  --archetype N  Override conservative archetype detection.
   -h, --help    Show this help
 
 Exit status:
@@ -32,6 +41,7 @@ EOF
 while [ $# -gt 0 ]; do
     case "$1" in
         --porcelain) PORCELAIN="true"; shift ;;
+        --archetype) [ $# -ge 2 ] || { usage >&2; exit 2; }; ARCHETYPE_OVERRIDE="$2"; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
         *) REPO="$1"; shift ;;
@@ -49,10 +59,11 @@ else
 fi
 
 report() {  # report STATUS CHECK DETAIL
-    local status="$1" check="$2" detail="$3" colour=""
+    local status="$1" check="$2" detail="$3" colour="" clean_detail
+    clean_detail=$(printf '%s' "$detail" | tr '\t\n' '  ')
     [ "$status" = "FAIL" ] && FAILURES=$((FAILURES + 1))
     if [ "$PORCELAIN" = "true" ]; then
-        printf '%s\t%s\t%s\n' "$status" "$check" "$detail"
+        printf '%s\t%s\t%s\n' "$status" "$check" "$clean_detail"
         return
     fi
     case "$status" in
@@ -60,7 +71,7 @@ report() {  # report STATUS CHECK DETAIL
         WARN) colour="$C_WARN" ;;
         FAIL) colour="$C_FAIL" ;;
     esac
-    printf '%s%-4s%s  %-22s  %s\n' "$colour" "$status" "$C_OFF" "$check" "$detail"
+    printf '%s%-4s%s  %-22s  %s\n' "$colour" "$status" "$C_OFF" "$check" "$clean_detail"
 }
 
 has() { [ -e "$REPO/$1" ]; }
@@ -68,12 +79,23 @@ has() { [ -e "$REPO/$1" ]; }
 # A file that exists but is gitignored is invisible to everyone else.
 is_ignored() { (cd "$REPO" && git check-ignore -q "$1" 2>/dev/null); }
 
+is_tracked() { (cd "$REPO" && git ls-files --error-unmatch -- "$1" >/dev/null 2>&1); }
+
+git_hooks_path() {
+    (cd "$REPO" && git rev-parse --git-path hooks/pre-commit 2>/dev/null)
+}
+
 # A file may opt out of one check with an inline marker plus a reason:
 #   # project-standards: allow ci-inline — running in a minimal container
 # Permanent, justified exceptions belong here; a rule you merely have not got
 # to yet should stay failing instead.
 allows() {  # allows FILE CHECK
-    grep -q "project-standards: allow $2" "$1" 2>/dev/null
+    local file="$1" check="$2"
+    case "$check" in
+        ci-inline|workflow-security|runner-contract) ;;
+        *) return 1 ;;
+    esac
+    grep -Eq "^[[:space:]]*(#|<!--)?[[:space:]]*project-standards:[[:space:]]+allow[[:space:]]+${check}[[:space:]]+[—-][[:space:]]+[^[:space:]]" "$file" 2>/dev/null
 }
 
 # Grep a file in the repo, quietly.
@@ -107,6 +129,8 @@ detect_archetype() {
         else
             echo "scripts"
         fi
+    elif [ -z "$RUNNER" ] && [ "$(find "$REPO" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.bash' -o -name '*.py' \) | wc -l | tr -d ' ')" = "1" ]; then
+        echo "single-file"
     elif ls "$REPO"/*.sh >/dev/null 2>&1 || [ -d "$REPO/scripts" ]; then
         echo "shell"
     else
@@ -114,8 +138,15 @@ detect_archetype() {
     fi
 }
 
-ARCHETYPE=$(detect_archetype)
 RUNNER=$(runner_file)
+if [ -n "$ARCHETYPE_OVERRIDE" ]; then
+    case "$ARCHETYPE_OVERRIDE" in
+        python|scripts|jekyll|shell|apps-script|single-file|other) ARCHETYPE="$ARCHETYPE_OVERRIDE" ;;
+        *) echo "Unknown archetype: $ARCHETYPE_OVERRIDE" >&2; exit 2 ;;
+    esac
+else
+    ARCHETYPE=$(detect_archetype)
+fi
 
 if [ "$PORCELAIN" = "true" ]; then
     printf 'INFO\tarchetype\t%s\n' "$ARCHETYPE"
@@ -153,13 +184,65 @@ check_docs() {
     fi
 }
 
+recipe_exists() {
+    local recipe="$1"
+    if [ "$RUNNER" = "justfile" ] || [ "$RUNNER" = "Justfile" ]; then
+        (cd "$REPO" && just --dump --dump-format json 2>/dev/null | jq -e --arg recipe "$recipe" '.recipes[$recipe] != null' >/dev/null)
+    elif [ "$RUNNER" = "Makefile" ]; then
+        grep -qE "^[[:alnum:]_.-]+[[:space:]]*:" "$REPO/$RUNNER" && grep -qE "^${recipe}[[:space:]]*:" "$REPO/$RUNNER"
+    else
+        return 1
+    fi
+}
+
+recipe_dependencies() {
+    local recipe="$1"
+    (cd "$REPO" && just --dump --dump-format json 2>/dev/null |
+        jq -r --arg recipe "$recipe" '.recipes[$recipe].dependencies[]?.recipe')
+}
+
+recipe_reaches() {
+    local recipe="$1" wanted="$2" visited="$3" dependency
+    [ "$recipe" = "$wanted" ] && return 0
+    case " $visited " in
+        *" $recipe "*) return 1 ;;
+    esac
+    visited="$visited $recipe"
+    while IFS= read -r dependency; do
+        [ -n "$dependency" ] || continue
+        recipe_reaches "$dependency" "$wanted" "$visited" && return 0
+    done <<EOF
+$(recipe_dependencies "$recipe")
+EOF
+    return 1
+}
+
+check_runner_contract() {
+    local category="$1" missing="" requirement
+    case "$category" in
+        python) requirement="lint type-check test package-check" ;;
+        scripts|shell) requirement="lint" ;;
+        *) return ;;
+    esac
+    for requirement in $requirement; do
+        if ! recipe_reaches check "$requirement" ""; then
+            missing="$missing $requirement"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        report FAIL runner.contract "check does not reach:$missing"
+    else
+        report PASS runner.contract "check reaches required categories"
+    fi
+}
+
 check_runner_verbs() {
     local file="$1" prefix="$2" required="$3" forbidden="$4"
     [ -n "$file" ] || { report FAIL runner.present "no justfile or Makefile"; return; }
 
     local missing="" verb
     for verb in $required; do
-        grep -qE "^${prefix}${verb}( |:)" "$REPO/$file" || missing="$missing $verb"
+        recipe_exists "$verb" || missing="$missing $verb"
     done
     if [ -n "$missing" ]; then
         report FAIL runner.verbs "missing:$missing"
@@ -195,11 +278,16 @@ check_hook() {
     for candidate in "$@"; do
         [ -f "$REPO/$candidate" ] && { script="$candidate"; break; }
     done
-    if [ -z "$script" ]; then
-        report WARN hook.script "no hook script ($*)"
+    local config=""
+    for candidate in .pre-commit-config.yaml .pre-commit-config.yml; do
+        [ -f "$REPO/$candidate" ] && { config="$candidate"; break; }
+    done
+    if [ -n "$config" ] && grep -qE 'entry:[[:space:]]*just[[:space:]]+(lint|check)' "$REPO/$config"; then
+        report PASS hook.script "$config delegates to the runner"
+    elif [ -z "$script" ]; then
+        report WARN hook.script "no hook script or framework config ($*)"
         return
-    fi
-    if grep -qE "$expected_call" "$REPO/$script"; then
+    elif grep -qE "$expected_call" "$REPO/$script"; then
         report PASS hook.script "$script calls the runner"
     else
         report FAIL hook.script "$script inlines commands instead of calling the runner"
@@ -209,8 +297,10 @@ check_hook() {
         report FAIL hook.tracked "$script is gitignored — nobody else can ever get this hook"
     fi
 
-    if [ -e "$REPO/.git/hooks/pre-commit" ]; then
-        report PASS hook.installed "installed in this clone"
+    local installed
+    installed=$(git_hooks_path || true)
+    if [ -n "$installed" ] && [ -e "$installed" ]; then
+        report PASS hook.installed "installed at $installed"
     else
         report WARN hook.installed "not installed here — run the hooks-install recipe"
     fi
@@ -264,14 +354,29 @@ check_ci() {
 
     # CI must call runner verbs, not tools directly. With no runner there is
     # nothing to call, so say that rather than passing the repo by default.
-    local leaked="" waived="" f
+    local leaked="" waived="" f line found_inline workflow_name
     for f in "$dir"/*.y*ml; do
         [ -f "$f" ] || continue
-        grep -qE "run:.*(ruff|mypy|pytest|yamllint|shellcheck|bats)" "$f" || continue
-        if allows "$f" "ci-inline"; then
-            waived="$waived ${f#"$dir/"}"
-        else
-            leaked="$leaked ${f#"$dir/"}"
+        found_inline="false"
+        workflow_name="${f#"$dir/"}"
+        local workflow_code
+        workflow_code=$(sed 's/[[:space:]]*#.*//' "$f")
+        while IFS= read -r line; do
+            case "$line" in
+                *apt-get\ install*|*apk\ add*|*brew\ install*) continue ;;
+            esac
+            if printf '%s\n' "$line" | grep -qE '(^|[[:space:];|&])(ruff|mypy|pytest|yamllint|shellcheck|bats)([[:space:]]|$)'; then
+                leaked="$leaked $workflow_name"
+                found_inline="true"
+                break
+            fi
+        done <<EOF
+$workflow_code
+EOF
+        if [ "$found_inline" = "true" ] && allows "$f" "ci-inline"; then
+            workflow_suffix=" $workflow_name"
+            leaked="${leaked%"$workflow_suffix"}"
+            waived="$waived $workflow_name"
         fi
     done
     [ -n "$waived" ] && report PASS ci.waived "documented ci-inline exception:$waived"
@@ -284,13 +389,22 @@ check_ci() {
     fi
 
     # Pinned action versions (the table in SKILL.md is authoritative).
-    local drift
-    drift=$( {
-        grep -rhoE "actions/checkout@v[0-9]+" "$dir" 2>/dev/null | grep -v "@v7$"
-        grep -rhoE "astral-sh/setup-uv@v?[0-9.]+" "$dir" 2>/dev/null | grep -vE "@v9\.0\.0$"
-        grep -rhoE "extractions/setup-just@v[0-9]+" "$dir" 2>/dev/null | grep -v "@v4$"
-        grep -rhoE "actions/setup-python@v[0-9]+" "$dir" 2>/dev/null | grep -v "@v6$"
-    } | sort -u | tr '\n' ' ')
+    local drift="" action expected
+    while IFS='|' read -r action _ref expected; do
+        [ -n "$action" ] || continue
+        while IFS= read -r actual; do
+            [ -n "$actual" ] || continue
+            [ "$actual" = "$expected" ] || drift="$drift $action@$actual"
+        done < <(grep -rhoE "$action@[^[:space:]]+" "$dir" 2>/dev/null | sed "s|^$action@||" | sort -u)
+    done <<EOF
+actions/checkout|$(policy_action "$POLICY" checkout)|$(policy_action "$POLICY" checkout)
+astral-sh/setup-uv|$(policy_action "$POLICY" setup_uv)|$(policy_action "$POLICY" setup_uv)
+extractions/setup-just|$(policy_action "$POLICY" setup_just)|$(policy_action "$POLICY" setup_just)
+actions/setup-python|$(policy_action "$POLICY" setup_python)|$(policy_action "$POLICY" setup_python)
+actions/upload-artifact|$(policy_action "$POLICY" upload_artifact)|$(policy_action "$POLICY" upload_artifact)
+actions/download-artifact|$(policy_action "$POLICY" download_artifact)|$(policy_action "$POLICY" download_artifact)
+pypa/gh-action-pypi-publish|$(policy_action "$POLICY" pypi_publish)|$(policy_action "$POLICY" pypi_publish)
+EOF
     if [ -n "$drift" ]; then
         report WARN ci.pins "off-standard pins: $drift"
     else
@@ -303,13 +417,16 @@ check_ci() {
 check_python() {
     check_runner_verbs "$RUNNER" "" "default sync lint format test check hooks-install" \
         "fmt lint-fix format-check"
+    check_runner_contract python
     check_hook "just (lint|check)" "bin/pre-commit.sh"
 
     if has uv.lock; then
-        if greps .gitignore '^uv\.lock'; then
-            report FAIL deps.lock "uv.lock is gitignored — CI resolves fresh every run"
+        if is_tracked uv.lock; then
+            report PASS deps.lock "uv.lock tracked"
+        elif is_ignored uv.lock; then
+            report FAIL deps.lock "uv.lock exists but is gitignored"
         else
-            report PASS deps.lock "uv.lock committed"
+            report FAIL deps.lock "uv.lock exists but is untracked"
         fi
     else
         report WARN deps.lock "no uv.lock"
@@ -342,6 +459,22 @@ check_python() {
         report WARN python.version "no .python-version"
     fi
 
+    local policy_floor policy_target policy_mypy
+    policy_floor=$(policy_value "$POLICY" python floor)
+    policy_target=$(policy_value "$POLICY" python ruff_target)
+    policy_mypy=$(policy_value "$POLICY" python mypy_target)
+    if greps pyproject.toml "requires-python[[:space:]]*=[[:space:]]*\">=$policy_floor"; then
+        report PASS policy.python-floor "requires-python matches policy floor $policy_floor"
+    else
+        report FAIL policy.python-floor "requires-python does not match policy floor $policy_floor"
+    fi
+    if greps pyproject.toml "target-version[[:space:]]*=[[:space:]]*\"$policy_target\"" &&
+       greps pyproject.toml "python_version[[:space:]]*=[[:space:]]*\"$policy_mypy\""; then
+        report PASS policy.tool-targets "Ruff and mypy targets match policy"
+    else
+        report FAIL policy.tool-targets "Ruff or mypy target differs from policy"
+    fi
+
     # Version should have exactly one home.
     if greps pyproject.toml '^\[tool\.bumpversion\]'; then
         report WARN version.source "bump-my-version config — standard is hatch dynamic version"
@@ -355,6 +488,7 @@ check_python() {
 check_scripts() {
     check_runner_verbs "$RUNNER" "" "default sync lint format check hooks-install" \
         "fmt lint-fix format-check"
+    check_runner_contract scripts
     check_hook "just (lint|check)" "bin/pre-commit.sh"
 
     if greps pyproject.toml '^\[tool\.ruff\]'; then
@@ -363,10 +497,12 @@ check_scripts() {
         report FAIL lint.config "no [tool.ruff] in pyproject.toml"
     fi
 
-    if has uv.lock && greps .gitignore '^uv\.lock'; then
-        report FAIL deps.lock "uv.lock is gitignored"
+    if has uv.lock && is_tracked uv.lock; then
+        report PASS deps.lock "uv.lock tracked"
+    elif has uv.lock && is_ignored uv.lock; then
+        report FAIL deps.lock "uv.lock exists but is gitignored"
     elif has uv.lock; then
-        report PASS deps.lock "uv.lock committed"
+        report FAIL deps.lock "uv.lock exists but is untracked"
     fi
 }
 
@@ -389,6 +525,10 @@ check_jekyll() {
 check_shell() {
     check_runner_verbs "$RUNNER" "" "default lint" "fmt lint-fix format-check"
     check_hook "just (lint|check)" "bin/pre-commit.sh"
+}
+
+check_single_file() {
+    report PASS archetype.single-file "single standalone file is exempt from runner requirements"
 }
 
 check_apps_script() {
@@ -453,6 +593,7 @@ case "$ARCHETYPE" in
     scripts) check_scripts; check_isolation; check_ci ;;
     jekyll) check_jekyll; check_isolation; check_ci ;;
     shell)  check_shell; check_isolation; check_ci ;;
+    single-file) check_single_file ;;
     apps-script) check_apps_script ;;
     *)      report WARN archetype "unrecognised repo shape; only doc checks run" ;;
 esac
