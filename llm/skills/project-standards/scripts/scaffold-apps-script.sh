@@ -39,6 +39,10 @@ if [[ -e "$DEST" ]] && [[ ! -d "$DEST" ]]; then
     echo "Error: '$DEST' exists and is not a directory." >&2
     exit 1
 fi
+if [[ -L "$DEST" ]]; then
+    echo "Error: destination must not be a symbolic link: '$DEST'." >&2
+    exit 1
+fi
 
 if [[ -d "$DEST" ]] && [[ -n "$(ls -A "$DEST")" ]]; then
     echo "Error: '$DEST' exists and is not empty." >&2

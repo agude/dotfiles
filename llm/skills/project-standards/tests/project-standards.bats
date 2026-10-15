@@ -61,6 +61,22 @@ EOF
     [ ! -e "$TEST_ROOT/existing/pyproject.toml" ]
 }
 
+@test "scaffolders refuse symbolic-link destinations" {
+    mkdir "$TEST_ROOT/python-target" "$TEST_ROOT/apps-target"
+    ln -s "$TEST_ROOT/python-target" "$TEST_ROOT/python-link"
+    ln -s "$TEST_ROOT/apps-target" "$TEST_ROOT/apps-link"
+
+    run bash "$SCAFFOLD" "$TEST_ROOT/python-link" sample_package
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"must not be a symbolic link"* ]]
+    [ ! -e "$TEST_ROOT/python-target/pyproject.toml" ]
+
+    run bash "$SKILL_ROOT/scripts/scaffold-apps-script.sh" "$TEST_ROOT/apps-link" Example
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"must not be a symbolic link"* ]]
+    [ ! -e "$TEST_ROOT/apps-target/src" ]
+}
+
 @test "scaffold rejects invalid usage before creating output" {
     run bash "$SCAFFOLD" "$TEST_ROOT/unknown" package_name --unknown
     [ "$status" -ne 0 ]

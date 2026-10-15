@@ -22,8 +22,8 @@ Options:
   --bootstrap               Create uv.lock, sync dependencies, and install hooks.
   -h, --help               Show this help.
 
-Generation is offline and refuses non-empty destinations. --bootstrap is the
-only option that contacts dependency services.
+Generation is offline and refuses non-empty or symbolic-link destinations.
+--bootstrap is the only option that contacts dependency services.
 EOF
     exit 2
 }
@@ -103,6 +103,10 @@ DEST_PARENT="$(cd "$DEST_PARENT" && pwd)"
 DEST="$DEST_PARENT/$DEST_BASE"
 if [ -e "$DEST" ] && [ ! -d "$DEST" ]; then
     echo "scaffold.sh: destination exists and is not a directory: $DEST" >&2
+    exit 1
+fi
+if [ -L "$DEST" ]; then
+    echo "scaffold.sh: destination must not be a symbolic link: $DEST" >&2
     exit 1
 fi
 if [ -d "$DEST" ] && [ -n "$(ls -A "$DEST")" ]; then

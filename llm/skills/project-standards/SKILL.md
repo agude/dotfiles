@@ -202,8 +202,9 @@ bash "$SKILL_DIR/scripts/scaffold.sh" <dest-dir> <package-name> \
 `--bootstrap` is the only scaffold option that resolves dependencies or
 installs hooks. It runs `just lock`, `just sync`, and `just hooks-install`.
 Without it, the generated directory is inspectable and the printed resume
-command is the next step. Nonempty destinations are refused without changes;
-bootstrap failures leave generated files in place for recovery.
+command is the next step. Nonempty and symbolic-link destinations are refused
+without changes; bootstrap failures leave generated files in place for
+recovery.
 
 Create a Google Apps Script repository with:
 
