@@ -82,7 +82,12 @@ is_ignored() { (cd "$REPO" && git check-ignore -q "$1" 2>/dev/null); }
 is_tracked() { (cd "$REPO" && git ls-files --error-unmatch -- "$1" >/dev/null 2>&1); }
 
 git_hooks_path() {
-    (cd "$REPO" && git rev-parse --git-path hooks/pre-commit 2>/dev/null)
+    local hook_path
+    hook_path=$(cd "$REPO" && git rev-parse --git-path hooks/pre-commit 2>/dev/null) || return
+    case "$hook_path" in
+        /*) printf '%s\n' "$hook_path" ;;
+        *) printf '%s/%s\n' "$REPO" "$hook_path" ;;
+    esac
 }
 
 # A file may opt out of one check with an inline marker plus a reason:
@@ -293,13 +298,14 @@ check_hook() {
         report FAIL hook.script "$script inlines commands instead of calling the runner"
     fi
 
-    if is_ignored "$script"; then
-        report FAIL hook.tracked "$script is gitignored — nobody else can ever get this hook"
+    local hook_source="${config:-$script}"
+    if is_ignored "$hook_source"; then
+        report FAIL hook.tracked "$hook_source is gitignored — nobody else can ever get this hook"
     fi
 
     local installed
     installed=$(git_hooks_path || true)
-    if [ -n "$installed" ] && [ -e "$installed" ]; then
+    if [ -n "$installed" ] && [ -x "$installed" ]; then
         report PASS hook.installed "installed at $installed"
     else
         report WARN hook.installed "not installed here — run the hooks-install recipe"

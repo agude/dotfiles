@@ -433,18 +433,43 @@ EOF
     cat > "$TEST_ROOT/bin/uv" <<'EOF'
 #!/bin/sh
 set -eu
-hook_path="$(git rev-parse --git-path hooks/pre-commit)"
-cat > "$hook_path" <<'HOOK'
-#!/bin/sh
-# pre-commit framework
-HOOK
-chmod +x "$hook_path"
+printf '%s\n' "$*" >> "$HOOK_TEST_LOG"
+[ "$*" = 'run --locked pre-commit --version' ] ||
+    [ "$*" = 'run --locked pre-commit run --hook-stage pre-commit' ]
 EOF
     chmod +x "$TEST_ROOT/bin/uv"
+    export HOOK_TEST_LOG="$TEST_ROOT/hook.log"
     run env PATH="$TEST_ROOT/bin:$PATH" bash -c "cd '$TEST_ROOT/project' && bash scripts/hooks-install.sh"
     [ "$status" -eq 0 ]
-    [ -f "$TEST_ROOT/project/custom-hooks/pre-commit.project-standards-backup" ]
+    backups=("$TEST_ROOT/project/custom-hooks/"*.project-standards-backup.*)
+    [ "${#backups[@]}" -eq 1 ]
+    grep -q 'echo foreign' "${backups[0]}"
     grep -q 'pre-commit framework' "$TEST_ROOT/project/custom-hooks/pre-commit"
+
+    run env PATH="$TEST_ROOT/bin:$PATH" bash -c "cd '$TEST_ROOT/project' && bash scripts/hooks-install.sh && custom-hooks/pre-commit"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"already installed"* ]]
+    grep -q 'run --locked pre-commit run --hook-stage pre-commit' "$HOOK_TEST_LOG"
+    backups=("$TEST_ROOT/project/custom-hooks/"*.project-standards-backup.*)
+    [ "${#backups[@]}" -eq 1 ]
+}
+
+@test "audit resolves executable hooks in the target repository" {
+    bash "$SCAFFOLD" "$TEST_ROOT/project" sample_package >/dev/null
+    run bash "$AUDIT" "$TEST_ROOT/project" --porcelain
+    [ "$status" -eq 0 ]
+    [[ "$output" == *$'WARN\thook.installed'* ]]
+
+    mkdir "$TEST_ROOT/project/custom-hooks"
+    (cd "$TEST_ROOT/project" && git config core.hooksPath custom-hooks)
+    printf '#!/bin/sh\nexit 0\n' > "$TEST_ROOT/project/custom-hooks/pre-commit"
+    run bash "$AUDIT" "$TEST_ROOT/project" --porcelain
+    [[ "$output" == *$'WARN\thook.installed'* ]]
+    chmod +x "$TEST_ROOT/project/custom-hooks/pre-commit"
+    run bash "$AUDIT" "$TEST_ROOT/project" --porcelain
+    [ "$status" -eq 0 ]
+    [[ "$output" == *$'PASS\thook.installed'* ]]
+    [[ "$output" == *"$TEST_ROOT/project/custom-hooks/pre-commit"* ]]
 }
 
 @test "locked uv execution rejects stale metadata without changing the lock" {

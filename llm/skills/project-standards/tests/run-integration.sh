@@ -17,11 +17,12 @@ export PRE_COMMIT_HOME="$ROOT/pre-commit"
 uv python install --no-bin "$python_latest"
 
 bash "$SKILL_ROOT/scripts/scaffold.sh" "$ROOT/library" integration_library --bootstrap
+(cd "$ROOT/library" && git config core.hooksPath custom-hooks && just hooks-install)
 (cd "$ROOT/library" && git add -A)
 printf 'def broken(\n' > "$ROOT/library/src/integration_library/__init__.py"
 (cd "$ROOT/library" && git add src/integration_library/__init__.py)
 printf '__version__: str = "0.1.0"\n' > "$ROOT/library/src/integration_library/__init__.py"
-if (cd "$ROOT/library" && uv run --locked pre-commit run); then
+if (cd "$ROOT/library" && bash "$(git rev-parse --git-path hooks/pre-commit)"); then
     echo "project-standards integration: staged invalid Python unexpectedly passed" >&2
     exit 1
 fi
