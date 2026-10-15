@@ -31,6 +31,16 @@ EOF
     ! grep -R -E 'PACKAGE|REPO|PYTHON_|ACTION' "$TEST_ROOT/library"
 }
 
+@test "policy check rejects stale documented consumers" {
+    cp -R "$SKILL_ROOT" "$TEST_ROOT/policy-skill"
+    sed 's/3\.11 through 3\.15/3.10 through 3.15/' \
+        "$TEST_ROOT/policy-skill/SKILL.md" > "$TEST_ROOT/policy-skill/SKILL.md.new"
+    mv "$TEST_ROOT/policy-skill/SKILL.md.new" "$TEST_ROOT/policy-skill/SKILL.md"
+    run bash "$TEST_ROOT/policy-skill/scripts/policy-check.sh"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"SKILL.md is stale for the Python support range"* ]]
+}
+
 @test "CLI scaffolding preserves separate import, distribution, and command names" {
     run bash "$SCAFFOLD" "$TEST_ROOT/cli" import_name \
         --kind cli --distribution-name distribution-name --command-name run-tool --publish
