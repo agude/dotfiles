@@ -135,6 +135,8 @@ setup_just_action="$(policy_action "$POLICY" setup_just)"
 upload_artifact_action="$(policy_action "$POLICY" upload_artifact)"
 download_artifact_action="$(policy_action "$POLICY" download_artifact)"
 pypi_publish_action="$(policy_action "$POLICY" pypi_publish)"
+actionlint_version="$(policy_value "$POLICY" tools.actionlint version)"
+zizmor_version="$(policy_value "$POLICY" tools.zizmor version)"
 
 mkdir -p "$DEST"
 cd "$DEST"
@@ -158,6 +160,8 @@ replace_asset() {
         -e "s/UPLOAD_ARTIFACT_ACTION/$upload_artifact_action/g" \
         -e "s/DOWNLOAD_ARTIFACT_ACTION/$download_artifact_action/g" \
         -e "s|PYPI_PUBLISH_ACTION|$pypi_publish_action|g" \
+        -e "s/ACTIONLINT_VERSION/$actionlint_version/g" \
+        -e "s/ZIZMOR_VERSION/$zizmor_version/g" \
         "$source" > "$target"
 }
 

@@ -29,5 +29,11 @@ ref = "v6"
 [actions.pypi_publish]
 ref = "release/v1"
 
+[tools.actionlint]
+version = "1.7.7"
+
+[tools.zizmor]
+version = "1.14.2"
+
 [recipes.python]
 required = "default lock sync lint format type-check test check hooks-install build package-check"
