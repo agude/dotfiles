@@ -188,13 +188,32 @@ replace_asset() {
 mkdir -p "src/$PACKAGE" tests bin scripts .github/workflows
 printf '__version__: str = "0.1.0"\n' > "src/$PACKAGE/__init__.py"
 touch "src/$PACKAGE/py.typed"
-cat > "tests/test_package.py" <<TEST
+if [ "$KIND" = "cli" ]; then
+    cat > "tests/test_package.py" <<TEST
+import sys
+from unittest.mock import patch
+
+from $PACKAGE import __version__
+from $PACKAGE.cli import main
+
+
+def test_version_is_available() -> None:
+    assert __version__ == "0.1.0"
+
+
+def test_cli_main() -> None:
+    with patch.object(sys, "argv", ["$COMMAND_NAME"]):
+        assert main() == 0
+TEST
+else
+    cat > "tests/test_package.py" <<TEST
 from $PACKAGE import __version__
 
 
 def test_version_is_available() -> None:
     assert __version__ == "0.1.0"
 TEST
+fi
 if [ "$KIND" = "cli" ]; then
     cat > "src/$PACKAGE/cli.py" <<'SOURCE'
 from __future__ import annotations

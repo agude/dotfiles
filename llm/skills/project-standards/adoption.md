@@ -13,10 +13,10 @@ hosted account setup and fleet rollout.
 | Existing shell repository | `/home/agude/.dotfiles` audit and root lint | `bash llm/skills/project-standards/scripts/audit.sh . --porcelain`; `just lint` | Passes applicable local checks |
 | Copier update pilot | Scaffold-derived Python template with one committed customization | `COPIER_PILOT_CHECK=1 just test-project-standards-copier` using Copier 9.19.1, CPython 3.13.6, actionlint 1.7.7, and zizmor 1.14.2 | Custom README and project-owned file survive one template update; repeated update is clean; defer fleet adoption |
 
-The generated-project build and full interpreter matrix require Python 3.15,
-Hatchling, and the declared workflow linters. The sandbox has no Python 3.15
-interpreter and no network access, so those checks remain CI requirements and
-are not claimed as locally complete.
+The dependency-backed generated-project integration now passes locally on
+CPython 3.15 with Hatchling and the declared workflow linters, using temporary
+cache and interpreter paths. CI remains responsible for the full declared
+interpreter matrix.
 
 ## Hosted release setup
 

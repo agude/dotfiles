@@ -20,7 +20,7 @@ bash "$SKILL_ROOT/scripts/scaffold.sh" "$ROOT/library" integration_library --boo
 printf 'def broken(\n' > "$ROOT/library/src/integration_library/__init__.py"
 (cd "$ROOT/library" && git add src/integration_library/__init__.py)
 printf '__version__: str = "0.1.0"\n' > "$ROOT/library/src/integration_library/__init__.py"
-if (cd "$ROOT/library" && uv run --locked pre-commit run --all-files); then
+if (cd "$ROOT/library" && uv run --locked pre-commit run); then
     echo "project-standards integration: staged invalid Python unexpectedly passed" >&2
     exit 1
 fi

@@ -5,7 +5,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | Plan area | Status | Evidence or dependency |
 |---|---|---|
 | 0 Baseline | Complete | Review findings are covered by isolated fixtures and adoption records. |
-| 1 Generated-project tests | Complete locally; integration required in CI | 26 offline Bats cases pass; `test-project-standards-integration` bootstraps library and CLI projects, consumes one validated artifact set across the matrix, and verifies staged-content hook behavior in CI. |
+| 1 Generated-project tests | Complete locally; integration required in CI | 26 offline Bats cases and the dependency-backed `test-project-standards-integration` pass on CPython 3.15 with policy-pinned workflow linters; CI still exercises the declared matrix. |
 | 2 Locked dependencies | Complete | Generated `lock`, locked `sync`, locked tool recipes, and explicit update recipe. |
 | 3 Distribution validation | Complete locally | Wheel/sdist metadata, package-content, sdist-to-wheel rebuild, isolated import, version, typed-marker, and optional CLI checks are implemented; deterministic fixture and Copier gate pass through uv-managed helper execution. |
 | 4 Publishing | Local implementation complete; external setup pending | Artifact transfer, tag validation, named `pypi` environment, and publish-only OIDC job are rendered. GitHub/PyPI configuration was not changed or verified. |
@@ -15,7 +15,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 8 Offline/bootstrap generation | Complete locally | Library, CLI, Apps Script, placeholder, refusal, and offline tests pass. |
 | 9 Copier pilot | Pilot complete; fleet adoption deferred | Copier 9.19.1 rendered a scaffold-derived template, preserved a committed project customization through a template update, repeated cleanly, and passed the generated project's full `just check` on CPython 3.13.6. Broad adoption is deferred until an existing customized package demonstrates lower maintenance cost. |
 | 10 Skill/evaluations | Structural and fixture validation complete; fresh-context agent traces pending | Skill validator and repository fixtures pass; representative prompt cases are recorded, but this environment exposes no fresh-context agent evaluation runner. |
-| 11 Final verification | Partial by environment | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, and audit pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
+| 11 Final verification | Partial by unrelated repository tests | `just lint`, project-standards Bats, ShellCheck, skill validation, policy validation, workflow linters, audit, and CPython 3.15 generated integration pass. Root `just check` was stopped after existing OpenCode server tests repeatedly failed with `ServeError`. |
 
 ## Step-level disposition
 
@@ -27,7 +27,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 1.1 | Complete locally | Bats owns temporary directories and controlled fixtures; missing required tools fail with diagnostics. |
 | 1.2 | Complete locally | 26 Bats cases cover runner, workflow, waiver, lock, package, hook, and single-file rules. |
 | 1.3 | Complete locally | Library, CLI, publishing, non-publishing, Apps Script, naming, destination, and placeholder cases pass. |
-| 1.4 | Required in CI | Local generated integration is blocked before scaffold creation by host uv 0.8.8 lacking a CPython 3.15 download; the CI job runs the declared matrix workflow. |
+| 1.4 | Complete locally; required in CI | Dependency-backed generated library and CLI integration passes on CPython 3.15 with staged-content hook validation; CI remains responsible for the declared interpreter matrix. |
 | 1.5 | Complete | Root CI calls the offline and dependency-backed project-standards recipes without duplicating their test commands. |
 | 2.1 | Complete | Generated `lock`, locked `sync`, and explicit `deps-update` recipes are documented and tested. |
 | 2.2 | Complete | Generated lint, format, type, and test recipes use locked uv execution. |
@@ -68,7 +68,7 @@ Updated 2026-10-15 against `/tmp/plan.md`.
 | 10.2 | Complete locally | Runner, lock, package, hook, release, Jekyll, matrix, coverage, and licensing guidance is aligned. |
 | 10.3 | Complete locally | Skill validator, placeholder checks, resource checks, and policy validation pass. |
 | 10.4 | Pending evaluation trace | Representative cases are recorded in `evals/`; no supported fresh-context agent runner is available here for previous-versus-revised traces. |
-| 11.1 | Partial by environment | Local affected gates pass; CPython 3.15 integration and root `just check` remain limited by host interpreter/tooling and unrelated OpenCode `ServeError`. |
+| 11.1 | Partial by unrelated repository tests | Local affected gates, CPython 3.15 generated integration, and portability checks pass; root `just check` remains limited by unrelated OpenCode `ServeError` tests. |
 | 11.2 | Complete | Reviewable atomic commits use the repository imperative message format; no push, merge, or publication was performed. |
 | 11.3 | Complete as a local record | This table separates local readiness, external publishing, hosted adoption, and evaluation dependencies. |
 
