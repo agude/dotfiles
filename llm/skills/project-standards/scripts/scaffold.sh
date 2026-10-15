@@ -153,6 +153,7 @@ replace_asset() {
         -e "s/PYTHON_RUFF_TARGET/$ruff_target/g" \
         -e "s/PYTHON_MYPY_TARGET/$mypy_target/g" \
         -e "s/PYTHON_COVERAGE_FLOOR/$coverage_floor/g" \
+        -e "s/COMMAND_NAME/$COMMAND_NAME/g" \
         -e "s/PYTHON_MATRIX/$python_matrix/g" \
         -e "s/CHECKOUT_ACTION/$checkout_action/g" \
         -e "s/SETUP_UV_ACTION/$setup_uv_action/g" \
