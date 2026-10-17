@@ -37,6 +37,14 @@ class PublishTests(unittest.TestCase):
         self.documents = self.root / 'Documents with spaces'
         self.documents.mkdir()
         self.destination = self.documents / '.agents/skills/johnny-decimal'
+        self.claude_destination = self.documents / '.claude/skills/johnny-decimal'
+        workspace = self.root / 'workspace'
+        workspace.mkdir()
+        for name in ('AGENTS.md', 'CLAUDE.md', 'WINDOWS-HANDOFF.md'):
+            (workspace / name).write_text(f'Template {name}', encoding='utf-8')
+        workspace_patch = patch.object(module, 'WORKSPACE', workspace)
+        workspace_patch.start()
+        self.addCleanup(workspace_patch.stop)
 
     def publish(self, dry_run=False):
         module.publish(self.source, self.documents, dry_run)
@@ -145,6 +153,32 @@ class PublishTests(unittest.TestCase):
                 self.publish()
         self.assertEqual((self.destination / 'SKILL.md').read_text(), 'version one')
         self.assertFalse((self.documents / '.agents/.publish-jd.lock').exists())
+
+    def test_both_targets_are_published_and_local_claude_edits_block_both(self):
+        self.publish()
+        self.assertEqual(module.fingerprint(self.destination),
+                         module.fingerprint(self.claude_destination))
+        (self.claude_destination / 'SKILL.md').write_text('Windows edit')
+        (self.source / 'SKILL.md').write_text('new source')
+        with self.assertRaisesRegex(ValueError, 'local changes'):
+            self.publish()
+        self.assertEqual((self.destination / 'SKILL.md').read_text(), 'version one')
+        self.assertEqual((self.claude_destination / 'SKILL.md').read_text(), 'Windows edit')
+
+    def test_workspace_instructions_are_seeded_once_and_existing_settings_preserved(self):
+        instructions = self.documents / 'AGENTS.md'
+        instructions.write_text('User instructions', encoding='utf-8')
+        settings = self.documents / '.claude/settings.local.json'
+        settings.parent.mkdir()
+        settings.write_text('{}', encoding='utf-8')
+        self.publish()
+        self.assertEqual(instructions.read_text(), 'User instructions')
+        self.assertTrue((self.documents / 'CLAUDE.md').is_file())
+        handoff = self.documents / 'WINDOWS-HANDOFF.md'
+        handoff.write_text('Windows test results', encoding='utf-8')
+        self.publish()
+        self.assertEqual(handoff.read_text(), 'Windows test results')
+        self.assertEqual(settings.read_text(), '{}')
 
 
 if __name__ == '__main__':

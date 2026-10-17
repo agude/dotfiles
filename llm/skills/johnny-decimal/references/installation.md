@@ -14,18 +14,24 @@ just publish-jd --documents "/path/to/shared Documents" --dry-run
 
 The destination root must exist. It defaults to `XDG_DOCUMENTS_DIR` or
 `~/Documents`. The publisher copies runtime resources to
-`<Documents>/.agents/skills/johnny-decimal/`, excluding tests. It leaves sibling
-skills and normal dotfiles installation alone. Only explicit publication writes
+both `<Documents>/.agents/skills/johnny-decimal/` and
+`<Documents>/.claude/skills/johnny-decimal/`, excluding tests. It seeds missing
+`AGENTS.md`, `CLAUDE.md`, and `WINDOWS-HANDOFF.md` from the dotfiles templates in
+`llm/johnnydecimal/workspace/`; existing workspace instructions and handoff
+results are preserved. It leaves sibling skills and normal dotfiles installation alone. Only explicit publication writes
 to the shared workspace.
 
 A manifest rejects edits, additions, and deletions in the deployed copy.
 Reconcile edits into dotfiles before updating; an unmanaged destination is also
 refused. Unchanged copies are left alone. Updates retain the previous version
-in `<Documents>/.agents/skill-backups/`. Remove old backups manually when they
-are no longer needed. After an interrupted publication, inspect the live copy
+under each target's `skill-backups/` directory, outside `skills/`. Remove old
+backups manually when they are no longer needed. After an interrupted publication, inspect the live copy
 and backups and confirm no publisher is running before removing
-`<Documents>/.agents/.publish-jd.lock`.
+the target's `.publish-jd.lock` under `.agents/` or `.claude/`.
 
+Both destinations are checked for local changes before publication starts.
+Each target is replaced separately; publication is not a transaction across
+both apps.
 The publisher stages a complete copy before replacing the deployed directory.
 The rename sequence briefly leaves the destination absent; avoid starting a
 skill command during an update. Failed replacement attempts to restore the old
@@ -35,9 +41,22 @@ checking the live state.
 
 ## Runtime on each machine
 
-Install uv or Python 3.10+ on each machine. Keep the interpreter, dependency
-cache, and agent runtime state local. The skill itself has no third-party Python
-dependencies. Windows does not require Bash or WSL for `scripts/jd.py`.
+Use a Python 3.10+ interpreter available to the agent. The skill needs only the
+standard library. Windows does not require Bash or WSL for `scripts/jd.py`.
+Before installing tools, read the root `WINDOWS-HANDOFF.md` and inspect the
+existing environment, including Codex's app-managed interpreter where present.
+A host-callable bundled Python in Claude Code Local remains unverified.
+A launcher and additional runtime packaging are deferred.
+
+Once an interpreter path is confirmed, invoke it directly from PowerShell:
+
+```powershell
+& $Python -B "$SkillDir/scripts/jd.py" list --porcelain
+```
+
+`$Python` and `$SkillDir` are paths established in the current session, not
+variables supplied by the app. Existing uv or Python commands can also be used.
+Keep agent authentication, sessions, and caches local to the machine.
 
 From PowerShell in the shared Documents workspace:
 
@@ -61,7 +80,8 @@ verify access through the Windows app sandbox.
 ## Root selection
 
 The portable runtime resolves its physical script location. A script deployed
-under `<Documents>/.agents/skills/<skill>/scripts/` derives its root from that
+under `<Documents>/.agents/skills/<skill>/scripts/` or
+`<Documents>/.claude/skills/<skill>/scripts/` derives its root from that
 Documents directory. A global symlink pointing into dotfiles resolves to the
 source checkout and uses host configuration instead.
 
@@ -94,13 +114,11 @@ installations coexist; verify which copy is selected. Restart the client if an
 update is not visible. These behaviors are documented in
 [OpenAI's skills guide](https://learn.chatgpt.com/docs/build-skills).
 
-That guide does not establish discovery for this exact non-Git NAS workspace.
-Verify the Windows client directly. If workspace discovery fails, copy the
-published package to the documented per-user discovery directory,
-`<user-home>/.agents/skills/johnny-decimal/`, preserving any existing installation
-first. A local copy requires an explicit `JD_ROOT` or host config pointing at
-the share, and another copy after each update. A link to the share can avoid
-that update step only after link support has been verified on the machine.
+The corresponding Claude Code location is `.claude/skills`; see
+[Anthropic's skill documentation](https://code.claude.com/docs/en/skills).
+Both copies remain on the NAS. If discovery fails, record the actual app,
+workspace, and source paths in `WINDOWS-HANDOFF.md` and diagnose that setup
+before selecting another installation layout.
 
 The app's agent environment and integrated terminal are independent settings;
 check the agent environment when diagnosing access. See

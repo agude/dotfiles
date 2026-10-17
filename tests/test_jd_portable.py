@@ -82,6 +82,20 @@ class PortableTests(unittest.TestCase):
                    XDG_DOCUMENTS_DIR=str(self.root))
         self.assertEqual(jd.paths(env, script), (self.root, self.jdex))
 
+    def test_claude_deployment_uses_nas_root_and_global_copy_uses_host_config(self):
+        target = self.root / '.claude/skills/johnny-decimal/scripts/jd.py'
+        target.parent.mkdir(parents=True)
+        shutil.copyfile(SCRIPT, target)
+        env = dict(self.env)
+        env.pop('JD_ROOT')
+        env.pop('JDEX_PATH')
+        result = self.run_cli('list', '21.10', '--porcelain', script=target, environment=env)
+        self.assertEqual(result.stdout.strip(), str(self.bank))
+        global_copy = self.workspace / '.claude/skills/johnny-decimal/scripts/jd.py'
+        host_env = dict(HOME=str(self.workspace), USERPROFILE=str(self.workspace),
+                        XDG_DOCUMENTS_DIR=str(self.root))
+        self.assertEqual(jd.paths(host_env, global_copy), (self.root, self.jdex))
+
     def test_missing_root_is_reported(self):
         env = dict(self.env, JD_ROOT=str(self.workspace / 'missing'))
         result = self.run_cli('list', '--porcelain', success=False, environment=env)

@@ -11,13 +11,14 @@ import json
 import os
 from pathlib import Path
 import shutil
-import sys
 import tempfile
 import uuid
 
 SOURCE = Path(__file__).resolve().parents[1] / 'llm/skills/johnny-decimal'
 MANIFEST = '.publish-manifest.json'
 RESOURCES = ('SKILL.md', 'references', 'scripts', 'assets', 'agents')
+TARGETS = ('.agents', '.claude')
+WORKSPACE = SOURCE.parents[1] / 'johnnydecimal/workspace'
 
 
 def fingerprint(directory):
@@ -52,11 +53,11 @@ def validate_destination(destination):
     return previous
 
 
-def publish(source, documents, dry_run=False):
+def publish_target(source, documents, target_name, dry_run=False):
     documents = documents.expanduser().resolve(strict=True)
     if not documents.is_dir():
         raise ValueError(f'Not a Documents directory: {documents}')
-    agents = documents / '.agents'
+    agents = documents / target_name
     destination = agents / 'skills/johnny-decimal'
     # Never follow a skill link back into dotfiles or another installation.
     for path in (agents, destination.parent, destination):
@@ -125,6 +126,27 @@ def publish(source, documents, dry_run=False):
         finally:
             lock.rmdir()
     print(f'Published: {destination}')
+
+
+def publish(source, documents, dry_run=False):
+    documents = documents.expanduser().resolve(strict=True)
+    if not documents.is_dir():
+        raise ValueError(f'Not a Documents directory: {documents}')
+    # Check both copies before changing either; preserve edits made from Windows.
+    for name in TARGETS:
+        validate_destination(documents / name / 'skills/johnny-decimal')
+    for name in TARGETS:
+        publish_target(source, documents, name, dry_run)
+    # Workspace instructions belong to the workspace owner after first setup.
+    for name in ('AGENTS.md', 'CLAUDE.md', 'WINDOWS-HANDOFF.md'):
+        template = WORKSPACE / name
+        destination = documents / name
+        if not template.is_file() or os.path.lexists(destination):
+            continue
+        print(f'Seed: {destination}')
+        if not dry_run:
+            with template.open('rb') as content, destination.open('xb') as output:
+                shutil.copyfileobj(content, output)
 
 
 def main():

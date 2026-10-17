@@ -36,7 +36,7 @@ def paths(environment=None, script=None):
     skill = script.resolve().parent.parent
     home_value = (environment.get('USERPROFILE') if os.name == 'nt' else environment.get('HOME'))
     home = Path(home_value or environment.get('HOME') or Path.home()).expanduser().resolve()
-    deployed = skill.parent.name == 'skills' and skill.parent.parent.name == '.agents'
+    deployed = skill.parent.name == 'skills' and skill.parent.parent.name in ('.agents', '.claude')
     workspace = skill.parent.parent.parent if deployed else None
     if workspace == home:
         workspace = None  # A real copy in the user-global skills directory.
