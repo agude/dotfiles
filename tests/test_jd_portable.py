@@ -4,6 +4,7 @@
 # ///
 """Portable CLI tests; all mutations stay in temporary document systems."""
 
+from datetime import date
 import importlib.util
 import json
 import os
@@ -191,7 +192,7 @@ class PortableTests(unittest.TestCase):
         self.assertFalse(destination.exists())
 
     def test_tree_porcelain_lines_are_absolute_paths(self):
-        result = self.run_cli('tree', '20', '-L2', '--porcelain')
+        result = self.run_cli('tree', '20-29', '-L2', '--porcelain')
         self.assertGreater(len(result.stdout.splitlines()), 1)
         self.assertTrue(all(Path(line).is_absolute() for line in result.stdout.splitlines()))
 
@@ -210,6 +211,91 @@ class PortableTests(unittest.TestCase):
         self.run_cli('move', first, second, '21.10', '--force', success=False)
         self.assertEqual(first.read_text(), 'first')
         self.assertEqual(second.read_text(), 'second')
+
+    def test_two_digit_targets_always_select_categories(self):
+        for prefix in ('00', '10', '20', '90'):
+            with self.subTest(prefix=prefix):
+                area = self.root / f'{prefix}-{int(prefix) + 9:02d} Test Area'
+                if prefix == '00':
+                    area = self.inbox.parent.parent
+                    category = self.inbox.parent
+                elif prefix == '20':
+                    area = self.bank.parent.parent
+                    category = area / '20 Test Category'
+                else:
+                    category = area / f'{prefix} Test Category'
+                category.mkdir(parents=True, exist_ok=True)
+                item = category / f'{prefix}.10 Test ID'
+                item.mkdir()
+                self.assertEqual(self.run_cli('search', prefix, '--porcelain').stdout.strip(),
+                                 str(category))
+                listing = self.run_cli('list', prefix, '--porcelain').stdout.splitlines()
+                self.assertIn(str(item), listing)
+                self.assertNotIn(str(category), listing)
+                tree = self.run_cli('tree', prefix, '-L1', '--porcelain').stdout.splitlines()
+                self.assertEqual(tree[0], str(category))
+                self.assertIn(str(item), tree)
+                self.assertIn(str(category), self.run_cli('list', prefix + '-',
+                                                         '--porcelain').stdout.splitlines())
+        self.run_cli('list', '20-28', '--porcelain', success=False)
+
+    def test_explicit_ids_are_padded_without_renaming_legacy_ids(self):
+        category = self.bank.parent
+        self.run_cli('mkdir', '21', 'Padded ID', '--id', '5', '--porcelain')
+        self.assertTrue((category / '21.05 Padded ID').is_dir())
+        self.run_cli('mkdir', '21', 'Duplicate', '--id', '005', success=False)
+        legacy = category / '21.6 Legacy ID'
+        legacy.mkdir()
+        self.run_cli('mkdir', '21', 'Duplicate Legacy', '--id', '06', success=False)
+        self.assertTrue(legacy.is_dir())
+        self.run_cli('mkdir', '21', 'Extended ID', '--id', '100', '--porcelain')
+        self.assertTrue((category / '21.100 Extended ID').is_dir())
+        self.run_cli('mkdir', '00', 'System ID', '--id', '5', '--porcelain')
+        self.assertTrue((self.inbox.parent / '00.05 System ID').is_dir())
+
+    def test_transient_filename_warnings_ignore_case(self):
+        for filename in ('Statement.pdf', 'RECEIPT.pdf', 'Invoice.pdf', 'bill.pdf'):
+            with self.subTest(filename=filename):
+                result = self.run_cli('validate', filename, '--porcelain')
+                self.assertIn(f'WARN:{filename}:Transient document without date prefix',
+                              result.stdout)
+                dated = '2026-10-17_' + filename
+                self.assertEqual(self.run_cli('validate', dated, '--porcelain').stdout.strip(),
+                                 f'OK:{dated}')
+
+    def test_new_notes_use_utf8_lf_and_one_blank_line_between_entries(self):
+        self.run_cli('note', '21.10', 'First ü\r\nline', '--porcelain')
+        self.run_cli('note', '21.10', 'Second entry', '--porcelain')
+        expected = (f'# 21.10 Example Bank\n\n## {date.today().isoformat()}\n\n'
+                    'First ü\nline\n\nSecond entry\n\n').encode('utf-8')
+        self.assertEqual((self.jdex / '21.10.md').read_bytes(), expected)
+
+    def test_appends_preserve_history_bytes_and_its_newline_style(self):
+        path = self.jdex / '21.10.md'
+        for newline in (b'\n', b'\r\n'):
+            for trailing_count in (0, 1, 2, 3):
+                with self.subTest(newline=newline, trailing_count=trailing_count):
+                    history = newline.join((b'# 21.10 Example Bank', b'',
+                                            b'## 2000-01-01', b'', b'Old history'))
+                    history += newline * trailing_count
+                    path.write_bytes(history)
+                    self.run_cli('note', '21.10', 'First ü\nline', '--porcelain')
+                    self.run_cli('note', '21.10', 'Second entry', '--porcelain')
+                    addition = newline.join((f'## {date.today().isoformat()}'.encode(), b'',
+                                             'First ü'.encode('utf-8'), b'line', b'',
+                                             b'Second entry', b'', b''))
+                    expected = history + newline * max(0, 2 - trailing_count) + addition
+                    self.assertEqual(path.read_bytes(), expected)
+
+    def test_move_help_identifies_the_final_destination(self):
+        result = self.run_cli('move', '--help')
+        self.assertIn('SOURCE [SOURCE ...] ID', result.stdout)
+        self.assertIn('XX.YY', result.stdout)
+        source = self.workspace / 'source.pdf'
+        source.touch()
+        result = self.run_cli('move', source, success=False)
+        self.assertIn('ID', result.stderr)
+        self.assertTrue(source.exists())
 
 
 if __name__ == '__main__':

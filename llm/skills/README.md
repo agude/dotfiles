@@ -213,8 +213,11 @@ publisher is running before removing a stale lock.
 The deployed tools use Python 3.10+ without Bash or Unix utilities and derive
 the document root from their deployed location. Explicit path overrides remain
 available. The root `WINDOWS-HANDOFF.md` guides the Windows agent through
-examining available runtimes and validating execution. A launcher is deferred. See the [installation and validation guide](johnny-decimal/references/installation.md)
-for Windows commands, root precedence, backups, and discovery fallback.
+examining available runtimes and validating execution. A launcher is deferred.
+See the [runtime guide](johnny-decimal/references/runtime.md) for verified Windows
+invocations and root precedence, and the
+[publishing guide](johnny-decimal/references/publishing.md) for backups, discovery,
+and validation.
 
 ## Resources
 

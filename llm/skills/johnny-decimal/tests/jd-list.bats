@@ -11,7 +11,7 @@ load test_helper
 }
 
 @test "list categories in area" {
-    run_script jd-list.sh 20 --porcelain
+    run_script jd-list.sh 20-29 --porcelain
     [[ "$status" -eq 0 ]]
     [[ "$output" == *"21 Banks"* ]]
     [[ "$output" == *"24 Taxes"* ]]

@@ -10,7 +10,7 @@ load test_helper
 }
 
 @test "tree with area query" {
-    run_script jd-tree.sh 20 --porcelain
+    run_script jd-tree.sh 20-29 --porcelain
     [[ "$status" -eq 0 ]]
     [[ "$output" == *"21 Banks"* ]]
 }

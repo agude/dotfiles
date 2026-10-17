@@ -85,8 +85,9 @@ def unique(parent, pattern, description):
 def location(root, query):
     if not query:
         return root
-    if re.fullmatch(r'[0-9]{2}-[0-9]*|[0-9]0', query):
-        return unique(root, re.escape(query[:2]) + r'-[0-9]{2} .+', f'area for {query}')
+    if re.fullmatch(r'[0-9]{2}-(?:[0-9]{2})?', query):
+        pattern = re.escape(query) + (r'[0-9]{2}' if query.endswith('-') else '')
+        return unique(root, pattern + r' .+', f'area for {query}')
     if not re.fullmatch(r'[0-9]{2}|' + ID_PATTERN, query):
         raise JDException(f'Invalid query format: {query}')
     category = query[:2]
@@ -235,7 +236,7 @@ def validate(args):
         if ' ' in name:
             warnings.append('Contains spaces - prefer underscores')
         if (not re.match(r'[0-9]{4}[-_]?[0-9]{2}[-_]?[0-9]{2}', name)
-                and re.search(r'statement|receipt|invoice|bill|check|paystub', name)):
+                and re.search(r'statement|receipt|invoice|bill|check|paystub', name, re.IGNORECASE)):
             warnings.append('Transient document without date prefix - consider YYYY-MM-DD_name.ext')
         try:
             safe_name(name)
@@ -258,15 +259,13 @@ def mkdir(root, args):
     else:
         if not re.fullmatch(r'[0-9]{2}', args.query):
             raise JDException('Invalid category format; expected XX or XX.YY')
-        # Categories ending in zero are area queries to `location`, so resolve
-        # the actual category explicitly when creating IDs.
-        area = unique(root, args.query[0] + r'0-[0-9]{2} .+', 'area')
-        category = unique(area, args.query + r' .+', 'category')
+        category = location(root, args.query)
         existing = directories(category, re.escape(args.query) + r'\.[0-9]+ .+')
         number = max([9] + [int(p.name.split(' ', 1)[0].split('.')[1]) for p in existing]) + 1
         suffix = args.id if args.id is not None else str(number)
         if not re.fullmatch(r'[0-9]+', suffix):
             raise JDException('--id must be a number')
+        suffix = suffix.zfill(2)
         prefix = args.query + '.' + suffix
         if any(int(p.name.split(' ', 1)[0].split('.')[1]) == int(suffix) for p in existing):
             raise JDException(f'ID already exists: {prefix}')
@@ -310,9 +309,9 @@ def transfer(source, destination, force):
 
 
 def move(root, args):
-    target_id = '00.01' if args.command == 'inbox' else args.files[-1]
+    target_id = '00.01' if args.command == 'inbox' else args.target
     identifier(target_id)
-    sources = args.files if args.command == 'inbox' else args.files[:-1]
+    sources = args.files
     if not sources:
         raise JDException('At least one source is required')
     if args.name and len(sources) != 1:
@@ -369,6 +368,26 @@ def edit(path):
     subprocess.run([*command, str(path)], check=True)
 
 
+def append_note(path, title, text, today):
+    """Preserve history bytes and its newline style; new notes use UTF-8/LF."""
+    exists = path.exists()
+    content = path.read_bytes() if exists else b''
+    first_ending = re.search(rb'\r?\n', content)
+    newline = first_ending.group() if first_ending else b'\n'
+    text = text.replace('\r\n', '\n').replace('\r', '\n').strip('\n')
+    if not content:
+        block = f'# {title}\n\n{today}\n\n{text}\n\n'
+    elif today.encode('utf-8') in content.splitlines():
+        block = f'{text}\n\n'
+    else:
+        block = f'{today}\n\n{text}\n\n'
+    trailing = content[len(content.rstrip(b'\r\n')):]
+    missing = max(0, 2 - trailing.count(b'\n')) if content else 0
+    addition = newline * missing + block.encode('utf-8').replace(b'\n', newline)
+    with path.open('ab' if exists else 'xb') as output:
+        output.write(addition)
+
+
 def notes(root, jdex, args):
     selected = args.query
     if selected is None:
@@ -390,7 +409,7 @@ def notes(root, jdex, args):
             if not interactive(args):
                 raise JDException('--edit requires interactive mode')
             if not path.exists():
-                with path.open('x', encoding='utf-8') as output:
+                with path.open('x', encoding='utf-8', newline='\n') as output:
                     output.write(f'# {title}\n\n')
             edit(path)
         elif path.exists():
@@ -418,50 +437,57 @@ def notes(root, jdex, args):
     except FileExistsError:
         raise JDException(f'Note is locked: {lock}') from None
     try:
-        if path.exists():
-            content = path.read_text(encoding='utf-8')
-            addition = f'\n{text}\n\n' if today in content.splitlines() else f'\n{today}\n\n{text}\n\n'
-            with path.open('a', encoding='utf-8') as output:
-                output.write(addition)
-        else:
-            with path.open('x', encoding='utf-8') as output:
-                output.write(f'# {title}\n\n{today}\n\n{text}\n\n')
+        append_note(path, title, text, today)
     finally:
         lock.rmdir()
     print(path if args.porcelain else f'Added note to {selected}.md')
 
 
 def parser():
-    result = argparse.ArgumentParser(description=__doc__, usage='Usage: %(prog)s <command> [options]')
+    result = argparse.ArgumentParser(prog='jd.py', description=__doc__)
     commands = result.add_subparsers(dest='command', required=True)
-    for name in ('search', 'list', 'tree', 'validate', 'mkdir', 'move', 'inbox', 'read', 'note'):
-        command = commands.add_parser(name)
+    descriptions = dict(search='Find JD folders by ID prefix or name.',
+                        list='List an area (XX-YY), category (XX), or ID (XX.YY).',
+                        tree='Display directories below an area, category, or ID.',
+                        validate='Check document filenames.',
+                        mkdir='Create an ID in a category, or a folder inside an ID.',
+                        move='Move SOURCE... to the final full ID (XX.YY).',
+                        inbox='Move SOURCE... to the system inbox (00.01).',
+                        read='Read the note for a full ID (XX.YY).',
+                        note='Append a dated entry to the note for a full ID (XX.YY).')
+    for name, description in descriptions.items():
+        command = commands.add_parser(name, help=description, description=description)
         command.add_argument('--porcelain', action='store_true', help='plain, absolute output; never prompt')
         if name == 'search':
-            command.add_argument('query')
-        elif name in ('list', 'tree', 'read', 'note'):
-            command.add_argument('query', nargs='?')
+            command.add_argument('query', metavar='QUERY', help='ID prefix or case-insensitive name fragment')
+        elif name in ('list', 'tree'):
+            command.add_argument('query', nargs='?', metavar='TARGET',
+                                 help='area XX-YY or XX-, category XX, or full ID XX.YY')
+        elif name in ('read', 'note'):
+            command.add_argument('query', nargs='?', metavar='ID', help='full ID XX.YY; omit to browse at a terminal')
         if name == 'list':
             command.add_argument('--files', action='store_true', help='list entries within an ID in porcelain mode')
         if name == 'tree':
-            command.add_argument('-L', '--depth', type=int, default=2)
+            command.add_argument('-L', '--depth', type=int, default=2, help='directory depth (default: 2)')
         if name == 'validate':
             command.add_argument('files', nargs='+')
         if name == 'mkdir':
-            command.add_argument('query')
-            command.add_argument('name')
-            command.add_argument('--id')
+            command.add_argument('query', metavar='CATEGORY_OR_ID', help='category XX or existing ID XX.YY')
+            command.add_argument('name', help='new ID title or subfolder name')
+            command.add_argument('--id', metavar='NUMBER', help='explicit ID suffix; pad to at least two digits')
         if name in ('move', 'inbox'):
-            command.add_argument('files', nargs='+', help='source(s), followed by target ID for move')
-            command.add_argument('--name')
-            command.add_argument('--subdir')
-            command.add_argument('-f', '--force', action='store_true')
+            command.add_argument('files', nargs='+', metavar='SOURCE', help='source file(s) or directories')
+            if name == 'move':
+                command.add_argument('target', metavar='ID', help='destination full ID XX.YY (last positional argument)')
+            command.add_argument('--name', metavar='FILENAME', help='rename a single source during the move')
+            command.add_argument('--subdir', metavar='PATH', help='relative destination below the ID; created if needed')
+            command.add_argument('-f', '--force', action='store_true', help='replace an existing regular file')
         if name in ('mkdir', 'move', 'inbox'):
-            command.add_argument('-n', '--dry-run', action='store_true')
+            command.add_argument('-n', '--dry-run', action='store_true', help='preview without creating or moving anything')
         if name == 'read':
             command.add_argument('-e', '--edit', action='store_true')
         if name == 'note':
-            command.add_argument('text', nargs='*')
+            command.add_argument('text', nargs='*', help='note text; required outside an interactive terminal')
     return result
 
 

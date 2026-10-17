@@ -69,8 +69,10 @@ the two skill copies.
    [execution report](https://github.com/openai/codex/issues/21470).
    These are observed app paths, not a guaranteed public runtime interface.
 
-4. In Claude Code Local, inspect the runtime actually available to its shell.
-   A host-callable bundled Python has not been verified. Do not infer one from
+4. In Claude Code Local, try `python` and verify its version. On the tested
+   Windows host, the Microsoft Store Python 3.13.14 installation worked through
+   that command; `py`, `uv`, and `bash` were absent. A host-callable bundled
+   Python has not been verified. Do not infer one from
    Cowork's separate execution environment or from a package used by a plugin.
 5. For the chosen executable, print its version and path and confirm the
    required standard-library imports:
@@ -100,8 +102,8 @@ results point to this NAS workspace, including its JDex, rather than a local
 Documents folder. Inspect any existing JD environment overrides if they differ.
 
 Then create a uniquely named disposable fixture on the share, with an area,
-category, ID, inbox, and JDex. For those test commands only, set `JD_ROOT` and
-`JDEX_PATH` to the fixture. Exercise `mkdir`, dry-run `move`, actual `move`,
+category, ID, inbox, and JDex. For those test commands only, set `JD_ROOT` to
+the fixture root and `JDEX_PATH` to its JDex. Exercise `mkdir`, dry-run `move`, actual `move`,
 collision rejection, `note`, and `read`. Check bytes and note history. Restore
 prior environment values and remove only the fixture created for this test.
 

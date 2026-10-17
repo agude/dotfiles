@@ -29,7 +29,7 @@ The configuration supplies the filesystem root and JDex path as top-level
 properties. Explicit `JD_ROOT` and `JDEX_PATH` environment variables take
 precedence over the configuration file. The current local configuration
 supports one system. A deployed copy ignores the implicit host config but
-respects an explicit `JD_CONFIG`. See `installation.md` for full precedence.
+respects an explicit `JD_CONFIG`. See `runtime.md` for full precedence.
 
 Read `overview.md` and `flowchart.md` when the current structure or a filing
 decision is not obvious. The local structure takes precedence over generic
@@ -67,6 +67,10 @@ later, including:
 
 ## Local system boundaries
 
+- The unnumbered root folders `Google AI Studio`, `Maps`, and `scansnap` have
+  unconfirmed roles. Do not treat them as filing destinations or rename or
+  move them based on their names. In particular, scanner-drop behavior and
+  application ownership have not been established.
 - The Knowledge Base is for durable context needed by future agents.
 - The Wiki is for human-readable infrastructure documentation.
 - Johnny.Decimal is for the user's artifacts and notes about those artifacts.

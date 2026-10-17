@@ -39,7 +39,7 @@ load test_helper
 @test "inbox no args shows usage" {
     run_script jd-inbox.sh
     [[ "$status" -ne 0 ]]
-    [[ "$output" == *"Usage"* ]]
+    [[ "$output" == *"usage:"* ]]
 }
 
 @test "inbox missing source fails" {
