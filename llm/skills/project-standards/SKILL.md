@@ -106,9 +106,15 @@ weekly.
 
 ## Change a template
 
-Change the template repository, then run its `just check`, `just test-init`,
-and `just test-generated`. Projects do not track their template after
-creation.
+Change the template repository, then run its checks:
+
+- Python: Run `just check package-check`, `just test-init`, and
+  `just test-generated <variant>`. For changes to `scripts/init` or marker
+  blocks, run `just test-generated <variant>` for each affected variant:
+  `cli`, `library`, `no-publish`, and `custom-names`.
+- Bash: Run `just check`, `just test-init`, and `just test-generated`.
+
+Projects do not track their template after creation.
 
 ## Out of scope
 
