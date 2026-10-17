@@ -129,43 +129,6 @@
       "Write"
     ],
     "deny": [
-      "Bash(dd:*)",
-      "Bash(fdisk:*)",
-      "Bash(gh repo archive:*)",
-      "Bash(gh repo change-visibility:*)",
-      "Bash(gh repo delete:*)",
-      "Bash(gh repo rename:*)",
-      "Bash(gh auth :*)",
-      "Bash(gh ssh-key :*)",
-      "Bash(gh gpg-key :*)",
-      "Bash(gh issue delete:*)",
-      "Bash(git commit --no-verify:*)",
-      "Bash(git commit -n :*)",
-      "Bash(git push --force:*)",
-      "Bash(git push -f :*)",
-      "Bash(git -C:*)",
-      "Bash(git clone:*)",
-      "Bash(git fetch:*)",
-      "Bash(git pull:*)",
-      "Bash(halt)",
-      "Bash(hermit clean:*)",
-      "Bash(hermit uninstall:*)",
-      "Bash(insmod:*)",
-      "Bash(mkfs:*)",
-      "Bash(modprobe:*)",
-      "Bash(parted:*)",
-      "Bash(poweroff)",
-      "Bash(reboot)",
-      "Bash(shutdown:*)",
-      "Bash(su:*)",
-      "Bash(sudo:*)",
-      "Bash(systemctl disable:*)",
-      "Bash(systemctl enable:*)",
-      "Bash(systemctl restart:*)",
-      "Bash(systemctl start:*)",
-      "Bash(systemctl stop:*)",
-      "Bash(uv cache clean:*)",
-      "Bash(uv pip uninstall:*)"
     ],
     "ask": [],
     "defaultMode": "auto"
@@ -243,15 +206,15 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
+  "outputStyle": "Concise",
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
-  "outputStyle": "Concise",
   "modelSettings": {
     "claude-haiku-5-5": {
       "effortLevel": "xhigh"
     },
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     }
   },
   "autoMemoryEnabled": false,
