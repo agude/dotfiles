@@ -5,7 +5,7 @@ description: >
   Johnny.Decimal system. Use when the user needs to file a document, sort
   scans, find an ID or file, decide where something belongs, create a
   subcategory, or update a JDex note.
-compatibility: "Requires bash. The tree command is required for full tree output; fzf is optional."
+compatibility: "Requires Python 3.10+ or uv. Unix compatibility wrappers also require Bash."
 ---
 
 # Local Johnny.Decimal System
@@ -17,6 +17,7 @@ point. Read only the reference material required for the task:
 | --- | --- | --- |
 | JD reference | Explaining JD structure, notation, or general principles | `references/johnnydecimal-reference.md` |
 | JDex policy | Working with the user's index, filing rules, or local decisions | `references/jdex.md` |
+| Installation | Publishing, runtime prerequisites, root selection, or host discovery | `references/installation.md` |
 | JD tools | Searching, reading, creating, moving, or renaming files and notes | `references/jd-tools.md` |
 
 For a filing operation, read the JDex policy and tools references. For a

@@ -1,61 +1,91 @@
 # Local JD Tools
 
-Use this file when operating on the local filesystem or JDex. The bundled
-scripts are the execution layer; use them instead of constructing ad hoc
-filesystem commands.
+The bundled `scripts/jd.py` implements the filesystem and JDex operations.
+It requires Python 3.10 or newer and only the standard library. No Bash,
+`tree`, or other Unix utilities are required for this entry point.
+
+## Invocation
+
+Resolve `SKILL_DIR` to the absolute directory containing the loaded `SKILL.md`.
+Keep the working directory in the target project. The variable below is a local
+example; agent hosts do not set it automatically.
+
+Unix shells, using uv:
+
+```bash
+uv run --no-project "$SKILL_DIR/scripts/jd.py" search bank --porcelain
+```
+
+Windows PowerShell, using uv:
+
+```powershell
+uv run --no-project "$SKILL_DIR/scripts/jd.py" search bank --porcelain
+```
+
+With an existing Python 3.10+ installation, replace `uv run --no-project` with
+`python3` on Unix or `py -3` on Windows. Both execute the same script.
+Confirm the interpreter version before use. The `jd-*.sh` entry points retain
+existing Unix command names and arguments; they call the same Python runtime.
 
 ## Commands
 
-`$SKILL_DIR` is the absolute directory containing this skill's `SKILL.md`.
-Resolve it before running a bundled script. Run the script from the target
-project directory.
+Append a command and its arguments after the absolute `jd.py` path:
 
 | Command | Purpose |
 | --- | --- |
-| `jd-search.sh <query>` | Find folders by name or ID fragment |
-| `jd-list.sh [area\|category\|ID]` | List a location |
-| `jd-tree.sh [-L depth] [ID]` | Display the directory structure |
-| `jd-validate.sh <filename>` | Check a filename |
-| `jd-mkdir.sh <category\|ID> <name>` | Create a numbered subcategory or subfolder |
-| `jd-inbox.sh <source...>` | Move files to the system inbox |
-| `jd-move.sh <source...> <ID>` | Move and optionally rename files |
-| `jd-read.sh [ID]` | Read a JDex note |
-| `jd-note.sh [ID] <text>` | Append a dated JDex note |
+| `search <query>` | Find folders by name or ID fragment |
+| `list [area|category|ID]` | List areas, categories, or IDs; return the ID directory in agent mode |
+| `list <ID> --files` | List the immediate contents of an ID, including files |
+| `tree [-L depth] [area|category|ID]` | Display directories to the requested depth |
+| `validate <filename...>` | Check filenames; return OK/WARN/ERROR records |
+| `mkdir <category|ID> <name> [--id N]` | Create a numbered ID or a folder inside an ID |
+| `inbox <source...>` | Move items to the system inbox, 00.01 |
+| `move <source...> <ID> [--name filename] [--subdir path]` | Move items to an ID, optionally renaming one item |
+| `read [ID]` | Read a JDex note; return its path in agent mode |
+| `note [ID] <text>` | Append a dated note or create one |
 
-Use `references/FILING-GUIDE.md` to choose a destination and
-`references/NAMING.md` to choose a final filename.
+Use `references/FILING-GUIDE.md` to choose a destination and `references/NAMING.md`
+to choose a final name. `--help` lists command options.
 
 ## Agent mode
 
-Pass `--porcelain` to every script when an agent is consuming the result:
+Pass `--porcelain` to every operation consumed by an agent:
 
-- Paths are absolute and undecorated.
-- Output has no colors or interactive prompts.
-- Errors go to stderr and set a non-zero exit code.
-- Supply every required input as an argument.
-- `jd-note.sh` requires note text.
-- `jd-read.sh --porcelain` returns the note file path.
+- Paths are absolute and undecorated. `tree` emits one absolute directory per line.
+- Filename validation returns `OK:filename`, `WARN:filename:reason`, or
+  `ERROR:filename:reason`. Warnings succeed; errors return nonzero.
+- Diagnostics go to stderr and failures return nonzero.
+- No command prompts. Supply an ID and note text for note operations.
+- `read` returns the note path. A missing note reports a diagnostic and succeeds.
+- `list ID` returns the ID directory; add `--files` to inspect its contents.
 
-Use the output as data. Do not parse human-oriented colored output. If a
-bundled script cannot perform an inspection or change, identify the missing
-tooling instead of substituting an ad hoc filesystem command.
+Without `--porcelain`, `list`, `read`, and `note` can browse through numbered
+menus when stdin and stdout are terminals. `read --edit` opens the configured
+editor; `note` with no text opens a temporary draft. `EDITOR` or `VISUAL` selects
+the editor, defaulting to `vi` on Unix or Notepad on Windows. Set either to an
+executable path, including a Windows path containing spaces; Unix command strings
+may also include arguments.
 
 ## Safe filing workflow
 
 1. Inspect the source document or its contents.
-2. Read the local JDex flowchart and identify the target ID.
-3. Run `jd-list.sh <ID> --porcelain` and inspect the target's naming pattern.
-4. Choose a meaningful final filename. A scan-date filename is temporary.
-5. Move and rename the file in one operation:
-   `jd-move.sh <source> <ID> --name <filename> --porcelain`.
-6. Verify the destination with `jd-list.sh <ID> --porcelain` or the relevant
-   JDex note with `jd-read.sh <ID> --porcelain`.
+2. Read the JDex flowchart and identify the target ID.
+3. Run `list <ID> --files --porcelain` and inspect the naming pattern.
+4. Choose a meaningful final filename; inbox scan dates are temporary names.
+5. Preview an unfamiliar move with
+   `move <source> <ID> --name <filename> --dry-run --porcelain`.
+6. Apply the same move without `--dry-run`.
+7. Verify with `list <ID> --files --porcelain` or `read <ID> --porcelain`.
 
-Use `--dry-run` where supported before a batch or unfamiliar operation. The
-scripts refuse to overwrite existing files and validate paths. Do not call
-`mv` directly for JD filing.
+`mkdir`, `move`, and `inbox` accept `--dry-run`; a dry run creates no destination
+folders. Moves validate every source and destination before starting. Files are
+copied before their sources are removed, so interruption can leave a partial
+batch or duplicate; batch moves are not transactions. Verify before retrying.
+Existing targets are refused unless `--force` explicitly replaces a regular
+file. Directory merging and symlink targets are refused. Name and collision
+checks apply Windows restrictions on every host. Relative `--subdir` paths may
+use either slash style but cannot escape the target ID.
 
-## Human mode
-
-Without `--porcelain`, interactive commands may browse the hierarchy, open an
-editor, and display colored short paths. This mode is for a human at a TTY.
+Note appends use a per-ID lock under the JDex. If a process is interrupted and
+leaves `.XX.YY.lock`, confirm no writer is running before removing the stale
+lock. Existing note history is appended to, not rewritten.

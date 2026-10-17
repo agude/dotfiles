@@ -17,6 +17,11 @@ bootstrap *ARGS:
 bootstrap-pi:
     ./bin/bootstrap-pi-packages.sh
 
+# Copy the Johnny.Decimal skill to Documents (flags: --dry-run, --documents PATH).
+[positional-arguments]
+publish-jd *ARGS:
+    uv run --no-project bin/publish-jd.py "$@"
+
 # Run every static check.
 lint: lint-shell lint-zsh lint-data lint-python lint-opencode
 
@@ -88,7 +93,7 @@ lint-python:
     git ls-files -z '*.py' | xargs -0 python3 -c 'import ast, pathlib, sys; [ast.parse(pathlib.Path(path).read_text(), filename=path) for path in sys.argv[1:]]'
 
 # Run every test suite.
-test: test-shell test-python test-pdf test-integration
+test: test-shell test-python test-publish-jd test-jd-portable test-pdf test-integration
 
 # Run shell-based regression suites.
 test-shell:
@@ -97,6 +102,14 @@ test-shell:
 # Run Python tests for the shared command guard.
 test-python:
     uv run tests/test_command_guard.py -q
+
+# Verify skill publication and destination protection.
+test-publish-jd:
+    uv run --no-project tests/test_publish_jd.py -q
+
+# Verify the JD runtime without Bash or Unix utilities.
+test-jd-portable:
+    uv run --no-project tests/test_jd_portable.py -q
 
 # Run PDF skill tests.
 test-pdf:

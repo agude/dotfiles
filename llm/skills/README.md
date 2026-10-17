@@ -174,6 +174,45 @@ directories, making skills available to:
 - **OpenCode**: Reads `~/.agents/skills/` natively
 - **Pi**: Reads `~/.agents/skills/` natively
 
+## Publish Johnny.Decimal to Documents
+
+From the dotfiles repository, preview and deploy the shared copy:
+
+```bash
+just publish-jd --dry-run
+just publish-jd
+```
+
+The publisher requires Python 3.10+ (or uv) and copies `SKILL.md`, `references/`,
+`scripts/`, and optional `assets/` and `agents/` from
+`llm/skills/johnny-decimal/` into
+`Documents/.agents/skills/johnny-decimal/`. Tests are not deployed.
+The Documents root defaults to `$XDG_DOCUMENTS_DIR` or `~/Documents` and must
+already exist. For another mount, run:
+
+```bash
+uv run --no-project bin/publish-jd.py --documents "/path/to/shared Documents" --dry-run
+uv run --no-project bin/publish-jd.py --documents "/path/to/shared Documents"
+```
+
+Edit the source in dotfiles, then publish again. A content manifest detects
+local edits, additions, and deletions in the deployed copy; publication stops
+until those changes are reconciled. Existing directories without a manifest
+and symlink destinations are also rejected. An unchanged deployment is a no-op.
+
+Updates replace the deployed skill and retain the previous version under
+`Documents/.agents/skill-backups/`. Backups are retained until manually removed.
+A failed replacement attempts to restore the previous version. Publication
+uses a lock directory at `Documents/.agents/.publish-jd.lock`; after an
+interrupted process, inspect the destination and backups and confirm no
+publisher is running before removing a stale lock.
+
+The deployed tools use Python 3.10+ without Bash or Unix utilities and derive
+the document root from their deployed location. Explicit path overrides remain
+available. Install the runtime locally on each machine and verify skill
+discovery in each agent client. See the [installation and validation guide](johnny-decimal/references/installation.md)
+for Windows commands, root precedence, backups, and discovery fallback.
+
 ## Resources
 
 - [Agent Skills Specification](https://agentskills.io/specification)

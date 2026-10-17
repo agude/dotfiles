@@ -5,8 +5,9 @@ notes.
 
 ## Local locations
 
-The default filesystem root is `~/Documents`, or `$XDG_DOCUMENTS_DIR` when it
-is set. The local JDex is:
+The deployed skill derives the filesystem root from its containing Documents
+workspace. A global source installation defaults to `~/Documents`, or
+`$XDG_DOCUMENTS_DIR` when it is set. The local JDex is:
 
 ```text
 00-09 System/00 System/00.00 JDex for System/
@@ -20,14 +21,15 @@ The JDex contains:
 
 ## Configuration
 
-The runtime configuration is `${XDG_CONFIG_HOME}/johnnydecimal/config.json`,
+For a global source installation, the runtime configuration is `${XDG_CONFIG_HOME}/johnnydecimal/config.json`,
 defaulting to `~/.config/johnnydecimal/config.json`. Set `JD_CONFIG` to use a
 different file for testing or a separate local system.
 
 The configuration supplies the filesystem root and JDex path as top-level
 properties. Explicit `JD_ROOT` and `JDEX_PATH` environment variables take
 precedence over the configuration file. The current local configuration
-supports one system.
+supports one system. A deployed copy ignores the implicit host config but
+respects an explicit `JD_CONFIG`. See `installation.md` for full precedence.
 
 Read `overview.md` and `flowchart.md` when the current structure or a filing
 decision is not obvious. The local structure takes precedence over generic
@@ -49,7 +51,7 @@ Johnny.Decimal examples.
 ## JDex notes
 
 Name a JDex note with its ID. Its heading contains the ID and name.
-`jd-note.sh` appends a dated entry to an existing note or creates the note.
+`jd.py note` appends a dated entry to an existing note or creates the note.
 Preserve existing history and formatting.
 
 The current local convention is dated Markdown prose. Metadata and related-ID
