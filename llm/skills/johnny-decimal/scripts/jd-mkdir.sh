@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-#
-# jd-mkdir: Create a new Johnny Decimal subcategory folder
-#
-# Usage:
-#   jd-mkdir 21 "Chase Bank"           # Auto-assigns next ID (e.g., 21.15)
-#   jd-mkdir 21 "Chase Bank" --id 15   # Explicit ID: 21.15
-#   jd-mkdir 93.10 "ninja_blender"     # Subdirectory inside existing ID
-#   jd-mkdir 21 "Name" --porcelain     # Output full path (for agents)
-
+# Compatibility entry point; the portable implementation is in jd.py.
 set -euo pipefail
-
-# --- Load shared library ---
-# Resolve symlink to find actual script location
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 while [[ -L "$SCRIPT_PATH" ]]; do
     SCRIPT_DIRECTORY="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
@@ -24,128 +13,9 @@ while [[ -L "$SCRIPT_PATH" ]]; do
     fi
 done
 SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
-# shellcheck source=/dev/null
-source "${SCRIPT_DIR}/jd-lib.sh"
-
-# Parse common args (--porcelain)
-jd_parse_common_args "$@"
-set -- "${JD_REMAINING_ARGS[@]+"${JD_REMAINING_ARGS[@]}"}"
-
-# Validate JD_ROOT exists
-jd_validate_root || exit 1
-
-show_usage() {
-    echo "Usage: jd-mkdir <category|ID> <name> [--id N] [--dry-run]" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\"           # Auto-assigns next ID" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\" --id 15   # Explicit: 21.15" >&2
-    echo "  jd-mkdir 93.10 \"ninja_blender\"     # Subdir inside existing ID" >&2
-    echo "  jd-mkdir 21 \"Chase Bank\" --dry-run # Preview without creating" >&2
-    echo "  jd-mkdir 21 \"Name\" --porcelain     # Output full path (for agents)" >&2
-}
-
-if [[ "$JD_HELP_REQUESTED" == "true" ]]; then
-    show_usage
-    exit 0
-fi
-
-# --- Parse arguments ---
-explicit_id=""
-category=""
-name=""
-dry_run=false
-
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --id)
-            explicit_id="$2"
-            shift 2
-            ;;
-        --dry-run|-n)
-            dry_run=true
-            shift
-            ;;
-        *)
-            if [[ -z "$category" ]]; then
-                category="$1"
-            elif [[ -z "$name" ]]; then
-                name="$1"
-            else
-                jd_error "Unexpected argument '$1'"
-                exit 1
-            fi
-            shift
-            ;;
-    esac
-done
-
-# --- Validate inputs ---
-if [[ -z "$category" ]] || [[ -z "$name" ]]; then
-    show_usage
-    exit 1
-fi
-
-# Branch: subcategory ID (XX.YY) → create a subdirectory inside it
-if [[ "$category" =~ ^[0-9][0-9]\.[0-9]+$ ]]; then
-    if [[ -n "$explicit_id" ]]; then
-        jd_error "--id is not supported when creating a subdirectory inside an existing ID"
-        exit 1
-    fi
-    if [[ "$name" == */* ]] || [[ "$name" == "." ]] || [[ "$name" == ".." ]]; then
-        jd_error "Invalid name: '${name}'"
-        exit 1
-    fi
-    id_dir=$(find_id_dir "$category") || exit 1
-    new_folder="${id_dir}/${name}"
+if command -v python3 >/dev/null 2>&1; then
+    PYTHON=(python3)
 else
-    # Validate category format (XX)
-    if [[ ! "$category" =~ ^[0-9][0-9]$ ]]; then
-        jd_error "Invalid format '${category}'. Expected XX (e.g., 21) or XX.YY (e.g., 21.10)"
-        exit 1
-    fi
-
-    # Find the category directory (validates it exists)
-    category_dir=$(find_category_dir "$category") || exit 1
-
-    # Determine the ID
-    if [[ -n "$explicit_id" ]]; then
-        # Validate explicit ID is a number
-        if [[ ! "$explicit_id" =~ ^[0-9]+$ ]]; then
-            jd_error "--id must be a number, got '${explicit_id}'"
-            exit 1
-        fi
-        id="${category}.${explicit_id}"
-    else
-        # Auto-assign next available ID
-        id=$(next_available_id "$category") || exit 1
-    fi
-
-    # Construct the new folder path
-    new_folder="${category_dir}/${id} ${name}"
+    PYTHON=(uv run --no-project)
 fi
-
-# Check if it already exists
-if [[ -e "$new_folder" ]]; then
-    jd_error "Folder already exists: ${new_folder}"
-    exit 1
-fi
-
-# Dry-run: just show what would be created
-if [[ "$dry_run" == true ]]; then
-    if [[ "$JD_PORCELAIN" == "true" ]]; then
-        echo "$new_folder"
-    else
-        echo "Would create: $(basename "$new_folder")"
-        echo "  Path: ${new_folder}"
-    fi
-    exit 0
-fi
-
-# Create the folder
-mkdir "$new_folder"
-chmod 700 "$new_folder"
-
-if [[ "$JD_PORCELAIN" == "true" ]]; then
-    echo "$new_folder"
-else
-    jd_success "Created: $(basename "$new_folder")"
-fi
+exec "${PYTHON[@]}" "${SCRIPT_DIR}/jd.py" mkdir "$@"

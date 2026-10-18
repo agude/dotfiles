@@ -54,5 +54,5 @@ load test_helper
 @test "no args shows usage" {
     run_script jd-search.sh
     [[ "$status" -ne 0 ]]
-    [[ "$output" == *"Usage"* ]]
+    [[ "$output" == *"usage:"* ]]
 }

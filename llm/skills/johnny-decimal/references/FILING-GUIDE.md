@@ -3,7 +3,7 @@
 Use the JDex flowchart for a detailed filing decision:
 
 ```
-~/Documents/00-09 System/00 System/00.00 JDex for System/flowchart.md
+<resolved Documents root>/00-09 System/00 System/00.00 JDex for System/flowchart.md
 ```
 
 ## Quick placement guide
@@ -33,7 +33,7 @@ Use the JDex flowchart for a detailed filing decision:
 
 Before renaming a file for its destination:
 
-1. Run `jd-list.sh <ID> --porcelain` to inspect existing filenames.
+1. Run `jd.py list <ID> --files --porcelain` to inspect existing filenames.
 2. Match the destination's established pattern. See `NAMING.md` for
    category-specific rules.
 3. Keep names short when the directory path already provides the context. Make
