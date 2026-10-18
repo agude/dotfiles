@@ -29,7 +29,9 @@ class PortableTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.workspace = Path(self.temporary.name)
+        # jd.py reports resolved paths. Resolve the temporary directory too, since
+        # Windows runners use 8.3 temp names (RUNNER~1) and macOS links /var.
+        self.workspace = Path(self.temporary.name).resolve()
         self.root = self.workspace / 'Shared Documents ü'
         self.jdex = self.root / jd.JDEX
         self.bank = self.root / '20-29 Finances/21 Banks/21.10 Example Bank'
