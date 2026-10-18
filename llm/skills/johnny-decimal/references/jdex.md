@@ -67,10 +67,16 @@ later, including:
 
 ## Local system boundaries
 
-- The unnumbered root folders `Google AI Studio`, `Maps`, and `scansnap` have
-  unconfirmed roles. Do not treat them as filing destinations or rename or
-  move them based on their names. In particular, scanner-drop behavior and
-  application ownership have not been established.
+- `Google AI Studio` in the Documents root is app-managed. Gemini writes agent
+  files there, and the location cannot be changed. Do not rename, move, or
+  delete the folder, and leave its contents in place unless the user asks.
+- `Maps` in the Documents root holds Google My Maps shortcuts (`.gmap` files
+  that contain only a URL). They await sorting: reference maps go to
+  `91.19 Maps` and tracks to `95.10 GPS Tracks`, converted to GPX where
+  possible. Do not file new items into `Maps`.
+- The ScanSnap scanner saves directly to `00.01`. Its cloud upload can
+  recreate a root `scansnap` folder. Move anything found there to `00.01`,
+  then remove the empty folder.
 - The Knowledge Base is for durable context needed by future agents.
 - The Wiki is for human-readable infrastructure documentation.
 - Johnny.Decimal is for the user's artifacts and notes about those artifacts.
