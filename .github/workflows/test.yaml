@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install test dependencies
-        run: apk add --no-cache bats jq just python3 tree zsh
+        run: apk add --no-cache bats jq just python3 tree uv zsh
       - name: Run shell tests
         run: just test-shell
 
