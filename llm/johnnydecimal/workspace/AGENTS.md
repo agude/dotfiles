@@ -24,8 +24,7 @@ vary between machines.
   in Windows testing. Start with JD `search`, `list`, or bounded `tree -L N`,
   then inspect specific files or directories.
 - `Google AI Studio` is app-managed: Gemini writes there. Never rename, move,
-  or delete it. `Maps` holds Google My Maps shortcuts awaiting sorting into
-  `91.19` and `95.10`. Anything in a recreated `scansnap` folder belongs in
+  or delete it. Anything in a recreated `scansnap` folder belongs in
   `00.01`. The skill's `references/jdex.md` has the details.
 - Read the skill's policy, filing guide, and naming references before filing.
   Inspect the source and destination; use dry runs for unfamiliar moves.

@@ -70,10 +70,11 @@ later, including:
 - `Google AI Studio` in the Documents root is app-managed. Gemini writes agent
   files there, and the location cannot be changed. Do not rename, move, or
   delete the folder, and leave its contents in place unless the user asks.
-- `Maps` in the Documents root holds Google My Maps shortcuts (`.gmap` files
-  that contain only a URL). They await sorting: reference maps go to
-  `91.19 Maps` and tracks to `95.10 GPS Tracks`, converted to GPX where
-  possible. Do not file new items into `Maps`.
+- Google My Maps shortcuts (`.gmap` files that contain only a URL) hold no
+  map data. Download the KML from
+  `https://www.google.com/maps/d/kml?mid=<MID>&forcekml=1` and convert it to
+  GPX. File recorded rides and runs in `95.10 GPS Tracks` and reference maps
+  in `91.19 Maps`, keeping the KML in a `kml/` subfolder.
 - The ScanSnap scanner saves directly to `00.01`. Its cloud upload can
   recreate a root `scansnap` folder. Move anything found there to `00.01`,
   then remove the empty folder.

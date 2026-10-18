@@ -66,7 +66,7 @@ For filing, read the JDex policy and tools references. Read the local JDex
 - Inspect the source and proposed destination before filing. Use a dry run for
   unfamiliar moves, then verify the result.
 - Treat a need for an ad hoc filesystem command as a tooling gap; record it.
-- Before touching an unnumbered root folder (`Google AI Studio`, `Maps`, or
+- Before touching an unnumbered root folder (`Google AI Studio` or
   `scansnap`), read "Local system boundaries" in `references/jdex.md`.
   `Google AI Studio` is app-managed and must stay where it is.
 - Confine setup and mutation tests to a disposable fixture.
