@@ -14,11 +14,11 @@ The destination root must exist. It defaults to `XDG_DOCUMENTS_DIR` or
 `~/Documents`. `just` does not preserve quoting in `--documents`, so set
 `XDG_DOCUMENTS_DIR` for a path that contains spaces. The publisher copies
 runtime resources to `<Documents>/.agents/skills/johnny-decimal/` and
-`<Documents>/.claude/skills/johnny-decimal/`, excluding tests. It seeds missing
-`AGENTS.md`, `CLAUDE.md`, and `WINDOWS-HANDOFF.md` from
-`llm/johnnydecimal/workspace/`. Existing root instructions and handoff results
-are preserved; reconcile instruction updates separately. Sibling skills and
-normal dotfiles installation are left alone.
+`<Documents>/.claude/skills/johnny-decimal/`, excluding tests. It seeds a
+missing root `AGENTS.md` from `llm/johnnydecimal/workspace/`, which Codex and
+Claude Code both read. An existing `AGENTS.md` is preserved; reconcile
+instruction updates separately. Sibling skills and normal dotfiles
+installation are left alone.
 
 ## Updates and recovery
 
@@ -46,8 +46,8 @@ Open Documents as the workspace and check the loaded `SKILL.md` path. Codex's
 workspace copy is under `.agents/skills`; Claude's is under `.claude/skills`.
 Global and workspace copies can coexist, so confirm the selected source.
 Restart the client if an update is not visible. Both deployed copies remain
-on the NAS. Record the actual app, workspace, and source paths in
-`WINDOWS-HANDOFF.md` when diagnosing discovery. See the
+on the NAS. Report the actual app, workspace, and source paths when
+diagnosing discovery. See the
 [Codex skills guide](https://learn.chatgpt.com/docs/build-skills) and
 [Claude Code skills documentation](https://code.claude.com/docs/en/skills).
 
@@ -70,9 +70,8 @@ On each actual target machine:
    category, ID, and ownership marker. Set `JD_ROOT` and `JDEX_PATH` for test
    child processes only; unset `JD_CONFIG` in those processes.
 4. Test mkdir, dry-run move, move, collision rejection, and dated note appends.
-   Verify file bytes, exact note history, and line endings. Use the root
-   `for-claude.md` when present for the current regression checklist.
+   Verify file bytes, exact note history, and line endings.
 5. Verify ownership before removing only that fixture. Restore environment
    values if the session changed them.
-6. Record app, paths, interpreter, package hash, results, and execution approvals
-   in `WINDOWS-HANDOFF.md`. Leave unavailable checks explicitly pending.
+6. Report app, paths, interpreter, package hash, results, and execution
+   approvals. Leave unavailable checks explicitly pending.

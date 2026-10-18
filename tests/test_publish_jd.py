@@ -40,8 +40,7 @@ class PublishTests(unittest.TestCase):
         self.claude_destination = self.documents / '.claude/skills/johnny-decimal'
         workspace = self.root / 'workspace'
         workspace.mkdir()
-        for name in ('AGENTS.md', 'CLAUDE.md', 'WINDOWS-HANDOFF.md'):
-            (workspace / name).write_text(f'Template {name}', encoding='utf-8')
+        (workspace / 'AGENTS.md').write_text('Template AGENTS.md', encoding='utf-8')
         workspace_patch = patch.object(module, 'WORKSPACE', workspace)
         workspace_patch.start()
         self.addCleanup(workspace_patch.stop)
@@ -166,18 +165,16 @@ class PublishTests(unittest.TestCase):
         self.assertEqual((self.claude_destination / 'SKILL.md').read_text(), 'Windows edit')
 
     def test_workspace_instructions_are_seeded_once_and_existing_settings_preserved(self):
-        instructions = self.documents / 'AGENTS.md'
-        instructions.write_text('User instructions', encoding='utf-8')
         settings = self.documents / '.claude/settings.local.json'
         settings.parent.mkdir()
         settings.write_text('{}', encoding='utf-8')
         self.publish()
-        self.assertEqual(instructions.read_text(), 'User instructions')
-        self.assertTrue((self.documents / 'CLAUDE.md').is_file())
-        handoff = self.documents / 'WINDOWS-HANDOFF.md'
-        handoff.write_text('Windows test results', encoding='utf-8')
+        instructions = self.documents / 'AGENTS.md'
+        self.assertEqual(instructions.read_text(), 'Template AGENTS.md')
+        self.assertFalse((self.documents / 'CLAUDE.md').exists())
+        instructions.write_text('User instructions', encoding='utf-8')
         self.publish()
-        self.assertEqual(handoff.read_text(), 'Windows test results')
+        self.assertEqual(instructions.read_text(), 'User instructions')
         self.assertEqual(settings.read_text(), '{}')
 
 

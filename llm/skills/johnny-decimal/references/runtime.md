@@ -53,9 +53,7 @@ Claude's real writes passed under normal execution. Codex's disposable tests
 passed with approved escalation; its normal restricted-token launch reported
 `UnsupportedOperation("windows unelevated restricted-token sandbox cannot enforce split writable root sets directly; refusing to run unsandboxed")`.
 That is a command-launch issue, not a Python import failure. Keep normal Codex
-launch validation pending until it passes. The root `WINDOWS-HANDOFF.md` holds
-the full commands, versions, hashes, and results; consult it for failures or
-historical test evidence.
+launch validation pending until it passes.
 
 ## Unix and optional uv
 
@@ -110,6 +108,5 @@ Use the portable runtime for the shared skill's operations.
 4. Use bounded JD commands for inspection. Broad recursive Glob/Grep calls
    from the NAS root timed out in Windows testing.
 
-For validation after a publication, use the root `for-claude.md` when present,
-or the disposable-fixture procedure in `publishing.md`. Record which package
-hash was tested. Earlier Windows passes do not validate a newer script.
+For validation after a publication, follow the disposable-fixture procedure in
+`publishing.md`. Report which package hash was tested. Earlier Windows passes do not validate a newer script.

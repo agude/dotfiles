@@ -18,8 +18,8 @@ vary between machines.
   checking operation results. Plain `list` or `tree` can show a user overview.
 - Reuse a verified interpreter. On the tested Windows host, Claude's `python`
   and Codex's app-managed Python both worked. Read the loaded skill's
-  `references/runtime.md` for invocation and first-session checks; consult
-  `WINDOWS-HANDOFF.md` for test history or execution failures.
+  `references/runtime.md` for invocation, first-session checks, and known
+  execution failures.
 - Avoid broad recursive Glob/Grep searches from the NAS root; they timed out
   in Windows testing. Start with JD `search`, `list`, or bounded `tree -L N`,
   then inspect specific files or directories.

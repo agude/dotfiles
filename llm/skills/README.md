@@ -187,9 +187,10 @@ The publisher requires Python 3.10+ (or uv) and copies `SKILL.md`, `references/`
 `scripts/`, and optional `assets/` and `agents/` from
 `llm/skills/johnny-decimal/` into
 `Documents/.agents/skills/johnny-decimal/` and
-`Documents/.claude/skills/johnny-decimal/`. Tests are not deployed. Missing
-workspace `AGENTS.md`, `CLAUDE.md`, and `WINDOWS-HANDOFF.md` files are seeded from
-`llm/johnnydecimal/workspace/`; existing copies are preserved.
+`Documents/.claude/skills/johnny-decimal/`. Tests are not deployed. A missing
+workspace `AGENTS.md` is seeded from `llm/johnnydecimal/workspace/`; an
+existing copy is preserved. Codex and Claude Code both read it, so no
+`CLAUDE.md` is seeded.
 The Documents root defaults to `$XDG_DOCUMENTS_DIR` or `~/Documents` and must
 already exist. For another mount, run:
 
@@ -212,8 +213,7 @@ publisher is running before removing a stale lock.
 
 The deployed tools use Python 3.10+ without Bash or Unix utilities and derive
 the document root from their deployed location. Explicit path overrides remain
-available. The root `WINDOWS-HANDOFF.md` guides the Windows agent through
-examining available runtimes and validating execution. A launcher is deferred.
+available. A launcher is deferred.
 See the [runtime guide](johnny-decimal/references/runtime.md) for verified Windows
 invocations and root precedence, and the
 [publishing guide](johnny-decimal/references/publishing.md) for backups, discovery,

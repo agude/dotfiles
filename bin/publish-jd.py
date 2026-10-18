@@ -138,11 +138,10 @@ def publish(source, documents, dry_run=False):
     for name in TARGETS:
         publish_target(source, documents, name, dry_run)
     # Workspace instructions belong to the workspace owner after first setup.
-    for name in ('AGENTS.md', 'CLAUDE.md', 'WINDOWS-HANDOFF.md'):
-        template = WORKSPACE / name
-        destination = documents / name
-        if not template.is_file() or os.path.lexists(destination):
-            continue
+    # Codex and Claude Code both read AGENTS.md, so no CLAUDE.md is seeded.
+    template = WORKSPACE / 'AGENTS.md'
+    destination = documents / 'AGENTS.md'
+    if template.is_file() and not os.path.lexists(destination):
         print(f'Seed: {destination}')
         if not dry_run:
             with template.open('rb') as content, destination.open('xb') as output:
