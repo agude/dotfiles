@@ -6,12 +6,14 @@ test it there, then publish ordinary files to both NAS copies:
 ```bash
 just publish-jd --dry-run
 just publish-jd
-just publish-jd --documents "/path/to/shared Documents" --dry-run
+just publish-jd --documents /path/to/Documents --dry-run
+XDG_DOCUMENTS_DIR="/path/to/shared Documents" just publish-jd --dry-run
 ```
 
 The destination root must exist. It defaults to `XDG_DOCUMENTS_DIR` or
-`~/Documents`. The publisher copies runtime resources to
-`<Documents>/.agents/skills/johnny-decimal/` and
+`~/Documents`. `just` does not preserve quoting in `--documents`, so set
+`XDG_DOCUMENTS_DIR` for a path that contains spaces. The publisher copies
+runtime resources to `<Documents>/.agents/skills/johnny-decimal/` and
 `<Documents>/.claude/skills/johnny-decimal/`, excluding tests. It seeds missing
 `AGENTS.md`, `CLAUDE.md`, and `WINDOWS-HANDOFF.md` from
 `llm/johnnydecimal/workspace/`. Existing root instructions and handoff results

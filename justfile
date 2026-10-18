@@ -18,9 +18,9 @@ bootstrap-pi:
     ./bin/bootstrap-pi-packages.sh
 
 # Copy the Johnny.Decimal skill to Documents (flags: --dry-run, --documents PATH).
-[positional-arguments]
+# Set XDG_DOCUMENTS_DIR for a path with spaces; just 1.21 cannot quote ARGS.
 publish-jd *ARGS:
-    uv run --no-project bin/publish-jd.py "$@"
+    uv run --no-project bin/publish-jd.py {{ARGS}}
 
 # Run every static check.
 lint: lint-shell lint-zsh lint-data lint-python lint-opencode
