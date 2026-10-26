@@ -218,6 +218,7 @@
     }
   },
   "autoMemoryEnabled": false,
+  "cleanupPeriodDays": 36500,
   "skipDangerousModePermissionPrompt": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true
