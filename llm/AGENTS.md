@@ -2,7 +2,7 @@
 
 **Format:**
 ```text
-Short imperative headline (50 chars)
+Short imperative headline (reasonable length; no fixed limit)
 
 Detailed body explaining *what* and *why*.
 
