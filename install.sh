@@ -595,7 +595,7 @@ if install_group llm; then
     install_local_config "${HOME}/.pi/agent/models.json" \
         "${DOTFILES_DIR}/llm/pi/models.json"
 
-    # Pi extensions — knowledge base session capture.
+    # Pi extensions.
     PI_EXTENSIONS_DIR="${HOME}/.pi/agent/extensions"
     ensure_real_dir "$PI_EXTENSIONS_DIR"
     for ext_file in "$DOTFILES_DIR/llm/pi/extensions/"*.ts; do
@@ -620,18 +620,6 @@ if install_group llm; then
     done
     link "${COAT_TREE_CONFIG}/command_guard.py" \
         "llm/claude/hooks.d/command_guard.py"
-
-    # OpenCode plugins — knowledge base session capture. OpenCode
-    # auto-discovers every *.ts in the config plugin directory; the
-    # `import type` of @opencode-ai/plugin is erased at transpile, so no
-    # node_modules needs to be reachable from the symlink target.
-    OPENCODE_PLUGIN_DIR="${XDG_CONFIG_HOME}/opencode/plugin"
-    ensure_real_dir "$OPENCODE_PLUGIN_DIR"
-    for plugin_file in "$DOTFILES_DIR/llm/opencode/plugin/"*.ts; do
-        [ -f "$plugin_file" ] || continue
-        plugin_name=$(basename "$plugin_file")
-        link "${OPENCODE_PLUGIN_DIR}/${plugin_name}" "llm/opencode/plugin/${plugin_name}"
-    done
 
     # Johnny Decimal scripts into ~/bin (needs scripts group too).
     if install_group scripts; then

@@ -11,7 +11,6 @@ setup() {
              "${FIXTURE_REPOSITORY}/config/systemd/user" \
              "${FIXTURE_REPOSITORY}/llm/codex" \
              "${FIXTURE_REPOSITORY}/llm/johnnydecimal" \
-             "${FIXTURE_REPOSITORY}/llm/opencode/plugin" \
              "${FIXTURE_REPOSITORY}/profiles" \
              "${FIXTURE_REPOSITORY}/shared/sharedrc.d" \
              "${FIXTURE_REPOSITORY}/bin" \
@@ -36,8 +35,6 @@ setup() {
     printf 'personality = "pragmatic"\n' > "${FIXTURE_REPOSITORY}/llm/codex/agude.config.toml"
     cp "${REPOSITORY_ROOT}/llm/johnnydecimal/config.json" \
         "${FIXTURE_REPOSITORY}/llm/johnnydecimal/config.json"
-    printf 'export default {}\n' > \
-        "${FIXTURE_REPOSITORY}/llm/opencode/plugin/knowledge.ts"
     printf 'export PLATFORM=linux\n' > \
         "${FIXTURE_REPOSITORY}/shared/sharedrc.d/000.set_platform.sh"
     cp "${REPOSITORY_ROOT}/shared/sharedrc.d/001.xdg_base_directory.sh" \
@@ -340,15 +337,6 @@ EOF
     grep -Fq '"root": "${XDG_DOCUMENTS_DIR}"' "$local_config"
 }
 
-@test "installer links OpenCode plugins into the config plugin directory" {
-    run_installer --profile codex
-
-    plugin="${TEST_HOME}/.config/opencode/plugin/knowledge.ts"
-    [[ "$status" -eq 0 ]]
-    [[ -L "$plugin" ]]
-    [[ "$(readlink "$plugin")" == "${FIXTURE_REPOSITORY}/llm/opencode/plugin/knowledge.ts" ]]
-}
-
 @test "installer preserves existing local Codex state" {
     run_installer --profile codex
     [[ "$status" -eq 0 ]]
@@ -467,15 +455,12 @@ EOF
         "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
     cp "${REPOSITORY_ROOT}/llm/pi/models.json" \
         "${FIXTURE_REPOSITORY}/llm/pi/models.json"
-    cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
-        "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
     cp "${REPOSITORY_ROOT}/llm/pi/extensions/status-footer.ts" \
         "${FIXTURE_REPOSITORY}/llm/pi/extensions/status-footer.ts"
     run_installer --profile codex
 
     settings="${TEST_HOME}/.pi/agent/settings.json"
     models="${TEST_HOME}/.pi/agent/models.json"
-    extension="${TEST_HOME}/.pi/agent/extensions/knowledge.ts"
     footer="${TEST_HOME}/.pi/agent/extensions/status-footer.ts"
     [[ "$status" -eq 0 ]]
     [[ -f "$settings" ]]
@@ -488,8 +473,6 @@ EOF
         grep -Fq "\"$model\"" "$models"
     done
     [[ "$(grep -Fc '"contextWindow": 872000' "$models")" -eq 4 ]]
-    [[ -L "$extension" ]]
-    [[ "$(readlink "$extension")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts" ]]
     [[ -L "$footer" ]]
     [[ "$(readlink "$footer")" == "${FIXTURE_REPOSITORY}/llm/pi/extensions/status-footer.ts" ]]
 }
@@ -500,8 +483,6 @@ EOF
         "${FIXTURE_REPOSITORY}/llm/pi/settings.json"
     cp "${REPOSITORY_ROOT}/llm/pi/models.json" \
         "${FIXTURE_REPOSITORY}/llm/pi/models.json"
-    cp "${REPOSITORY_ROOT}/llm/pi/extensions/knowledge.ts" \
-        "${FIXTURE_REPOSITORY}/llm/pi/extensions/knowledge.ts"
     run_installer --profile codex
     [[ "$status" -eq 0 ]]
     settings="${TEST_HOME}/.pi/agent/settings.json"

@@ -162,19 +162,12 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### OpenCode
 - `llm/opencode/opencode.json` — global config (providers, models)
-- `llm/opencode/plugin/knowledge.ts` — TypeScript plugin for KB session capture
 - `~/.config/opencode/AGENTS.md` is symlinked to `llm/AGENTS.md` as the global
   instruction file.
 - `~/.config/opencode/opencode.json` follows the XDG layout and is symlinked
-  from the repository; the plugin is symlinked into
-  `~/.config/opencode/plugin/` (auto-discovered).
+  from the repository.
 - `~/.agents/skills/` is the native cross-harness global skills directory;
   shared skills are linked there by the installer.
-- Capture defaults to on; `KNOWLEDGE_OBSERVE=0 opencode` opts out. The plugin
-  is the single gate — there is deliberately no shell wrapper setting the
-  variable, so launches that skip `sharedrc.d` still capture.
-- Subagents are child sessions (`parentID` set) and are deliberately not
-  captured, matching the Claude rule of one transcript per conversation.
 - **Permission keys differ in shape.** `read`, `edit`, `glob`, `grep`, `list`,
   `bash`, `task`, `external_directory`, `lsp`, and `skill` accept either a bare
   action or a `{pattern: action}` map. `webfetch`, `websearch`, `todowrite`,
@@ -190,10 +183,9 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
   `openai-codex/gpt-6-astra`, `gpt-6.1-sol`, `gpt-6-sol`, and `gpt-6-luna` to
   an 872K context window, the maximum in the Codex model catalog; existing
   local model definitions remain untouched.
-- `llm/pi/extensions/knowledge.ts` — extension for KB session capture,
-  glob-linked into `~/.pi/agent/extensions/` (auto-discovered)
 - `llm/pi/extensions/status-footer.ts` — shows directory, model, and context
-  percentage in the interactive footer; linked by the same loop
+  percentage in the interactive footer; glob-linked into
+  `~/.pi/agent/extensions/` (auto-discovered)
 - `llm/pi/packages.conf` — pinned third-party Pi packages, installed only by
   `just bootstrap-pi`; normal installation never contacts the network
 - `~/.pi/agent/AGENTS.md` is symlinked to the shared instructions; Pi also
@@ -206,8 +198,6 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 - `pi-web-access` is installed by `just bootstrap-pi` and supplies `web_search`
   and `fetch_content`. It reuses Pi's `openai-codex` login when available;
   package state and optional provider credentials stay under `~/.pi/agent/`.
-- Capture gates and semantics match the OpenCode plugin: on unless
-  `KNOWLEDGE_OBSERVE=0`; context injection ignores the variable
 
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
