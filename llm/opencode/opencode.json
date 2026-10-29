@@ -11,7 +11,7 @@
     "external_directory": {
       "/tmp/**": "allow",
       "~/Projects/**": "allow",
-      "~/Knowledge/content/**": "allow",
+      "~/Knowledge/**": "allow",
       "~/Wiki/**": "allow",
       "~/.dotfiles/**": "allow"
     },
