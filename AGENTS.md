@@ -136,10 +136,9 @@ All LLM configs live under `llm/`:
 - `llm/claude/hooks.d/` — coat-tree hooks (one subdirectory per event):
   - `PreToolUse/010.git-guard.sh` — blocks hook/signing bypass flags
   - `PreToolUse/030.gh-guard.sh` — gates GitHub CLI operations by risk level
-  - `SessionStart/010.knowledge.sh` — initializes KB session capture, injects context
-  - `UserPromptSubmit/010.knowledge.sh` — appends user prompts to session buffer
-  - `Stop/010.knowledge.sh` — appends assistant responses to session buffer
-  - `SessionEnd/010.knowledge.sh` — flushes session buffer into KB observation
+  - `PreToolUse/040.skill-guard.sh` — checks skill-file edits
+- `kb setup` owns the content hook and packaged skills;
+  `kb setup --enable-capture` sets the transcript cutoff.
 
 `~/.claude/` is a real directory; only specific files are symlinked. This
 allows external commands, skills, and settings (work-specific, machine-local)
@@ -147,11 +146,10 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### Codex CLI
 - `llm/codex/agude.config.toml` — portable template for the `agude` profile
-- `llm/codex/hooks.json` — hook definitions for KB session capture
-- `llm/codex/hooks.d/` — session hook shims that `exec` the knowledge-base
-  adapters in `$KNOWLEDGE_BASE/scripts/adapters/codex/`. They hold no capture
-  logic; without an adapter they return `{}`. Capture is on unless
-  `KNOWLEDGE_OBSERVE=0`.
+- `llm/codex/hooks.json` — empty hooks map; the former session registrations
+  and their shims were removed
+- `llm/codex/rules/kb.rules` — working-agent command approvals, copied into
+  `~/.codex/rules/` on every install. Codex skips symlinked rules files.
 - `~/.codex/agude.config.toml` is a real mutable file, created from the template
   only when absent. Codex writes project trust and hook state into this file.
 - `~/.codex/config.toml` is **not** symlinked — Codex owns it for machine-local
@@ -213,7 +211,8 @@ to coexist. Runtime files stay in `~/.claude/` untracked.
 
 #### Agent Skills
 - `llm/skills/` — shared [Agent Skills](https://agentskills.io) symlinked to
-  `~/.claude/skills/` and `~/.agents/skills/`
+  `~/.claude/skills/` and `~/.agents/skills/`; `kb setup` installs its own
+  `knowledge-base` and `curate` skills into those host directories
 - `~/.agents/skills/` is the cross-harness location: Codex, Pi, and OpenCode
   discover it natively. Claude Code only reads `~/.claude/skills`, so both
   targets are linked.

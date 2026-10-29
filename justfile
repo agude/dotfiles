@@ -97,7 +97,7 @@ test: test-shell test-python test-publish-jd test-jd-portable test-pdf test-inte
 
 # Run shell-based regression suites.
 test-shell:
-    bats tests/ llm/claude/hooks.d/tests/ llm/codex/hooks.d/tests/ llm/skills/johnny-decimal/tests/ llm/skills/skill-creator/tests/
+    bats tests/ llm/claude/hooks.d/tests/ llm/skills/johnny-decimal/tests/ llm/skills/skill-creator/tests/
 
 # Run Python tests for the shared command guard.
 test-python:
@@ -149,6 +149,24 @@ test-integration:
     [[ ! -e "$TEST_HOME/.claude/AGENTS.md" ]]
     [[ -L "$TEST_HOME/.codex/themes/eldar.tmTheme" ]]
     [[ "$(readlink "$TEST_HOME/.codex/themes/eldar.tmTheme")" == "$DOTFILES_DIR/llm/codex/themes/eldar.tmTheme" ]]
+    [[ -f "$TEST_HOME/.codex/rules/kb.rules" && ! -L "$TEST_HOME/.codex/rules/kb.rules" ]]
+    cmp -s "$TEST_HOME/.codex/rules/kb.rules" "$DOTFILES_DIR/llm/codex/rules/kb.rules"
+    [[ "$(jq '.hooks | length' "$TEST_HOME/.codex/hooks.json")" -eq 0 ]]
+    [[ ! -e "$TEST_HOME/.codex/hooks.d" ]]
+    for hook_event in SessionStart UserPromptSubmit Stop SessionEnd PreToolUse; do
+        for knowledge_hook in "$TEST_HOME/.config/coat-tree/hooks.d/$hook_event"/010.knowledge*; do
+            [[ ! -e "$knowledge_hook" && ! -L "$knowledge_hook" ]]
+        done
+    done
+    [[ -L "$TEST_HOME/.config/coat-tree/hooks.d/PreToolUse/010.git-guard.sh" ]]
+    [[ -L "$TEST_HOME/.config/coat-tree/hooks.d/PreToolUse/030.gh-guard.sh" ]]
+    [[ -L "$TEST_HOME/.config/coat-tree/hooks.d/PreToolUse/040.skill-guard.sh" ]]
+    if [[ "$(uname -s)" == "Linux" ]] && command -v systemctl &>/dev/null; then
+        [[ -L "$TEST_HOME/.config/systemd/user/kb-sync.service" ]]
+        [[ "$(readlink "$TEST_HOME/.config/systemd/user/kb-sync.service")" == "$DOTFILES_DIR/contrib/systemd/kb-sync.service" ]]
+        [[ -L "$TEST_HOME/.config/systemd/user/kb-sync.timer" ]]
+        grep -Fx 'ExecStart=%h/.local/bin/kb sync' "$DOTFILES_DIR/contrib/systemd/kb-sync.service"
+    fi
     ./install.sh
     ./install.sh --dry-run
     ./install.sh --profile server

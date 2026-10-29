@@ -1,0 +1,8 @@
+# kb working-agent commands. Install as a regular file under $CODEX_HOME/rules/; Codex skips symbolic links.
+prefix_rule(pattern = ["kb", "recall"], decision = "allow")
+prefix_rule(pattern = ["kb", "read"], decision = "allow")
+prefix_rule(pattern = ["kb", "map"], decision = "allow")
+prefix_rule(pattern = ["kb", "questions"], decision = "allow")
+prefix_rule(pattern = ["kb", "evidence"], decision = "allow")
+prefix_rule(pattern = ["kb", "observe"], decision = "allow")
+prefix_rule(pattern = ["kb", "gap"], decision = "allow")

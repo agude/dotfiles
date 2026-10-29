@@ -172,6 +172,39 @@ install_local_config() {
     run chmod 600 "$target"
 }
 
+# Install a repository file as a regular file, refreshed on every run. Use
+# this where the consumer ignores symlinks: Codex loads only regular files
+# from ~/.codex/rules/. A differing file or foreign path is backed up first.
+install_managed_copy() {
+    local target="$1"
+    local source_path="$2"
+
+    if [[ ! -f "$source_path" ]]; then
+        echo "  -> Warning: source does not exist, skipping: $source_path" >&2
+        return 0
+    fi
+
+    if [[ -L "$target" ]]; then
+        if _is_owned_symlink "$target" "$DOTFILES_DIR"; then
+            echo "  -> Replacing managed symlink with a copy: $target"
+            run rm "$target"
+        else
+            _backup_target "$target"
+        fi
+    elif [[ -f "$target" ]]; then
+        cmp -s "$source_path" "$target" && return 0
+        _backup_target "$target"
+    elif [[ -e "$target" ]]; then
+        _backup_target "$target"
+    fi
+
+    ensure_real_dir "$(dirname "$target")"
+    echo "  -> Copying: $source_path -> $target"
+    run cp "$source_path" "${target}.dotfiles-tmp.$$"
+    run chmod 644 "${target}.dotfiles-tmp.$$"
+    run mv "${target}.dotfiles-tmp.$$" "$target"
+}
+
 # Reject scripts that would map to the same extensionless command name.
 validate_script_names() {
     local script_file
@@ -538,15 +571,6 @@ if install_group llm; then
         link "${AGENTS_SKILLS_DIR}/${skill_name}" "llm/skills/${skill_name}"
     done
 
-    # Codex hooks — knowledge base session capture.
-    CODEX_HOOKS_DIR="${HOME}/.codex/hooks.d"
-    ensure_real_dir "$CODEX_HOOKS_DIR"
-    for hook_script in "$DOTFILES_DIR/llm/codex/hooks.d/"*.sh; do
-        [ -f "$hook_script" ] || continue
-        hook_name=$(basename "$hook_script")
-        link "${CODEX_HOOKS_DIR}/${hook_name}" "llm/codex/hooks.d/${hook_name}"
-    done
-
     # Codex syntax themes — individual symlinks so Codex-owned files coexist.
     CODEX_THEMES_DIR="${HOME}/.codex/themes"
     ensure_real_dir "$CODEX_THEMES_DIR"
@@ -555,6 +579,10 @@ if install_group llm; then
         theme_name=$(basename "$theme_file")
         link "${CODEX_THEMES_DIR}/${theme_name}" "llm/codex/themes/${theme_name}"
     done
+
+    # Codex skips symlinked rules files, so the kb rules are copied.
+    install_managed_copy "${HOME}/.codex/rules/kb.rules" \
+        "${DOTFILES_DIR}/llm/codex/rules/kb.rules"
 
     # Codex writes trust and hook state into the selected profile.
     install_local_config "${HOME}/.codex/agude.config.toml" \
@@ -671,6 +699,12 @@ if install_group cleanup; then
                  "config/systemd/user/firefox-quit.service"
             echo "  -> Deployed firefox-quit.service"
             echo "  -> Enable with: systemctl --user enable --now firefox-quit.service"
+            link "${SYSTEMD_USER_DIR}/kb-sync.service" \
+                 "contrib/systemd/kb-sync.service"
+            echo "  -> Deployed kb-sync.service"
+            link "${SYSTEMD_USER_DIR}/kb-sync.timer" \
+                 "contrib/systemd/kb-sync.timer"
+            echo "  -> Deployed kb-sync.timer"
         fi
     elif [[ "${PLATFORM}" == "mac" ]]; then
         if command -v launchctl &> /dev/null; then

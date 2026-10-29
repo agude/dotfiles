@@ -33,24 +33,15 @@ Do not make offers at the end of the turn.
 Don't rely on provider-specific artifact URLs; for most output I prefer simple
 markdown.
 
-## Knowledge Base
-
-If `$KNOWLEDGE_BASE` is set, a personal knowledge base of previously learned
-facts exists at that path. **Always search it before starting a task** ---
-answers to domain, process, system, and team questions are often already
-there, saving significant research time. A topic list is injected at session
-start; scan it for relevant articles and read them with `section`.
-
-Scripts live in `$KNOWLEDGE_BASE/scripts/`:
-
-- `toc [--depth N] [--path DIR]` --- list topics and numbered sections
-- `section --file FILE (--number N | --heading TEXT)` --- extract a section
-- `observe --title "..." --body "..."` --- record an observation (auto-commits)
-- `pending` --- list uncurated observations
-- `status` --- summary stats
-
-Do not read/write knowledge base files directly. Use the scripts.
-
-The `KNOWLEDGE_OBSERVE` environment variable controls whether this session
-should record observations. Only top-level sessions get this set (via the
-SessionStart hook). Subagents do not observe.
+<!-- kb:begin -->
+The knowledge base holds durable facts from past sessions: systems, domain rules, people, and preferences. Search it before starting a task, and again whenever a task needs a fact it may hold.
+Record a durable fact when you learn it, unless the knowledge base already holds it. Subagents do not record.
+- `kb recall QUERY...`: find curated sections that answer a query.
+- `kb read LOCATOR...`: print the text that each locator names.
+- `kb map [PATH]`: list the articles under a path.
+- `kb questions [--context PATH]`: list open questions.
+- `kb evidence QUERY...`: search observations, transcripts, and questions.
+- `kb observe --title TITLE --body TEXT`: record one observation.
+- `kb gap --title TITLE --body TEXT --context PATH`: record a question that the knowledge base cannot answer.
+`kb --help` and the skills hold the details. Content policy: @/home/agude/Knowledge/content/AGENTS.md
+<!-- kb:end -->

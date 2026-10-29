@@ -125,7 +125,14 @@
       "Search",
       "Skill(johnny-decimal)",
       "Skill(task-tracker)",
-      "Write"
+      "Write",
+      "Bash(kb recall *)",
+      "Bash(kb read *)",
+      "Bash(kb map *)",
+      "Bash(kb questions *)",
+      "Bash(kb evidence *)",
+      "Bash(kb observe *)",
+      "Bash(kb gap *)"
     ],
     "deny": [],
     "ask": [],

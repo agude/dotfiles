@@ -180,7 +180,14 @@
       "WebFetch(domain:aicodingdaily.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:api.github.com)",
-      "Write"
+      "Write",
+      "Bash(kb recall *)",
+      "Bash(kb read *)",
+      "Bash(kb map *)",
+      "Bash(kb questions *)",
+      "Bash(kb evidence *)",
+      "Bash(kb observe *)",
+      "Bash(kb gap *)"
     ],
     "deny": [
       "Bash(dd:*)",
