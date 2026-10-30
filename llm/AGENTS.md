@@ -43,5 +43,5 @@ Record a durable fact when you learn it, unless the knowledge base already holds
 - `kb evidence QUERY...`: search observations, transcripts, and questions.
 - `kb observe --title TITLE --body TEXT`: record one observation.
 - `kb gap --title TITLE --body TEXT --context PATH`: record a question that the knowledge base cannot answer.
-`kb --help` and the skills hold the details. Content policy: @/home/agude/Knowledge/AGENTS.md
+`kb --help` and the skills hold the details.
 <!-- kb:end -->
