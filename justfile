@@ -170,6 +170,10 @@ test-integration:
     ./install.sh
     ./install.sh --dry-run
     ./install.sh --profile server
+    if [[ "$(uname -s)" == "Linux" ]] && command -v systemctl &>/dev/null; then
+        [[ -L "$TEST_HOME/.config/systemd/user/kb-sync.service" ]]
+        [[ -L "$TEST_HOME/.config/systemd/user/kb-sync.timer" ]]
+    fi
     if command -v nvim &>/dev/null; then
         nvim --headless +qall
     elif command -v vim &>/dev/null; then

@@ -631,6 +631,19 @@ if install_group llm; then
             link "${HOME}/bin/johnny-decimal/${script_name}" "llm/skills/johnny-decimal/scripts/${script_basename}"
         done
     fi
+
+    # The knowledge base sync units belong to the llm group, not cleanup, so
+    # headless hosts that run agents (the server profile) get them too.
+    if [[ "${PLATFORM}" == "linux" ]] && command -v systemctl &> /dev/null; then
+        SYSTEMD_USER_DIR="${XDG_CONFIG_HOME}/systemd/user"
+        ensure_real_dir "${SYSTEMD_USER_DIR}"
+        link "${SYSTEMD_USER_DIR}/kb-sync.service" \
+             "contrib/systemd/kb-sync.service"
+        echo "  -> Deployed kb-sync.service"
+        link "${SYSTEMD_USER_DIR}/kb-sync.timer" \
+             "contrib/systemd/kb-sync.timer"
+        echo "  -> Deployed kb-sync.timer"
+    fi
 fi
 
 # Install git pre-commit hook for the dotfiles repo itself.
@@ -687,12 +700,6 @@ if install_group cleanup; then
                  "config/systemd/user/firefox-quit.service"
             echo "  -> Deployed firefox-quit.service"
             echo "  -> Enable with: systemctl --user enable --now firefox-quit.service"
-            link "${SYSTEMD_USER_DIR}/kb-sync.service" \
-                 "contrib/systemd/kb-sync.service"
-            echo "  -> Deployed kb-sync.service"
-            link "${SYSTEMD_USER_DIR}/kb-sync.timer" \
-                 "contrib/systemd/kb-sync.timer"
-            echo "  -> Deployed kb-sync.timer"
         fi
     elif [[ "${PLATFORM}" == "mac" ]]; then
         if command -v launchctl &> /dev/null; then
