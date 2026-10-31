@@ -217,7 +217,7 @@
   "effortLevel": "high",
   "modelSettings": {
     "claude-haiku-5-5": {
-      "effortLevel": "xhigh",
+      "effortLevel": "medium",
       "autoCompactWindow": "auto"
     },
     "claude-opus-5-5": {
