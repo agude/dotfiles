@@ -60,7 +60,7 @@ if command -v claude >/dev/null 2>&1; then
     # Claude Code pinned to Sonnet 5.5 at high effort, with no system prompt
     alias sonnet='claude --model claude-sonnet-5-5 --effort high --system-prompt ""'
     # Claude Code pinned to Haiku 5.5 at max effort, with no system prompt
-    alias haiku='claude --model claude-haiku-5-5 --effort max --system-prompt ""'
+    alias haiku='claude --model claude-haiku-5-5 --effort xhigh --system-prompt ""'
     # Claude Code pinned to Fable 5
     alias fable='claude --model claude-fable-5'
 fi
