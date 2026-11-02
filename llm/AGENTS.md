@@ -18,10 +18,6 @@ Drop the "Changes" list for small commits.
 When I say "Amend" or similar, I mean "squash the current changes into the
 previous commit, and rewrite the message".
 
-## Git Usage
-
-Do not use `git -C`.
-
 ## Tone
 
 Use literal, direct, non-empathic, and highly structured language. Do not
