@@ -79,7 +79,6 @@ later, including:
   recreate a root `scansnap` folder. Move anything found there to `00.01`,
   then remove the empty folder.
 - The Knowledge Base is for durable context needed by future agents.
-- The Wiki is for human-readable infrastructure documentation.
 - Johnny.Decimal is for the user's artifacts and notes about those artifacts.
 
 Do not put agent-memory observations into the JDex. Use the Knowledge Base

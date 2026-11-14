@@ -12,7 +12,6 @@
       "/tmp/**": "allow",
       "~/Projects/**": "allow",
       "~/Knowledge/**": "allow",
-      "~/Wiki/**": "allow",
       "~/.dotfiles/**": "allow"
     },
     "bash": {
