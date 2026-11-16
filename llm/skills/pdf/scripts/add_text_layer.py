@@ -65,9 +65,10 @@ def add_text_layer(input_path: Path, output_path: Path, text: str) -> None:
         text_reader = PdfReader(BytesIO(text_pdf_bytes))
         text_page = text_reader.pages[0]
 
-        # Merge: text layer underneath, original on top
-        text_page.merge_page(page)
-        writer.add_page(text_page)
+        # pypdf 7 rejects merging into a page not attached to a writer, so
+        # attach the original page first, then put the text layer underneath.
+        out_page = writer.add_page(page)
+        out_page.merge_page(text_page, over=False)
 
     with open(output_path, 'wb') as f:
         writer.write(f)
