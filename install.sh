@@ -655,15 +655,17 @@ fi
 if install_group gui; then
     echo "› Configuring XDG User Directories..."
     if command -v xdg-user-dirs-update &> /dev/null; then
+        # Create directories before setting them: the login autostart resets
+        # any mapping whose directory is missing to $HOME.
+        run mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
+                     "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
+                     "${HOME}/Templates" "${HOME}/Public"
         run xdg-user-dirs-update --set DESKTOP "${HOME}/Desktop"
         run xdg-user-dirs-update --set DOCUMENTS "${HOME}/Documents"
         run xdg-user-dirs-update --set DOWNLOAD "${HOME}/Downloads"
         run xdg-user-dirs-update --set MUSIC "${HOME}/Music"
         run xdg-user-dirs-update --set PICTURES "${HOME}/Pictures"
         run xdg-user-dirs-update --set VIDEOS "${HOME}/Videos"
-        run mkdir -p "${HOME}/Desktop" "${HOME}/Documents" "${HOME}/Downloads" \
-                     "${HOME}/Music" "${HOME}/Pictures" "${HOME}/Videos" \
-                     "${HOME}/Templates" "${HOME}/Public"
     else
         echo "  -> Skipping: xdg-user-dirs-update command not found."
     fi
