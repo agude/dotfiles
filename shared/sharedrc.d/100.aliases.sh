@@ -71,7 +71,8 @@ if command -v codex >/dev/null 2>&1; then
     # observations; transcript capture is on unless KNOWLEDGE_OBSERVE=0.
     codex() { KNOWLEDGE_OBSERVE=1 command codex --profile agude "$@"; }
     alias luna='codex --model gpt-6-luna -c model_reasoning_effort=xhigh'
-    alias sol='codex --model gpt-6.1-sol -c model_reasoning_effort=medium'
+    alias sol='codex --model gpt-6.2-sol -c model_reasoning_effort=medium'
+    alias sol6.1='codex --model gpt-6.1-sol -c model_reasoning_effort=medium'
     alias sol6='codex --model gpt-6-sol -c model_reasoning_effort=medium'
     alias astra='codex --model gpt-6-astra -c model_reasoning_effort=low'
     alias luna5.6='codex --model gpt-5.6-luna -c model_reasoning_effort=xhigh'
