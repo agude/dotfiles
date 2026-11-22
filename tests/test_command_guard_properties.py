@@ -14,6 +14,8 @@ labeled Git leaves against a real repository.
 
 from __future__ import annotations
 
+from collections import Counter
+
 import importlib.util
 import io
 import json
@@ -33,7 +35,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import hypothesis_profiles  # noqa: E402,F401
 from shell_strategies import (  # noqa: E402
-    LEAVES, RANK, expected_gh_rank, expected_git_block, programs, shell_words)
+    LEAVES, RANK, expected_gh_rank, expected_git_block, programs, shell_words,
+    straight_line)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 GUARD_PATH = REPOSITORY_ROOT / "llm/claude/hooks.d/command_guard.py"
@@ -248,11 +251,8 @@ def stub_directory():
         yield bin_directory
 
 
-@settings(max_examples=100)
-@given(programs())
-def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
-    if not program.executable or program.opaque:
-        return
+def run_with_stubs(stub_directory: Path, text: str) -> list[tuple[str, ...]]:
+    """Run text under bash and return the argv of every git and gh stub call."""
     with tempfile.TemporaryDirectory() as temporary:
         log = Path(temporary) / "log"
         log.mkdir()
@@ -262,17 +262,36 @@ def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
             "STUB_LOG": str(log),
             "GIT_CEILING_DIRECTORIES": temporary,
         }
-        subprocess.run(["bash", "-c", program.text], cwd=temporary, env=environment,
+        subprocess.run(["bash", "-c", text], cwd=temporary, env=environment,
                        stdin=subprocess.DEVNULL, capture_output=True, timeout=20)
         # One file per stub process: concurrent pipeline stages cannot interleave.
         records = [path.read_bytes() for path in log.iterdir()]
-    executed = {tuple(part.decode() for part in record.split(b"\0")[:-1])
-                for record in records}
+    return [tuple(part.decode() for part in record.split(b"\0")[:-1]) for record in records]
+
+
+@settings(max_examples=100)
+@given(programs())
+def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
+    if not program.executable or program.opaque:
+        return
+    executed = set(run_with_stubs(stub_directory, program.text))
     expected = {as_command(leaf.argv) for leaf in program.reachable}
     parsed = set(command_guard.shell_commands(program.text))
     for argv in executed:
         assert as_command(argv) in expected, (program.text, argv)
         assert as_command(argv) in parsed, (program.text, argv)
+
+
+@settings(max_examples=100)
+@given(straight_line())
+def test_bash_runs_every_straight_line_leaf(stub_directory, program) -> None:
+    """The subset check above passes on an empty log; here the trace is exact."""
+    executed = Counter(as_command(argv) for argv in run_with_stubs(stub_directory, program.text))
+    stubbed = Counter(as_command(leaf.argv) for leaf in program.reachable
+                      if os.path.basename(leaf.argv[0]) in ("git", "gh"))
+    assert executed == stubbed, program.text
+    parsed = set(command_guard.shell_commands(program.text))
+    assert set(executed) <= parsed, program.text
 
 
 # --- the labels match Git --------------------------------------------------

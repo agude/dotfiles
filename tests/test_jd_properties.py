@@ -9,6 +9,7 @@ stays inside temporary document systems.
 """
 
 import contextlib
+from datetime import date
 import importlib.util
 import io
 import os
@@ -222,7 +223,8 @@ class JDMachine(RuleBasedStateMachine):
         if not ids:
             return
         category, suffix = data.draw(st.sampled_from(ids))
-        identifier = self.directory(category, suffix).name.split(' ', 1)[0]
+        title = self.directory(category, suffix).name
+        identifier = title.split(' ', 1)[0]
         path = self.jdex / f'{identifier}.md'
         previous = path.read_bytes() if path.exists() else b''
         text = 'x' + text
@@ -233,6 +235,17 @@ class JDMachine(RuleBasedStateMachine):
         assert status == 0
         content = path.read_bytes()
         assert content.startswith(previous)
+        # The appended bytes are exactly the note under the right headings.
+        appended = content[len(previous):].replace(b'\r\n', b'\n').decode('utf-8')
+        assert appended.endswith(cleaned + '\n\n'), (previous, appended)
+        heading = appended[:-len(cleaned) - 2].strip('\n')
+        today = f'## {date.today().isoformat()}'
+        if not previous:
+            assert heading == f'# {title}\n\n{today}', appended
+        elif today.encode() in previous.splitlines():
+            assert heading == '', appended
+        else:
+            assert heading == today, appended
         lines = content.decode('utf-8').splitlines()
         headers = [line for line in lines if line.startswith('## ') and line[3:4].isdigit()]
         assert len(headers) == len(set(headers))

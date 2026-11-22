@@ -75,8 +75,9 @@ def world(tmp_path: Path) -> Path:
     (repository / "config").mkdir(parents=True)
     (repository / "config/template").write_text("template\n")
     (repository / "config/other").write_text("other\n")
-    # Repository files are world-readable; installed configs must be narrowed.
-    (repository / "config/template").chmod(0o644)
+    # The template's mode matches neither installed mode (0644 copies, 0600
+    # local configs), so a dropped chmod changes the result under umask 022.
+    (repository / "config/template").chmod(0o755)
     (repository / "config/other").chmod(0o644)
     (tmp_path / "home").mkdir()
     (tmp_path / "outside").mkdir()

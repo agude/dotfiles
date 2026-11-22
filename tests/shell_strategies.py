@@ -347,6 +347,32 @@ def piped_shell(draw, children) -> Rendered:
     return _combine([child], text, reachable=(), opaque=True)
 
 
+# Wrappers that always run their command once with the environment intact.
+# "exec" ends the shell, and "env -i" drops the variables the stubs log to.
+DEFINITE_WRAPPERS = [prefix for prefix, safe in WRAPPERS
+                     if safe and prefix not in ("exec ", "env -i PATH=$PATH ")]
+ALWAYS_RUN = ["( {x} )", "{{ {end} }}", "if true; then {end} fi", "for i in 1; do {end} done",
+              "f() {{ {end} }}; f", "echo \"$({s}{x})\"", "bash -c {q}", "eval {q}"]
+
+
+@st.composite
+def straight_line(draw, max_leaves: int = 4) -> Rendered:
+    """A program that runs every one of its leaves exactly once."""
+    texts, leaves = [], []
+    for _ in range(draw(st.integers(1, max_leaves))):
+        leaf = draw(st.sampled_from([leaf for leaf in LEAVES
+                                     if not leaf.argv[0].startswith("/")]))
+        text = draw(leaf_text(leaf))
+        for _ in range(draw(st.integers(0, 2))):
+            text = draw(st.sampled_from(DEFINITE_WRAPPERS)) + text
+        template = draw(st.sampled_from(["{x}", *ALWAYS_RUN]))
+        texts.append(template.format(x=text, end=text + ";", q=shlex.quote(text),
+                                     s=" " if text.startswith("(") else ""))
+        leaves.append(leaf)
+    separator = draw(st.sampled_from(["; ", "\n"]))
+    return Rendered(separator.join(texts), tuple(leaves))
+
+
 def programs(max_leaves: int = 5):
     return st.recursive(
         simple(),

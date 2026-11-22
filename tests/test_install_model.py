@@ -231,12 +231,24 @@ def check_links(world: World, before: dict, after: dict, enabled: bool) -> None:
             assert str(path) not in world.manifest()
 
 
-def check_cleanup(world: World, before: dict, after: dict, old: list[str], new: list[str]) -> None:
+def expected_manifest(world: World, rows: list[tuple[str, str, str]],
+                      enabled: bool) -> list[str]:
+    """The manifest predicted from the fixture alone, independent of install.sh."""
+    if not enabled:
+        return []
+    return [target.replace("${HOME}", str(world.home)) for target, source, _ in rows
+            if (world.repository / source).exists()]
+
+
+def check_cleanup(world: World, before: dict, after: dict,
+                  old: list[str], new: list[str]) -> None:
+    """Every owned link the model drops is removed; nothing else is."""
     removed = {path for path, entry in before.items() if path not in after and entry[0] == "link"}
     expected = {path for path in set(old) - set(new)
                 if before.get(path, ("",))[0] == "link" and world.is_owned(before[path][1])}
-    stale_removed = {path for path in removed if path in set(old) - set(new)}
-    assert stale_removed == expected
+    assert {path for path in removed if path in set(old) - set(new)} == expected
+    for path in expected:
+        assert path not in after, path
 
 
 CASES = [(transition, mode) for transition in TRANSITIONS for mode in MODES]
@@ -244,7 +256,32 @@ CASES = [(transition, mode) for transition in TRANSITIONS for mode in MODES]
 
 @pytest.mark.parametrize(("transition", "mode"), CASES, ids=[f"{t}-{m}" for t, m in CASES])
 def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None:
+    run_transition(World(tmp_path), transition, mode)
+
+
+# Contracts the mutation operators cannot reach. Each plants a regression in
+# the fixture's copy of install.sh and requires the model to reject it.
+PLANTED = {
+    "manifest-drops-first-link": (
+        'printf \'%s\\n\' "${MANAGED_LINKS[@]}" > "$MANIFEST_FILE"',
+        'printf \'%s\\n\' "${MANAGED_LINKS[@]:1}" > "$MANIFEST_FILE"'),
+}
+
+
+@pytest.mark.parametrize("name", sorted(PLANTED))
+@pytest.mark.parametrize("transition", ["disable", "remove-rows"])
+def test_model_rejects_planted_regression(tmp_path: Path, name: str, transition: str) -> None:
     world = World(tmp_path)
+    original, planted = PLANTED[name]
+    installer = world.repository / "install.sh"
+    text = installer.read_text()
+    assert text.count(original) == 1, name
+    installer.write_text(text.replace(original, planted))
+    with pytest.raises(AssertionError):
+        run_transition(world, transition, "normal")
+
+
+def run_transition(world: World, transition: str, mode: str) -> None:
     world.write_link_map(world.rows)
     first_profile = "disabled" if transition == "enable" else "default"
     before_first = snapshot(world.home, world.outside)
@@ -253,12 +290,15 @@ def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None
     check_no_destruction(world, before_first, after_first)
     check_backups(world, before_first, after_first)
     check_links(world, before_first, after_first, enabled=first_profile == "default")
+    old_model = expected_manifest(world, world.rows, enabled=first_profile == "default")
+    assert world.manifest() == old_model
 
     old_manifest = world.manifest()
     second_profile = {"same": "default", "disable": "disabled", "enable": "default",
                       "remove-rows": "default"}[transition]
+    rows = world.rows[::2] if transition == "remove-rows" else world.rows
     if transition == "remove-rows":
-        world.write_link_map(world.rows[::2])
+        world.write_link_map(rows)
     before = snapshot(world.home, world.outside)
     repository_before = repository_state(world)
     arguments = ["--profile", second_profile] + (["--dry-run"] if mode == "dry-run" else [])
@@ -272,7 +312,9 @@ def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None
     check_no_destruction(world, before, after)
     check_backups(world, before, after)
     new_manifest = world.manifest()
-    check_cleanup(world, before, after, old_manifest, new_manifest)
+    new_model = expected_manifest(world, rows, enabled=second_profile == "default")
+    assert new_manifest == new_model
+    check_cleanup(world, before, after, old_model, new_model)
     removed = sorted(path for path, entry in before.items()
                      if entry[0] == "link" and path not in after)
     header = result.stdout.count("› Cleaning up stale symlinks...")

@@ -113,12 +113,6 @@ reason = "equivalent"
 note = "Once _found is true, continuing the inner loop cannot set it back to false."
 
 [[survivor]]
-target = "install"
-key = "cleanup|compare|ceb912ab95|'-gt' -> '-ge'#2"
-reason = "equivalent"
-note = "Same Bash 3.2 empty-array guard; the else branch writes the same empty manifest."
-
-[[survivor]]
 target = "jd"
 key = "browse|constant|b138570057|True -> False"
 reason = "equivalent"

@@ -210,58 +210,76 @@ class PublishProperties(unittest.TestCase):
             fixture.close()
 
     @settings(max_examples=150)
-    @given(resource_trees(), resource_trees(), st.integers(0, 60),
-           st.sampled_from(['rename', 'mkdir', 'copytree', 'copy', 'write_text']))
-    def test_failure_leaves_each_copy_old_or_new(self, old, new, failing_call, operation):
+    @given(resource_trees(), resource_trees(),
+           st.sampled_from(['rename', 'mkdir', 'copytree', 'copy', 'write_text']), st.data())
+    def test_failure_leaves_each_copy_old_or_new(self, old, new, operation, data):
+        new = dict(new, **{'SKILL.md': new['SKILL.md'] + b'changed'})
+        owner = {'rename': Path, 'mkdir': Path, 'write_text': Path,
+                 'copytree': module.shutil, 'copy': module.shutil}[operation]
+        calls = {'count': 0, 'fail': None}
+
+        def counting(original):
+            def wrapper(*args, **kwargs):
+                calls['count'] += 1
+                if calls['count'] == calls['fail']:
+                    raise OSError('injected failure')
+                return original(*args, **kwargs)
+            return wrapper
+
+        # A twin update counts the calls, so every drawn index is one that fires.
+        twin = Fixture()
+        try:
+            quietly(twin.publish, old)
+            write_tree(twin.source, new)
+            with patch.object(owner, operation, counting(getattr(owner, operation))):
+                quietly(module.publish, twin.source, twin.documents)
+            total = calls['count']
+            new_prints = {target: module.fingerprint(twin.destination(target))
+                          for target in module.TARGETS}
+        finally:
+            twin.close()
+        if total == 0:
+            return
+        calls.update(count=0, fail=data.draw(st.integers(1, total), label='failing call'))
+
         fixture = Fixture()
         try:
-            new = dict(new, **{'SKILL.md': new['SKILL.md'] + b'changed'})
             quietly(fixture.publish, old)
             old_prints = {target: module.fingerprint(fixture.destination(target))
                           for target in module.TARGETS}
+            # SKILL.md always changes, so "old or new" below allows two states.
+            for target in module.TARGETS:
+                self.assertNotEqual(old_prints[target], new_prints[target])
             write_tree(fixture.source, new)
-            calls = {'count': 0}
-
-            def failing(original):
-                def wrapper(*args, **kwargs):
-                    calls['count'] += 1
-                    if calls['count'] == failing_call + 1:
-                        raise OSError('injected failure')
-                    return original(*args, **kwargs)
-                return wrapper
-
-            owner = {'rename': Path, 'mkdir': Path, 'write_text': Path,
-                     'copytree': module.shutil, 'copy': module.shutil}[operation]
-            with patch.object(owner, operation, failing(getattr(owner, operation))):
-                try:
+            with patch.object(owner, operation, counting(getattr(owner, operation))):
+                with self.assertRaises(OSError):
                     quietly(module.publish, fixture.source, fixture.documents)
-                    failed = False
-                except OSError:
-                    failed = True
-            clean = Fixture()
-            try:
-                quietly(clean.publish, new)
-                new_prints = {target: module.fingerprint(clean.destination(target))
-                              for target in module.TARGETS}
-            finally:
-                clean.close()
+            self.assertGreaterEqual(calls['count'], calls['fail'])
             for target in module.TARGETS:
                 destination = fixture.destination(target)
                 current = module.fingerprint(destination)
                 self.assertFalse((fixture.documents / target / '.publish-jd.lock').exists())
                 self.assertIn(current, (old_prints[target], new_prints[target]),
-                              (target, operation, failing_call))
-                if not failed:
-                    self.assertEqual(current, new_prints[target])
+                              (target, operation, calls['fail']))
+                # The manifest still describes the live copy exactly.
+                self.assertEqual(module.validate_destination(destination), current)
                 backups = fixture.documents / target / 'skill-backups'
-                count = len(list(backups.iterdir())) if backups.exists() else 0
-                self.assertLessEqual(count, 1)
+                kept = list(backups.iterdir()) if backups.exists() else []
+                self.assertLessEqual(len(kept), 1)
+                for backup in kept:
+                    self.assertEqual(module.fingerprint(backup), old_prints[target])
+                    self.assertEqual(current, new_prints[target])
                 staging = [p for p in (fixture.documents / target).iterdir()
                            if p.name.startswith('.publish-jd-')]
                 self.assertEqual(staging, [])
+            # A retry without the fault completes the update.
+            quietly(module.publish, fixture.source, fixture.documents)
+            for target in module.TARGETS:
+                destination = fixture.destination(target)
+                self.assertEqual(module.fingerprint(destination), new_prints[target])
+                self.assertEqual(module.validate_destination(destination), new_prints[target])
         finally:
             fixture.close()
-
 
 if __name__ == '__main__':
     unittest.main()
