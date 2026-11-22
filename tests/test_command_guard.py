@@ -584,7 +584,12 @@ def test_git_options_that_are_not_bypasses(text: str) -> None:
     "git --config-env core.hookspath=X commit -m msg",
     "git --config-env=commit.gpgSign=X commit -m msg", "git -c commit.gpgsign=garbage commit",
     "env -iS 'git commit -n -m msg'", "env -vS'git commit -n -m msg'",
-    "env -u HOME -S 'git commit -n -m msg'",
+    "env -u HOME -S 'git commit -n -m msg'", "env - git commit -n -m msg",
+    "env --split-string 'git commit -n -m msg'", "env --ignore-environment git commit -n",
+    "env -uHOME git commit -n -m msg", "git --no-pager commit -n -m msg",
+    "git commit -a -n -m msg", "git -c commit.gpgsign=07 commit -m msg",
+    "git --config-env=commit.gpgsign=yes commit -m msg",
+    "echo 'a\\'\ngit commit -n -m msg",
     *[f"git -c commit.gpgsign={value} commit -m msg"
       for value in ("false", "no", "off", "0", "", "00", "0x0", "-0", "+0", "0k", "0M")],
 ])
@@ -621,6 +626,28 @@ def test_unknown_mode_exits_with_a_message(monkeypatch: pytest.MonkeyPatch) -> N
         monkeypatch.setattr(command_guard.sys, "argv", argv)
         with pytest.raises(SystemExit, match="Unknown guard mode"):
             command_guard.main()
+
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("env -uS git log", [("git", ("log",))]), ("env -S", []), ("env --split-string", []),
+    ("env - git log", [("git", ("log",))]),
+])
+def test_env_option_edge_parses(text: str, expected: list) -> None:
+    commands = command_guard.shell_commands(text)
+    assert [(c.executable, c.arguments) for c in commands] == expected
+
+
+def test_main_messages(monkeypatch: pytest.MonkeyPatch,
+                       capsys: pytest.CaptureFixture[str]) -> None:
+    monkeypatch.setattr(command_guard.sys, "argv", ["command_guard.py"])
+    with pytest.raises(SystemExit) as raised:
+        command_guard.main()
+    assert str(raised.value) == "Unknown guard mode: "
+    payload = json.dumps({"tool_input": {"command": "git commit -n -m msg"}})
+    monkeypatch.setattr(command_guard.sys, "argv", ["command_guard.py", "git-bypass"])
+    monkeypatch.setattr(command_guard.sys, "stdin", io.StringIO(payload))
+    assert command_guard.main() == 2
+    assert capsys.readouterr().err == "Don't bypass git hooks.\n"
 
 
 # Exact parses of substitutions, quoting and escaped newlines, reviewed against bash.

@@ -645,9 +645,8 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
         elif first in HEADER_WORDS or first == "[[":
             return []
         elif first == "function":
+            # "function f() {" splits at "(", so only "function f {" arrives here.
             del tokens[:2]
-            while tokens and _is_operator(tokens[0], {"(", ")"}):
-                tokens.pop(0)
         elif first == "coproc":
             tokens.pop(0)
             if len(tokens) > 1 and tokens[1] == "{":
@@ -669,12 +668,14 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
                     return []
                 elif token in {"--unset", "--chdir"}:
                     del tokens[:2]
-                elif token == "--":
-                    tokens.pop(0)
-                    break
                 elif token.startswith("--"):
+                    # Long options, and "--", which ends them.
                     tokens.pop(0)
-                elif token.startswith("-") and len(token) > 1:
+                    if token == "--":
+                        break
+                elif token == "-":
+                    tokens.pop(0)  # "env -" is "env -i"
+                elif token.startswith("-"):
                     # A cluster such as -iS 'cmd' or -vu NAME: -u and -C take a
                     # value, -S takes the command text; either may be attached.
                     tokens.pop(0)
@@ -693,8 +694,7 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
                     break
         elif name in TRANSPARENT_WRAPPERS:
             tokens.pop(0)
-            if name == "nice" and tokens and re.fullmatch(r"-[0-9]+", tokens[0]):
-                tokens.pop(0)
+            # nice -5 is an option to _skip_options like any other.
             tokens = _skip_options(tokens, TRANSPARENT_WRAPPERS[name])
         elif name in DURATION_WRAPPERS:
             tokens.pop(0)
@@ -725,7 +725,7 @@ def _nested_shell_text(command: ShellCommand) -> str | None:
         return None
 
     for index, argument in enumerate(command.arguments[:-1]):
-        is_command_option = argument == "-c" or (
+        is_command_option = (
             argument.startswith("-") and not argument.startswith("--") and "c" in argument[1:]
         )
         if is_command_option:
@@ -740,8 +740,8 @@ def _reads_script_from_stdin(command: ShellCommand) -> bool:
     for argument in command.arguments:
         if argument == "-s":
             return True
-        if argument == "-c" or (argument.startswith("-") and not argument.startswith("--")
-                                and "c" in argument[1:]):
+        if (argument.startswith("-") and not argument.startswith("--")
+                and "c" in argument[1:]):
             return False
         if not argument.startswith(("-", "+")):
             return False
@@ -782,7 +782,8 @@ def shell_commands(text: str, _depth: int = 0) -> list[ShellCommand]:
             if command.executable in NESTED_SHELLS and here_string is not None:
                 nested_texts.append(here_string)
             elif _reads_script_from_stdin(command) and not any(
-                    _is_operator(item, {"<<", "<<<"}) for item in segment) and (
+                    # Lifted heredocs leave "<<< ''", so one operator covers both.
+                    _is_operator(item, {"<<<"}) for item in segment) and (
                     previous_operator in PIPE_OPERATORS
                     or any(_is_operator(item, STDIN_REDIRECTS) for item in segment)):
                 raise ShellParseError("Cannot inspect a script piped into a shell")
@@ -847,11 +848,8 @@ def _option_tokens(arguments: list[str]) -> list[str]:
         if token in value_options:
             index += 2
             continue
-        if token.startswith(("--file=", "--message=")) or (
-            token.startswith(("-F", "-m")) and len(token) > 2
-        ):
-            index += 1
-            continue
+        # Attached values (-mtext, --message=text) need no skipping: neither
+        # the cluster nor the long-option checks can match them.
         options.append(token)
         index += 1
     return options
