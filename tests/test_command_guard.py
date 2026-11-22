@@ -247,6 +247,132 @@ def test_shell_commands_preserves_carriage_return_in_quotes() -> None:
     ]
 
 
+# Every rule of the gh policy, stated independently of _classify_gh.
+GH_POLICY = [
+    *[(f"repo {a} o/r", "deny", "Destructive repo operation blocked.")
+      for a in ("archive", "change-visibility", "delete", "rename")],
+    *[(f"{g} {a}", "deny", "Credential operation blocked.")
+      for g in ("auth", "gpg-key", "ssh-key") for a in ("login", "list", "")],
+    ("config set editor vim", "deny", "Config change blocked."),
+    *[(f"extension {a} x", "deny", "Extension management blocked.")
+      for a in ("install", "remove")],
+    *[(f"codespace {a}", "deny", "Codespace operation blocked.") for a in ("list", "ssh")],
+    ("issue delete 1", "deny", "Issue deletion blocked."),
+    ("pr merge 1", "ask", "PR merge — confirm."),
+    *[(f"pr {a} 1", "allow", "PR workflow.")
+      for a in ("close", "comment", "create", "edit", "ready", "review")],
+    *[(f"issue {a} 1", "allow", "Issue workflow.")
+      for a in ("close", "comment", "create", "edit")],
+    ("gist create f", "allow", "Gist creation."),
+    ("api repos/o/r", "allow", "Read-only API call."),
+    ("api -X GET repos/o/r", "allow", "Read-only API call."),
+    ("api --method get repos/o/r", "allow", "Read-only API call."),
+    *[(f"api {flag} repos/o/r", "ask", "Mutating API call — confirm.")
+      for flag in ("--field a=1", "--input f", "--raw-field a=1", "-F a=1", "-f a=1",
+                   "--field=a=1", "--input=f", "--raw-field=a=1", "-F=a=1", "-f=a=1",
+                   "-X DELETE", "-X patch", "--method POST", "--method=put", "-XDELETE",
+                   "-Xpost")],
+    *[(f"{g} {a} X", "ask", "Sensitive operation — confirm.")
+      for g in ("cache", "secret") for a in ("delete", "set")],
+    ("release delete v1", "ask", "Release deletion — confirm."),
+    ("gist delete 1", "ask", "Gist deletion — confirm."),
+    *[(f"{g}", "allow", "Read-only gh command.")
+      for g in ("browse", "completion", "search", "status", "version")],
+    *[(f"{g} {a}", "allow", "Read-only gh command.") for g, actions in {
+        "alias": ["list"], "attestation": ["verify"], "cache": ["list"],
+        "config": ["get", "list"], "extension": ["browse", "list", "search"],
+        "gist": ["clone", "list", "view"], "issue": ["list", "status", "view"],
+        "label": ["list"], "pr": ["checks", "diff", "list", "status", "view"],
+        "release": ["download", "list", "verify", "verify-asset", "view"],
+        "repo": ["list", "view"], "run": ["download", "list", "view", "watch"],
+        "secret": ["list"], "variable": ["list"], "workflow": ["list", "view"],
+    }.items() for a in actions],
+    *[(f"{g} {a}", "ask", "Unmatched gh command — confirm.") for g, a in [
+        ("alias", "set"), ("label", "create"), ("run", "rerun"), ("workflow", "run"),
+        ("variable", "set"), ("repo", "create"), ("pr", "unknown"), ("ruleset", "list"),
+        ("config", "clear-cache"), ("release", "create"), ("gist", "edit"),
+        ("issue", "transfer"), ("attestation", "download"), ("extension", "upgrade"),
+    ]],
+    ("--hostname h repo delete o/r", "deny", "Destructive repo operation blocked."),
+    ("-R o/r pr -R o/r merge 1", "ask", "PR merge — confirm."),
+    ("pr --repo o/r view 1", "allow", "Read-only gh command."),
+    ("pr --hostname h view", "allow", "Read-only gh command."),
+    ("pr --web view", "allow", "Read-only gh command."),
+]
+
+
+@pytest.mark.parametrize(("arguments", "decision", "reason"), GH_POLICY,
+                         ids=[case[0] or "empty" for case in GH_POLICY])
+def test_gh_policy_table(arguments: str, decision: str, reason: str) -> None:
+    commands = command_guard.shell_commands("gh " + arguments)
+    assert command_guard.gh_decision(commands) == (decision, reason)
+
+
+@pytest.mark.parametrize("text", ["gh", "gh --repo o/r", "gh -R"])
+def test_gh_without_group_has_no_decision(text: str) -> None:
+    assert command_guard.gh_decision(command_guard.shell_commands(text)) is None
+
+
+def test_gh_chain_takes_most_severe_and_first_deny() -> None:
+    commands = command_guard.shell_commands(
+        "gh pr view 1; gh pr merge 1; gh issue list; gh auth logout; gh repo delete o/r")
+    assert command_guard.gh_decision(commands) == ("deny", "Credential operation blocked.")
+    commands = command_guard.shell_commands("gh pr merge 1; gh pr view 1")
+    assert command_guard.gh_decision(commands) == ("ask", "PR merge — confirm.")
+    commands = command_guard.shell_commands("gh pr view 1; gh api -X POST x")
+    assert command_guard.gh_decision(commands) == ("ask", "Mutating API call — confirm.")
+
+
+# Malformed input must parse or raise ShellParseError; any other exception
+# crashes the hook, and a crash is non-blocking.
+@pytest.mark.parametrize(
+    "text",
+    [
+        'echo "a\\', "echo $'abc\\", "echo $'\\01", "echo $'\\x4", "echo $'\\u00",
+        "echo $'\\c", "echo $'\\X'", "echo $((1", "echo $((1<<2", "echo $(case",
+        "echo $(echo; case", "x=$(( (1) )", "echo \\", "echo 'a",
+    ],
+)
+def test_malformed_input_never_crashes(text: str) -> None:
+    try:
+        command_guard.shell_commands(text)
+    except command_guard.ShellParseError:
+        pass
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("echo $'\\0101'", ["\x081"]),
+        ("echo $'\\u00e9a'", ["\u00e9a"]),
+        ("echo $'\\U0001F600a'", ["\U0001F600a"]),
+        ("echo $'\\x41g'", ["Ag"]),
+        ("echo $'\\xg'", ["\\xg"]),
+        ("echo $'\\X'", ["\\X"]),
+        ("echo $'\\ca'", ["\x01"]),
+        ('echo "\\a"', ["\\a"]),
+    ],
+)
+def test_ansi_c_and_double_quote_escapes(text: str, expected: list[str]) -> None:
+    assert command_guard.shell_commands(text) == [
+        command_guard.ShellCommand("echo", tuple(expected))]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [" git commit --no-verify -m msg", "echo $( git commit --no-verify -m msg)",
+     "\tgit commit -n -m msg"],
+)
+def test_leading_blanks_do_not_hide_the_command(text: str) -> None:
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+def test_word_starting_with_case_is_a_command() -> None:
+    commands = command_guard.shell_commands('echo "$(caseX)"; git commit -n -m msg')
+    assert command_guard.ShellCommand("caseX", ()) in commands
+    assert command_guard.git_bypass_blocked(commands)
+
+
 def test_git_bypass_main_blocks_parse_failure(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

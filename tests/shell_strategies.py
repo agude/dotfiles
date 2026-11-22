@@ -263,12 +263,14 @@ NO_BACKTICK = re.compile(r"^[^`\\]*$")
 def nested(draw, children) -> Rendered:
     child = draw(children)
     quoted = shlex.quote(child.text)
-    forms = ["echo \"$({x})\"", "echo $({x})", "cat <({x})", "tee >({x}) >/dev/null",
+    forms = ["echo \"$({x})\"", "echo $({x})", "echo $( {x})", "cat <({x})", "tee >({x}) >/dev/null",
              "bash -c {q}", "sh -c {q}", "bash -lc {q}", "bash -e -c {q}", "eval {q}",
              "bash <<< {q}"]
     if NO_BACKTICK.match(child.text) and "$(" not in child.text and "\n" not in child.text:
         forms.append("echo `{x}`")
     form = draw(st.sampled_from(forms))
+    if form.startswith("sh ") and "$'" in child.text:
+        form = "bash" + form[2:]  # sh may be dash, which has no $'...' quoting
     # "$((" would start arithmetic expansion; a space keeps a subshell a subshell.
     inner = (" " if child.text.startswith("(") else "") + child.text
     text = form.format(x=inner + ("\n" if child.heredoc else ""), q=quoted)
@@ -357,7 +359,7 @@ PLAIN_CHARACTERS = "abcXYZ019-_./=:@%+,"
 BACKSLASH_TARGETS = "abc-_ ;&|()<>'\"$`\\*?[]{}#~!="
 SINGLE_CHARACTERS = "ab -;&|()<>\"$`\\*?#~\t\n"
 DOUBLE_CHARACTERS = "ab -;&|()<>'*?#~\t\n{}"
-ANSI_PLAIN = "ab -;&|()<>\"$`*?#~"
+ANSI_PLAIN = "ab -;&|()<>\"$`*?#~0179aEf"
 ANSI_SIMPLE = {"n": "\n", "t": "\t", "r": "\r", "a": "\a", "b": "\b", "e": "\x1b",
                "E": "\x1b", "f": "\f", "v": "\v", "\\": "\\", "'": "'", '"': '"', "?": "?"}
 ANSI_CODEPOINTS = [0x20, 0x2D, 0x41, 0x7E, 0xE9, 0x2014, 0x1F600]
@@ -366,7 +368,10 @@ ANSI_CODEPOINTS = [0x20, 0x2D, 0x41, 0x7E, 0xE9, 0x2014, 0x1F600]
 @st.composite
 def _ansi_part(draw) -> tuple[str, str]:
     kind = draw(st.sampled_from(["plain", "simple", "hex", "octal", "u", "U", "control",
-                                 "unknown"]))
+                                 "unknown", "empty-hex"]))
+    if kind == "empty-hex":
+        letter = draw(st.sampled_from("xuU"))
+        return "\\" + letter + "g", "\\" + letter + "g"
     if kind == "plain":
         character = draw(st.sampled_from(ANSI_PLAIN))
         return character, character
@@ -375,9 +380,13 @@ def _ansi_part(draw) -> tuple[str, str]:
         return "\\" + key, ANSI_SIMPLE[key]
     if kind == "hex":
         value = draw(st.integers(0x01, 0x7F))
+        if draw(st.booleans()) and value < 0x10:
+            return f"\\x{value:x}g", chr(value) + "g"
         return f"\\x{value:02x}", chr(value)
     if kind == "octal":
         value = draw(st.integers(0o001, 0o177))
+        if draw(st.booleans()) and value < 0o10:
+            return f"\\{value:o}g", chr(value) + "g"
         return f"\\{value:03o}", chr(value)
     if kind == "u":
         value = draw(st.sampled_from([c for c in ANSI_CODEPOINTS if c <= 0xFFFF]))
@@ -388,7 +397,8 @@ def _ansi_part(draw) -> tuple[str, str]:
     if kind == "control":
         letter = draw(st.sampled_from("abcz"))
         return "\\c" + letter, chr(ord(letter) & 0x1F)
-    return "\\q", "\\q"
+    unknown = draw(st.sampled_from("qXz89"))
+    return "\\" + unknown, "\\" + unknown
 
 
 @st.composite

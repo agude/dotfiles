@@ -188,10 +188,9 @@ def _decode_ansi_c(text: str, start: int) -> tuple[str, int]:
 
 
 def _keyword_at(text: str, index: int, keyword: str) -> bool:
+    """Whether ``keyword`` is a whole word at ``index``; callers check position."""
     end = index + len(keyword)
-    return (text.startswith(keyword, index)
-            and (index == 0 or text[index - 1] in " \t\n;&|()")
-            and (end == len(text) or text[end] in " \t\n;&|()"))
+    return text.startswith(keyword, index) and (end == len(text) or text[end] in " \t\n;&|()")
 
 
 def _skip_arithmetic(text: str, index: int) -> int:
