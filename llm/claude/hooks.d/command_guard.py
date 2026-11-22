@@ -104,8 +104,8 @@ def _tokens(text: str) -> list[str]:
             finish()
             index += 1
         elif character == "\\":
-            if index + 1 < len(text):
-                word.append(text[index + 1])
+            # A trailing backslash is literal, as in bash.
+            word.append(text[index + 1] if index + 1 < len(text) else "\\")
             in_word = True
             index += 2
         elif character == "'":
@@ -263,11 +263,11 @@ def _read_heredoc_word(line: str, start_index: int) -> tuple[str, bool, int]:
 
 
 def _feeds_shell(prefix: str) -> bool:
-    """Whether the command text before a heredoc operator is a nested shell."""
-    try:
-        words = _command_words(_without_redirects(_tokens(prefix)), [])
-    except ValueError:
-        return True
+    """Whether the command text before a heredoc operator is a nested shell.
+
+    A prefix that cannot be read raises ShellParseError, as its segment would.
+    """
+    words = _command_words(_without_redirects(_tokens(prefix)), [])
     return bool(words) and os.path.basename(words[0]) in NESTED_SHELLS
 
 
@@ -343,7 +343,7 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             index += 1
             continue
 
-        word_start = not output or output[-1][-1:] in {"", " ", "\t", "\n", ";", "&", "|",
+        word_start = not output or output[-1][-1:] in {" ", "\t", "\n", ";", "&", "|",
                                                        "(", ")", "<", ">"}
         if character == "$" and next_character == "'":
             decoded, index = _decode_ansi_c(text, index + 1)
@@ -357,6 +357,8 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             while end < len(text) and text[end].isdigit():
                 end += 1
             if end < len(text) and text[end] in "<>":
+                # Keep a blank so "&2>" cannot become the "&>" operator.
+                output.append(" ")
                 index = end
                 continue
         if character in {"'", '"'}:

@@ -380,6 +380,87 @@ def test_word_starting_with_case_is_a_command() -> None:
     assert command_guard.git_bypass_blocked(commands)
 
 
+# Lexical cases from mutation survivors: each separator, quoting form and
+# boundary that decides where a command or a heredoc starts.
+@pytest.mark.parametrize(
+    "text",
+    [
+        "true;2>/dev/null git commit -n -m msg",
+        "true&2>/dev/null git commit -n -m msg",  # G23: dropping "2" made "&>"
+        "true|2>/dev/null git commit -n -m msg",
+        "(2>/dev/null git commit -n -m msg)",
+        "true\n2>/dev/null git commit -n -m msg",
+        "git\t2>/dev/null commit -n -m msg",
+        "echo $(2>/dev/null git commit -n -m msg)",
+        "echo x; bash <<'E'\ngit commit --no-verify -m msg\nE",
+        "echo x && bash <<'E'\ngit commit --no-verify -m msg\nE",
+        "echo x | bash <<'E'\ngit commit --no-verify -m msg\nE",
+        "(bash <<'E'\ngit commit --no-verify -m msg\nE\n)",
+        "{ bash <<'E'\ngit commit --no-verify -m msg\nE\n}",
+        "echo $(bash <<'E'\ngit commit --no-verify -m msg\nE\n)",
+        "cat <<\\EOF\nbody\nEOF\ngit commit -n -m msg",
+        "cat <<E\\OF\nbody\nEOF\ngit commit -n -m msg",
+        "cat <<'E\\F'\nbody\nE\\F\ngit commit -n -m msg",
+        "cat <<\"E'F\"\nbody\nE'F\ngit commit -n -m msg",
+        "cat <<'E\"F'\nbody\nE\"F\ngit commit -n -m msg",
+        "cat <<XEND\nbody\nXEND\ngit commit -n -m msg",
+        "echo \"`date`\"; git commit $'--no-verify' -m msg",
+        "echo \"`echo \\\"x\\\"`\"; git commit $'--no-verify' -m msg",
+    ],
+)
+def test_git_bypass_blocks_lexical_cases(text: str) -> None:
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'echo "$(echo {case)"', 'echo "$(echo X{ case)"', 'echo "$(Xcase)"',
+        'echo "$(echo X case)"', "echo bash <<'E'\ngit commit --no-verify -m msg\nE",
+        "cat <<EOF\nhello\nEOF", "cat <<XEND\ngit commit --no-verify -m msg\nXEND",
+        "cat <<\"EOF\"\n$(git commit --no-verify -m msg)\nEOF",
+        "cat <<OUT\nit's $(cat <<'IN'\n(\nIN\n)\nOUT",
+    ],
+)
+def test_git_bypass_allows_lexical_lookalikes(text: str) -> None:
+    assert not command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+@pytest.mark.parametrize("text", ["echo {x", "echo }x", 'echo "\\"', "echo $'\\'",
+                                  "echo $'\\1"])
+def test_unterminated_or_edge_text_never_crashes(text: str) -> None:
+    try:
+        command_guard.shell_commands(text)
+    except command_guard.ShellParseError:
+        pass
+
+
+@pytest.mark.parametrize(("text", "words"), [
+    ("echo a\\", ["a\\"]), ("echo \\", ["\\"]), ("echo $'\\1X'", ["\x01X"]),
+])
+def test_trailing_backslash_and_octal_boundaries(text: str, words: list[str]) -> None:
+    assert command_guard.shell_commands(text) == [
+        command_guard.ShellCommand("echo", tuple(words))]
+
+
+@pytest.mark.parametrize("text", ['echo "\\"', "echo $'\\'"])
+def test_escaped_closing_quote_is_unterminated(text: str) -> None:
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands(text)
+
+
+def test_nesting_limit_is_exact() -> None:
+    limit = command_guard.MAX_DEPTH
+
+    def nested(depth: int) -> str:
+        return "echo " + "$(" * depth + "git status" + ")" * depth
+
+    assert command_guard.ShellCommand("git", ("status",)) in command_guard.shell_commands(
+        nested(limit))
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands(nested(limit + 1))
+
+
 def test_git_bypass_main_blocks_parse_failure(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
