@@ -73,6 +73,9 @@ def world(tmp_path: Path) -> Path:
     (repository / "config").mkdir(parents=True)
     (repository / "config/template").write_text("template\n")
     (repository / "config/other").write_text("other\n")
+    # Repository files are world-readable; installed configs must be narrowed.
+    (repository / "config/template").chmod(0o644)
+    (repository / "config/other").chmod(0o644)
     (tmp_path / "home").mkdir()
     (tmp_path / "outside").mkdir()
     (tmp_path / "outside/foreign").write_text("foreign\n")
@@ -181,6 +184,7 @@ def test_install_local_config(world: Path, state: str, dry_run: bool) -> None:
     source = world / "dot files [1]/config/template"
     result = call(world, "install_local_config", str(target), str(source), dry_run=dry_run)
     expected = LOCAL_CONFIG_RESULT[state]
+    assert result.returncode == 0, result.stderr
     if dry_run:
         assert tree(world) == before
         return

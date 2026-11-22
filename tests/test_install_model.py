@@ -273,6 +273,14 @@ def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None
     check_backups(world, before, after)
     new_manifest = world.manifest()
     check_cleanup(world, before, after, old_manifest, new_manifest)
+    removed = sorted(path for path, entry in before.items()
+                     if entry[0] == "link" and path not in after)
+    header = result.stdout.count("› Cleaning up stale symlinks...")
+    assert header == (1 if removed else 0), result.stdout
+    if removed:
+        summary = result.stdout.split("› Cleanup summary:", 1)[1].splitlines()
+        listed = [line.strip() for line in summary if line.startswith("  ")]
+        assert sorted(listed) == removed, result.stdout
     if transition == "same":
         assert after == before
         assert new_manifest == old_manifest

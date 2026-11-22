@@ -51,3 +51,69 @@ target = "publish"
 key = "main|string|c0943b9a1a|'preview without writing to Documents' -> 'XXpreview without writing to DocumentsXX'"
 reason = "message-only"
 note = "argparse help text."
+
+[[survivor]]
+target = "install"
+key = "_normalize_path|quoting|3752f8b186|unquote variable"
+reason = "equivalent"
+note = "Bash 4.4 and later do not word-split a here-string, so unquoting changes nothing under the mutation Bash; the quotes stay for Bash 3.2."
+
+[[survivor]]
+target = "install"
+key = "_place_link|test-flag|de7d1a666b|'-L' -> '-e'"
+reason = "equivalent"
+note = "The source is validated to exist, so a link equal to it is never dangling and -L and -e agree."
+
+[[survivor]]
+target = "install"
+key = "install_local_config|statement|06d3d9b206|delete return#3"
+reason = "equivalent"
+note = "After migration the target exists, so falling through reaches the [[ -e ]] check and returns 0 as well."
+
+[[survivor]]
+target = "install"
+key = "install_managed_copy|statement|3accb4d4d6|delete command"
+reason = "equivalent"
+note = "The later mv of the staged copy replaces the managed symlink itself, so removing it first changes nothing."
+
+[[survivor]]
+target = "install"
+key = "install_managed_copy|test-flag|cd0f5815ea|'-f' -> '-e'"
+reason = "equivalent"
+note = "A non-file target fails cmp and is backed up, exactly as the following [[ -e ]] branch does."
+
+[[survivor]]
+target = "install"
+key = "any_group_enabled|quoting|4c01885529|unquote variable"
+reason = "equivalent"
+note = "Group lists are validated names joined by commas, so word splitting and rejoining an unquoted echo gives the same words."
+
+[[survivor]]
+target = "install"
+key = "any_group_enabled|quoting|eeec64dd5d|unquote variable"
+reason = "equivalent"
+note = "g is a single trimmed word from the loop, so quoting it cannot change install_group's argument."
+
+[[survivor]]
+target = "install"
+key = "cleanup|compare|d0327012af|'-gt' -> '-ge'"
+reason = "equivalent"
+note = "Under Bash 4 and later an empty array expands to nothing; the -gt 0 guard exists for Bash 3.2's set -u, which the Bash 3.2 CI job exercises."
+
+[[survivor]]
+target = "install"
+key = "cleanup|compare|ceb912ab95|'-gt' -> '-ge'"
+reason = "equivalent"
+note = "Same Bash 3.2 empty-array guard as the manifest loop above."
+
+[[survivor]]
+target = "install"
+key = "cleanup|loop|ad57625915|'break' -> 'continue'"
+reason = "equivalent"
+note = "Once _found is true, continuing the inner loop cannot set it back to false."
+
+[[survivor]]
+target = "install"
+key = "cleanup|compare|ceb912ab95|'-gt' -> '-ge'#2"
+reason = "equivalent"
+note = "Same Bash 3.2 empty-array guard; the else branch writes the same empty manifest."
