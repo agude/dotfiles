@@ -161,6 +161,12 @@ class PortableTests(unittest.TestCase):
                 self.run_cli('move', source, '21.10', '--subdir', subdir, success=False)
         self.assertTrue(source.exists())
 
+    def test_windows_console_and_superscript_device_names_are_rejected(self):
+        # Regression J1: Windows reserves COM¹-COM³, LPT¹-LPT³, CONIN$ and CONOUT$.
+        for name in ('COM\u00b9', 'lpt\u00b3.txt', 'CONIN$', 'conout$.log'):
+            with self.assertRaises(jd.JDException):
+                jd.safe_name(name)
+
     def test_windows_subdirectory_separators_are_supported(self):
         source = self.workspace / 'scan.pdf'
         source.touch()

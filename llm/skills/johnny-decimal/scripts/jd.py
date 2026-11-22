@@ -108,7 +108,8 @@ def safe_name(name):
     """Reject names Windows cannot represent, including paths and ADS syntax."""
     if (not name or name in ('.', '..') or name.endswith((' ', '.'))
             or re.search(r'[<>:"/\\|?*\x00-\x1f\x7f]', name)
-            or re.fullmatch(r'(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])', name.split('.')[0])):
+            or re.fullmatch(r'(?i:con|prn|aux|nul|conin\$|conout\$|com[1-9\u00b9\u00b2\u00b3]|'
+                            r'lpt[1-9\u00b9\u00b2\u00b3])', name.split('.')[0])):
         raise JDException(f'Invalid name: {name!r}')
     return name
 
