@@ -462,6 +462,166 @@ def test_nesting_limit_is_exact() -> None:
         command_guard.shell_commands(nested(limit + 1))
 
 
+# Exact parses of keywords, wrappers and nested shells, reviewed against bash.
+WRAPPER_PARSES = [
+    ('! git log', [('git', ('log',))]),
+    ('{ git log; }', [('git', ('log',))]),
+    ('if git log; then :; fi', [('git', ('log',)), (':', ())]),
+    ('while git log; do :; done', [('git', ('log',)), (':', ())]),
+    ('until git log; do :; done', [('git', ('log',)), (':', ())]),
+    ('for x in git status; do git log; done', [('git', ('log',))]),
+    ('select x in a; do git log; done', [('git', ('log',))]),
+    ('case $x in a) git log;; esac', [('git', ('log',))]),
+    ('function f { git log; }', [('git', ('log',))]),
+    ('function f() { git log; }', [('git', ('log',))]),
+    ('coproc git log', [('git', ('log',))]),
+    ('coproc NAME { git log; }', [('git', ('log',))]),
+    ('[[ -n x ]] && git log', [('git', ('log',))]),
+    ('A=1 B=2 git log', [('git', ('log',))]),
+    ('a[1]=x git log', [('git', ('log',))]),
+    ('A+=1 git log', [('git', ('log',))]),
+    ('env git log', [('git', ('log',))]),
+    ('env A=1 -i git log', [('git', ('log',))]),
+    ('env -u HOME git log', [('git', ('log',))]),
+    ('env --unset HOME git log', [('git', ('log',))]),
+    ('env -C /tmp git log', [('git', ('log',))]),
+    ('env --chdir /tmp git log', [('git', ('log',))]),
+    ('env -- git log', [('git', ('log',))]),
+    ("env -S 'git log -n 1'", [('git', ('log', '-n', '1'))]),
+    ("env --split-string='git log'", [('git', ('log',))]),
+    ("env -S'git log'", [('git', ('log',))]),
+    ("env -iS 'git log'", [('git', ('log',))]),
+    ("env -vS'git log'", [('git', ('log',))]),
+    ('command git log', [('git', ('log',))]),
+    ('command -p git log', [('git', ('log',))]),
+    ('builtin git log', [('git', ('log',))]),
+    ('exec -a name git log', [('git', ('log',))]),
+    ('exec -cl git log', [('git', ('log',))]),
+    ('nice git log', [('git', ('log',))]),
+    ('nice -n 5 git log', [('git', ('log',))]),
+    ('nice -5 git log', [('git', ('log',))]),
+    ('nice --adjustment=5 git log', [('git', ('log',))]),
+    ('nice --adjustment 5 git log', [('git', ('log',))]),
+    ('nohup git log', [('git', ('log',))]),
+    ('time git log', [('git', ('log',))]),
+    ('time -p git log', [('git', ('log',))]),
+    ('sudo git log', [('git', ('log',))]),
+    ('sudo -u root git log', [('git', ('log',))]),
+    ('sudo -u root -g wheel -- git log', [('git', ('log',))]),
+    ('sudo --user=root git log', [('git', ('log',))]),
+    ('doas -u root git log', [('git', ('log',))]),
+    ('setsid -w git log', [('git', ('log',))]),
+    ('stdbuf -o L git log', [('git', ('log',))]),
+    ('stdbuf -oL git log', [('git', ('log',))]),
+    ('ionice -c 3 git log', [('git', ('log',))]),
+    ('timeout 5 git log', [('git', ('log',))]),
+    ('timeout -s KILL 5 git log', [('git', ('log',))]),
+    ('timeout --signal=KILL 5 git log', [('git', ('log',))]),
+    ('timeout -k 1 5 git log', [('git', ('log',))]),
+    ("bash -c 'git log'", [('bash', ('-c', 'git log')), ('git', ('log',))]),
+    ("bash -xc 'git log'", [('bash', ('-xc', 'git log')), ('git', ('log',))]),
+    ("bash -o pipefail -c 'git log'", [('bash', ('-o', 'pipefail', '-c', 'git log')), ('git', ('log',))]),
+    ("sh --norc -c 'git log'", [('sh', ('--norc', '-c', 'git log')), ('git', ('log',))]),
+    ('bash -c', [('bash', ('-c',))]),
+    ('bash script.sh', [('bash', ('script.sh',))]),
+    ('eval git log', [('eval', ('git', 'log')), ('git', ('log',))]),
+    ('eval', [('eval', ())]),
+    ("bash <<< 'git log'", [('bash', ()), ('git', ('log',))]),
+    ('x | bash script.sh', [('x', ()), ('bash', ('script.sh',))]),
+    ("x | bash -c 'git log'", [('x', ()), ('bash', ('-c', 'git log')), ('git', ('log',))]),
+    ('xargs echo', [('xargs', ('echo',))]),
+    ('env', []),
+    ('nice', []),
+    ('timeout 5', []),
+]
+
+
+@pytest.mark.parametrize(("text", "expected"), WRAPPER_PARSES,
+                         ids=[text for text, _ in WRAPPER_PARSES])
+def test_wrapper_parses(text: str, expected: list) -> None:
+    commands = command_guard.shell_commands(text)
+    assert [(c.executable, c.arguments) for c in commands] == expected
+
+
+@pytest.mark.parametrize("text", [
+    "x | bash", "x | bash -s", "x | bash -s arg", "x | bash -x", "x | bash +x",
+    "x | bash --norc", "x |& sh", "bash < script.sh", "bash -s < script.sh",
+    "xargs git log", "find . -exec git log ;", "parallel bash", "watch eval x",
+    "xargs -n1 sh -c 'echo'",
+])
+def test_unfollowable_input_is_unparseable(text: str) -> None:
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands(text)
+
+
+@pytest.mark.parametrize("text", [
+    "x | bash script.sh", "x | bash -c 'echo'", "x | bash -xc 'echo'", "xargs echo",
+    "find . -name x", "bash <<< 'echo'", "x | bash <<'E'\necho\nE",
+])
+def test_followable_shell_input_parses(text: str) -> None:
+    command_guard.shell_commands(text)
+
+
+@pytest.mark.parametrize("text", [
+    "git commit -F --no-verify", "git commit --file --no-verify",
+    "git commit --message --no-verify", "git commit --file=--no-verify",
+    "git commit --message=--no-verify", "git commit -F--no-verify", "git commit -m-n",
+    "git commit -m msg -- --no-verify", "git commit -- -n", "git commit -a -m msg",
+    "git commit -Cn", "git commit -v -m msg", "git -c core.editor=x commit -m msg",
+    "git --config-env=core.editor=EDITOR commit -m msg", "git -C dir commit -m msg",
+    "git --git-dir x commit -m msg", "git --work-tree x status -n",
+    *[f"git -c commit.gpgsign={value} commit -m msg"
+      for value in ("true", "yes", "on", "TRUE", "1", "2", "0x10", "1k", "-1", "+1")],
+])
+def test_git_options_that_are_not_bypasses(text: str) -> None:
+    assert not command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+@pytest.mark.parametrize("text", [
+    "git commit -vn -m msg", "git commit -anm msg", "git commit --no-v=1 -m msg",
+    "git commit --no-gpg-sign=x -m msg", "git --config-env=core.hooksPath=X commit -m msg",
+    "git --config-env core.hookspath=X commit -m msg",
+    "git --config-env=commit.gpgSign=X commit -m msg", "git -c commit.gpgsign=garbage commit",
+    "env -iS 'git commit -n -m msg'", "env -vS'git commit -n -m msg'",
+    "env -u HOME -S 'git commit -n -m msg'",
+    *[f"git -c commit.gpgsign={value} commit -m msg"
+      for value in ("false", "no", "off", "0", "", "00", "0x0", "-0", "+0", "0k", "0M")],
+])
+def test_git_options_that_are_bypasses(text: str) -> None:
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+@pytest.mark.parametrize(("text", "decision"), [
+    ("gh pr --web view 1", "allow"), ("gh pr view 1 --web", "allow"),
+    ("gh pr -R o/r --web view 1", "allow"), ("gh api -X", "allow"),
+    ("gh api --method", "allow"), ("gh api repos/o/r -X", "allow"),
+    ("gh api -X POST", "ask"), ("gh --repo o/r pr view 1", "allow"),
+])
+def test_gh_argument_edge_cases(text: str, decision: str) -> None:
+    result = command_guard.gh_decision(command_guard.shell_commands(text))
+    assert result is not None and result[0] == decision
+
+
+def test_hook_input_errors_fail_closed(monkeypatch: pytest.MonkeyPatch,
+                                       capsys: pytest.CaptureFixture[str]) -> None:
+    class Broken(io.StringIO):
+        def read(self, *args):
+            raise OSError("closed")
+
+    for stdin in (Broken(), io.TextIOWrapper(io.BytesIO(b"\xff\xfe"), encoding="utf-8")):
+        monkeypatch.setattr(command_guard.sys, "argv", ["command_guard.py", "git-bypass"])
+        monkeypatch.setattr(command_guard.sys, "stdin", stdin)
+        assert command_guard.main() == 2
+    capsys.readouterr()
+
+
+def test_unknown_mode_exits_with_a_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    for argv in (["command_guard.py"], ["command_guard.py", "other"]):
+        monkeypatch.setattr(command_guard.sys, "argv", argv)
+        with pytest.raises(SystemExit, match="Unknown guard mode"):
+            command_guard.main()
+
+
 def test_git_bypass_main_blocks_parse_failure(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

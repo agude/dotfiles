@@ -20,8 +20,9 @@ NESTED_SHELLS = {"bash", "dash", "ksh", "sh", "zsh"}
 GUARDED_EXECUTABLES = {"gh", "git"}
 # Reserved words that may precede a command in the same segment.
 RESERVED_PREFIXES = {"!", "{", "}", "do", "done", "elif", "else", "esac", "fi", "if",
-                     "then", "until", "while", "[[", "]]"}
-# Segments starting with these words are loop or case headers, not commands.
+                     "then", "until", "while"}
+# Segments starting with these words are loop or case headers, not commands;
+# a [[ ... ]] test is handled the same way.
 HEADER_WORDS = {"case", "for", "select"}
 # Commands that run their arguments as another command, with the options that
 # take a separate value.
@@ -621,7 +622,7 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
         name = os.path.basename(first)
         if first in RESERVED_PREFIXES:
             tokens.pop(0)
-        elif first in HEADER_WORDS:
+        elif first in HEADER_WORDS or first == "[[":
             return []
         elif first == "function":
             del tokens[:2]
@@ -639,23 +640,35 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
                 token = tokens[0]
                 if ASSIGNMENT.match(token):
                     tokens.pop(0)
-                elif token in {"-S", "--split-string"}:
+                elif token == "--split-string":
                     if len(tokens) > 1:
                         nested_texts.append(tokens[1])
                     return []
                 elif token.startswith("--split-string="):
                     nested_texts.append(token.split("=", 1)[1])
                     return []
-                elif token.startswith("-S") and len(token) > 2:
-                    nested_texts.append(token[2:])
-                    return []
-                elif token in {"-u", "--unset", "-C", "--chdir"}:
+                elif token in {"--unset", "--chdir"}:
                     del tokens[:2]
                 elif token == "--":
                     tokens.pop(0)
                     break
-                elif token.startswith("-"):
+                elif token.startswith("--"):
                     tokens.pop(0)
+                elif token.startswith("-") and len(token) > 1:
+                    # A cluster such as -iS 'cmd' or -vu NAME: -u and -C take a
+                    # value, -S takes the command text; either may be attached.
+                    tokens.pop(0)
+                    for position, letter in enumerate(token[1:], 2):
+                        rest = token[position:]
+                        if letter in "uC":
+                            if not rest and tokens:
+                                tokens.pop(0)
+                            break
+                        if letter == "S":
+                            text = rest or (tokens.pop(0) if tokens else "")
+                            if text:
+                                nested_texts.append(text)
+                            return []
                 else:
                     break
         elif name in TRANSPARENT_WRAPPERS:
