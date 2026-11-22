@@ -53,16 +53,10 @@ def validate_destination(destination):
     return previous
 
 
-def publish_target(source, documents, target_name, dry_run=False, locked=False):
-    documents = documents.expanduser().resolve(strict=True)
-    if not documents.is_dir():
-        raise ValueError(f'Not a Documents directory: {documents}')
+def publish_target(source, documents, target_name, dry_run):
+    """Publish one target; publish() has resolved documents and holds the lock."""
     agents = documents / target_name
     destination = agents / 'skills/johnny-decimal'
-    # Never follow a skill link back into dotfiles or another installation.
-    for path in (agents, destination.parent, destination):
-        if path.is_symlink():
-            raise ValueError(f'Refusing symlink destination: {path}')
     if not (source / 'SKILL.md').is_file():
         raise ValueError(f'Skill source missing: {source}')
 
@@ -79,6 +73,7 @@ def publish_target(source, documents, target_name, dry_run=False, locked=False):
             elif item.is_file():
                 shutil.copy(item, snapshot / name)
         current = fingerprint(snapshot)
+        # Never follow a skill link back into dotfiles or another installation.
         previous = validate_destination(destination)
         if previous == current:
             print(f'Already up to date: {destination}')
@@ -91,37 +86,31 @@ def publish_target(source, documents, target_name, dry_run=False, locked=False):
             print(f'Dry run: {destination}')
             return
         (snapshot / MANIFEST).write_text(json.dumps(current, indent=2) + '\n', encoding='utf-8')
-        agents.mkdir(exist_ok=True)
-        lock = None if locked else acquire_lock(agents)
-        try:
-            # Stage on the destination filesystem before replacing the live copy.
-            with tempfile.TemporaryDirectory(prefix='.publish-jd-', dir=agents) as staging:
-                staged = Path(staging) / 'johnny-decimal'
-                shutil.copytree(snapshot, staged, copy_function=shutil.copy)
-                if fingerprint(staged) != current:
-                    raise ValueError('Staged copy failed verification')
-                if validate_destination(destination) != previous:
-                    raise ValueError('Destination changed during publication; retry')
-                destination.parent.mkdir(exist_ok=True)
-                backup = None
-                if destination.exists():
-                    backup_root = agents / 'skill-backups'
-                    if backup_root.is_symlink():
-                        raise ValueError(f'Refusing symlink backup directory: {backup_root}')
-                    backup_root.mkdir(exist_ok=True)
-                    backup = backup_root / f'johnny-decimal-{uuid.uuid4().hex}'
-                    destination.rename(backup)
-                try:
-                    staged.rename(destination)
-                except OSError:
-                    if backup is not None:
-                        backup.rename(destination)
-                    raise
+        # Stage on the destination filesystem before replacing the live copy.
+        with tempfile.TemporaryDirectory(prefix='.publish-jd-', dir=agents) as staging:
+            staged = Path(staging) / 'johnny-decimal'
+            shutil.copytree(snapshot, staged, copy_function=shutil.copy)
+            if fingerprint(staged) != current:
+                raise ValueError('Staged copy failed verification')
+            if validate_destination(destination) != previous:
+                raise ValueError('Destination changed during publication; retry')
+            destination.parent.mkdir(exist_ok=True)
+            backup = None
+            if destination.exists():
+                backup_root = agents / 'skill-backups'
+                if backup_root.is_symlink():
+                    raise ValueError(f'Refusing symlink backup directory: {backup_root}')
+                backup_root.mkdir(exist_ok=True)
+                backup = backup_root / f'johnny-decimal-{uuid.uuid4().hex}'
+                destination.rename(backup)
+            try:
+                staged.rename(destination)
+            except OSError:
                 if backup is not None:
-                    print(f'Previous version: {backup}')
-        finally:
-            if lock is not None:
-                lock.rmdir()
+                    backup.rename(destination)
+                raise
+            if backup is not None:
+                print(f'Previous version: {backup}')
     print(f'Published: {destination}')
 
 
@@ -151,7 +140,7 @@ def publish(source, documents, dry_run=False):
                 agents.mkdir(exist_ok=True)
                 locks.append(acquire_lock(agents))
         for name in TARGETS:
-            publish_target(source, documents, name, dry_run, locked=True)
+            publish_target(source, documents, name, dry_run)
     finally:
         for lock in reversed(locks):
             lock.rmdir()

@@ -4,8 +4,12 @@
 # ///
 """Exercise publication against temporary source and destination trees."""
 
+import contextlib
+import hashlib
 import importlib.util
+import io
 import os
+import subprocess
 import sys
 from pathlib import Path
 import tempfile
@@ -47,6 +51,87 @@ class PublishTests(unittest.TestCase):
 
     def publish(self, dry_run=False):
         module.publish(self.source, self.documents, dry_run)
+
+    def publish_output(self, dry_run=False):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.publish(dry_run)
+        return output.getvalue().splitlines()
+
+    def test_fingerprint_format_is_stable(self):
+        # Published manifests on shared drives use this format; it must not drift.
+        tree = self.root / 'tree'
+        (tree / 'scripts').mkdir(parents=True)
+        (tree / 'SKILL.md').write_bytes(b'skill')
+        (tree / 'scripts/jd.sh').write_bytes(b'run')
+        (tree / module.MANIFEST).write_text('{}')
+        self.assertEqual(module.fingerprint(tree), {
+            'SKILL.md': hashlib.sha256(b'skill').hexdigest(),
+            'scripts/': 'directory',
+            'scripts/jd.sh': hashlib.sha256(b'run').hexdigest(),
+        })
+
+    def test_output_reports_each_change(self):
+        # publish() reports resolved paths (macOS /var and Windows 8.3 names differ).
+        documents = self.documents.resolve()
+        destination = documents / '.agents/skills/johnny-decimal'
+        lines = self.publish_output()
+        for target in (destination, documents / '.claude/skills/johnny-decimal'):
+            self.assertIn(f'Published: {target}', lines)
+        self.assertEqual(lines.count('Copy: SKILL.md'), 2)
+        self.assertEqual(lines.count('Copy: scripts/'), 2)
+        self.assertEqual(lines.count('Copy: scripts/jd.sh'), 2)
+        self.assertIn(f'Seed: {documents / "AGENTS.md"}', lines)
+        self.assertFalse(any(line.startswith(('Delete:', 'Previous version:', 'Dry run:'))
+                             for line in lines))
+        (self.source / 'scripts/jd.sh').unlink()
+        lines = self.publish_output(dry_run=True)
+        self.assertEqual(lines.count('Delete: scripts/jd.sh'), 2)
+        self.assertNotIn('Copy: SKILL.md', lines)
+        self.assertIn(f'Dry run: {destination}', lines)
+        self.assertFalse(any(line.startswith('Published:') for line in lines))
+        lines = self.publish_output()
+        backups = sorted((documents / '.agents/skill-backups').iterdir())
+        self.assertIn(f'Previous version: {backups[0]}', lines)
+
+    def test_each_update_keeps_its_own_backup(self):
+        self.publish()
+        for version in ('two', 'three'):
+            (self.source / 'SKILL.md').write_text(f'version {version}')
+            self.publish()
+        backups = list((self.documents / '.agents/skill-backups').iterdir())
+        self.assertEqual(sorted((b / 'SKILL.md').read_text() for b in backups),
+                         ['version one', 'version two'])
+
+    def run_main(self, *arguments, environment=None):
+        script = Path(__file__).resolve().parents[1] / 'bin/publish-jd.py'
+        env = dict(os.environ if environment is None else environment)
+        return subprocess.run([sys.executable, '-B', str(script), *arguments], env=env,
+                              capture_output=True, text=True)
+
+    def test_main_defaults_and_errors(self):
+        documents = self.root / 'xdg documents'
+        documents.mkdir()
+        env = dict(os.environ, XDG_DOCUMENTS_DIR=str(documents))
+        result = self.run_main('--dry-run', environment=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Dry run:', result.stdout)
+        self.assertEqual(list(documents.iterdir()), [])
+        home = self.root / 'home'
+        (home / 'Documents').mkdir(parents=True)
+        env = {key: value for key, value in os.environ.items() if key != 'XDG_DOCUMENTS_DIR'}
+        env.update(HOME=str(home), USERPROFILE=str(home))
+        result = self.run_main('--dry-run', environment=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(str((home / 'Documents').resolve()), result.stdout)
+        result = self.run_main('--documents', str(self.root / 'missing'), '--dry-run')
+        self.assertEqual(result.returncode, 1)
+        self.assertTrue(result.stderr.startswith('publish-jd: '), result.stderr)
+        not_directory = self.root / 'file'
+        not_directory.write_text('x')
+        result = self.run_main('--documents', str(not_directory), '--dry-run')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('Not a Documents directory', result.stderr)
 
     def test_dry_run_writes_nothing(self):
         self.publish(dry_run=True)
