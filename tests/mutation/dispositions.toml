@@ -3,3 +3,51 @@
 # reason: equivalent | message-only | unreachable-on-supported-input |
 #         accepted-risk | hangs
 # note:   why the reason holds; required.
+
+[[survivor]]
+target = "publish"
+key = "publish_target|string|8d7a225212|'publish-jd-' -> 'XXpublish-jd-XX'"
+reason = "equivalent"
+note = "The snapshot directory's name prefix is never observed; only its contents are copied."
+
+[[survivor]]
+target = "publish"
+key = "publish_target|string|719e355a6c|'johnny-decimal' -> 'XXjohnny-decimalXX'"
+reason = "equivalent"
+note = "The snapshot subdirectory name is never observed; only its contents are fingerprinted and copied."
+
+[[survivor]]
+target = "publish"
+key = "publish_target|constant|0faf3d4c0f|2 -> 1"
+reason = "equivalent"
+note = "Manifest indentation does not change the JSON value that validate_destination() compares."
+
+[[survivor]]
+target = "publish"
+key = "publish_target|constant|0faf3d4c0f|2 -> 3"
+reason = "equivalent"
+note = "Manifest indentation does not change the JSON value that validate_destination() compares."
+
+[[survivor]]
+target = "publish"
+key = "publish_target|string|8e3cf93741|'johnny-decimal' -> 'XXjohnny-decimalXX'"
+reason = "equivalent"
+note = "The staged directory is renamed onto the destination, so its own name is never observed."
+
+[[survivor]]
+target = "publish"
+key = "publish|constant|007278e67a|True -> False"
+reason = "equivalent"
+note = "With strict=False a missing Documents directory fails the is_dir() check instead; main() reports both the same way, with exit status 1."
+
+[[survivor]]
+target = "publish"
+key = "main|string|d86403ed9e|'existing Documents root (default: XDG_DOCUMENTS_DIR or ~/Documents)' -> 'XXexisting Documents root (default: XDG_DOCUMENTS_DIR or ~/Documents)XX'"
+reason = "message-only"
+note = "argparse help text."
+
+[[survivor]]
+target = "publish"
+key = "main|string|c0943b9a1a|'preview without writing to Documents' -> 'XXpreview without writing to DocumentsXX'"
+reason = "message-only"
+note = "argparse help text."

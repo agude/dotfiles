@@ -115,7 +115,7 @@ class PublishTests(unittest.TestCase):
         env = dict(os.environ, XDG_DOCUMENTS_DIR=str(documents))
         result = self.run_main('--dry-run', environment=env)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('Dry run:', result.stdout)
+        self.assertIn(f'Dry run: {documents.resolve()}', result.stdout)
         self.assertEqual(list(documents.iterdir()), [])
         home = self.root / 'home'
         (home / 'Documents').mkdir(parents=True)
@@ -131,7 +131,8 @@ class PublishTests(unittest.TestCase):
         not_directory.write_text('x')
         result = self.run_main('--documents', str(not_directory), '--dry-run')
         self.assertEqual(result.returncode, 1)
-        self.assertIn('Not a Documents directory', result.stderr)
+        self.assertTrue(result.stderr.startswith('publish-jd: Not a Documents directory'),
+                        result.stderr)
 
     def test_dry_run_writes_nothing(self):
         self.publish(dry_run=True)
