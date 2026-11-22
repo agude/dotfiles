@@ -187,6 +187,10 @@ def test_gh_classifies_commands(text: str, expected: tuple[str, str] | None) -> 
                      id="G17-nested-heredoc-in-tab-stripped-body"),
         pytest.param("echo \"$(cat <<END\nbody\nEND\ngit commit --no-verify -m msg)\"",
                      id="G18-command-after-heredoc-in-substitution"),
+        pytest.param('echo "$(echo case)"; git commit --no-verify -m msg',
+                     id="G19-case-argument-then-bypass"),
+        pytest.param("echo $(( $(git commit --no-verify -m msg) + 1 ))",
+                     id="G20-substitution-inside-arithmetic"),
     ],
 )
 def test_git_bypass_blocks_campaign_regressions(text: str) -> None:
@@ -215,6 +219,8 @@ def test_shell_commands_rejects_opaque_input(text: str) -> None:
         pytest.param("git -c commit.gpgsign=true commit -m msg", id="gpgsign-true"),
         pytest.param("git -c commit.gpgsign commit -m msg", id="gpgsign-implicit-true"),
         pytest.param("printf 'a | bash'", id="quoted-pipe-to-shell"),
+        pytest.param('echo "$(echo case)"', id="G19-case-as-argument"),
+        pytest.param("z=$((1<<(2)))", id="G20-arithmetic-with-parentheses"),
     ],
 )
 def test_git_bypass_allows_campaign_lookalikes(text: str) -> None:

@@ -110,7 +110,7 @@ def clear_caches(root: Path) -> None:
 def run_tests(root: Path, config: dict, timeout: float) -> tuple[str, int | None, str]:
     command = config["test"].replace("{python}", sys.executable)
     environment = dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
-                       HYPOTHESIS_PROFILE=os.environ.get("HYPOTHESIS_PROFILE", "ci"))
+                       HYPOTHESIS_PROFILE=os.environ.get("HYPOTHESIS_PROFILE", "mutation"))
     clear_caches(root)
     process = subprocess.Popen(["bash", "-c", command], cwd=root, env=environment,
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

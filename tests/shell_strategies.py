@@ -282,9 +282,13 @@ def heredoc(draw, children) -> Rendered:
     noise = draw(st.sampled_from(["", "don't stop\n", "say \"hi\n", "a \\\n"]))
     if kind == "literal":
         body = noise + child.text
-        quote = draw(st.sampled_from(["'{d}'", '"{d}"', "\\{d}"]))
+        quote = draw(st.sampled_from(["'{d}'", '"{d}"', "\\{d}", "{a}'{b}'", '{a}"{b}"']))
         delimiter = _delimiter("EOF", body, False)
-        text = f"cat <<{quote.format(d=delimiter)}\n{body}\n{delimiter}\n"
+        word = quote.format(d=delimiter, a=delimiter[:1], b=delimiter[1:])
+        space = draw(st.sampled_from(["", " ", "\t"]))
+        # A command may follow the operator on the same line, before the body.
+        tail = draw(st.sampled_from(["", " >/dev/null", "; :"]))
+        text = f"cat <<{space}{word}{tail}\n{body}\n{delimiter}\n"
         return _combine([child], text, reachable=(), opaque=False, heredoc=True)
     if kind in ("expanding", "tabs"):
         if "`" in child.text or "\\" in child.text or "$" in child.text.replace("$(", ""):
@@ -342,3 +346,89 @@ def expected_gh_rank(program: Rendered) -> int:
     if program.opaque:
         return RANK["ask"]
     return max([RANK[leaf.gh or None] for leaf in program.reachable] + [0])
+
+
+# --- lexical words ----------------------------------------------------------
+#
+# Each strategy returns (shell text, value bash produces). The values are
+# checked against bash itself, so a wrong expectation fails loudly.
+
+PLAIN_CHARACTERS = "abcXYZ019-_./=:@%+,"
+BACKSLASH_TARGETS = "abc-_ ;&|()<>'\"$`\\*?[]{}#~!="
+SINGLE_CHARACTERS = "ab -;&|()<>\"$`\\*?#~\t\n"
+DOUBLE_CHARACTERS = "ab -;&|()<>'*?#~\t\n{}"
+ANSI_PLAIN = "ab -;&|()<>\"$`*?#~"
+ANSI_SIMPLE = {"n": "\n", "t": "\t", "r": "\r", "a": "\a", "b": "\b", "e": "\x1b",
+               "E": "\x1b", "f": "\f", "v": "\v", "\\": "\\", "'": "'", '"': '"', "?": "?"}
+ANSI_CODEPOINTS = [0x20, 0x2D, 0x41, 0x7E, 0xE9, 0x2014, 0x1F600]
+
+
+@st.composite
+def _ansi_part(draw) -> tuple[str, str]:
+    kind = draw(st.sampled_from(["plain", "simple", "hex", "octal", "u", "U", "control",
+                                 "unknown"]))
+    if kind == "plain":
+        character = draw(st.sampled_from(ANSI_PLAIN))
+        return character, character
+    if kind == "simple":
+        key = draw(st.sampled_from(sorted(ANSI_SIMPLE)))
+        return "\\" + key, ANSI_SIMPLE[key]
+    if kind == "hex":
+        value = draw(st.integers(0x01, 0x7F))
+        return f"\\x{value:02x}", chr(value)
+    if kind == "octal":
+        value = draw(st.integers(0o001, 0o177))
+        return f"\\{value:03o}", chr(value)
+    if kind == "u":
+        value = draw(st.sampled_from([c for c in ANSI_CODEPOINTS if c <= 0xFFFF]))
+        return f"\\u{value:04x}", chr(value)
+    if kind == "U":
+        value = draw(st.sampled_from(ANSI_CODEPOINTS))
+        return f"\\U{value:08x}", chr(value)
+    if kind == "control":
+        letter = draw(st.sampled_from("abcz"))
+        return "\\c" + letter, chr(ord(letter) & 0x1F)
+    return "\\q", "\\q"
+
+
+@st.composite
+def _segment(draw) -> tuple[str, str]:
+    kind = draw(st.sampled_from(["plain", "backslash", "continuation", "single", "double",
+                                 "ansi", "locale"]))
+    if kind == "plain":
+        text = draw(st.text(PLAIN_CHARACTERS, min_size=1, max_size=4))
+        return text, text
+    if kind == "backslash":
+        character = draw(st.sampled_from(BACKSLASH_TARGETS))
+        return "\\" + character, character
+    if kind == "continuation":
+        return "\\\n", ""
+    if kind == "single":
+        text = draw(st.text(SINGLE_CHARACTERS, max_size=4))
+        return f"'{text}'", text
+    if kind in ("double", "locale"):
+        parts = draw(st.lists(st.one_of(
+            st.sampled_from(DOUBLE_CHARACTERS).map(lambda c: (c, c)),
+            st.sampled_from(['"', "\\", "$", "`"]).map(lambda c: ("\\" + c, c)),
+            st.just(("\\a", "\\a")),
+            st.just(("\\\n", "")),
+        ), max_size=4))
+        prefix = "$" if kind == "locale" else ""
+        return prefix + '"' + "".join(t for t, _ in parts) + '"', "".join(v for _, v in parts)
+    parts = draw(st.lists(_ansi_part(), max_size=4))
+    return "$'" + "".join(t for t, _ in parts) + "'", "".join(v for _, v in parts)
+
+
+@st.composite
+def shell_words(draw) -> tuple[str, list[str]]:
+    """Words joined by blanks; the first segment of a word is never a '#'."""
+    texts, values = [], []
+    for _ in range(draw(st.integers(1, 5))):
+        segments = draw(st.lists(_segment(), min_size=1, max_size=4))
+        text = "".join(t for t, _ in segments)
+        if text.replace("\\\n", "") == "":
+            text, segments = "''", [("''", "")]
+        texts.append(text)
+        values.append("".join(v for _, v in segments))
+    separators = [draw(st.sampled_from([" ", "\t", "  "])) for _ in texts]
+    return "".join(s + t for s, t in zip(separators, texts)), values

@@ -366,9 +366,10 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
                 push("tick", character)
             index += 1
             continue
-        if frame.kind == "paren" and _keyword_at(text, index, "case"):
+        at_command = not "".join(output[frame.command_start:]).strip()
+        if frame.kind == "paren" and at_command and _keyword_at(text, index, "case"):
             frame.cases += 1
-        elif frame.kind == "paren" and _keyword_at(text, index, "esac"):
+        elif frame.kind == "paren" and at_command and _keyword_at(text, index, "esac"):
             frame.cases = max(0, frame.cases - 1)
         if frame.kind == "paren" and character == "(":
             frame.depth += 1
@@ -376,6 +377,7 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             if frame.depth == 0 and frame.cases:
                 output.append(character)
                 index += 1
+                frame.command_start = len(output)
                 continue
             if frame.depth == 0:
                 frames.pop()
@@ -447,6 +449,7 @@ def _find_closing_parenthesis(text: str, opening_index: int) -> int:
     cases = 0
     quote = ""
     index = opening_index + 1
+    command_start = index
 
     while index < len(text):
         character = text[index]
@@ -460,19 +463,24 @@ def _find_closing_parenthesis(text: str, opening_index: int) -> int:
             quote = "" if quote == "'" else "'"
         elif character == '"' and quote != "'":
             quote = "" if quote == '"' else '"'
-        elif not quote and _keyword_at(text, index, "case"):
+        elif (not quote and not text[command_start:index].strip()
+              and _keyword_at(text, index, "case")):
             cases += 1
-        elif not quote and _keyword_at(text, index, "esac"):
+        elif (not quote and not text[command_start:index].strip()
+              and _keyword_at(text, index, "esac")):
             cases = max(0, cases - 1)
         elif not quote and character == "(":
             depth += 1
         elif not quote and character == ")":
             if depth == 1 and cases:
                 index += 1
+                command_start = index
                 continue
             depth -= 1
             if depth == 0:
                 return index
+        if not quote and character in ";&|()\n":
+            command_start = index + 1
         index += 1
 
     raise ShellParseError("Unclosed parenthesized substitution")
@@ -508,6 +516,13 @@ def _extract_nested_commands(text: str, body: bool = False) -> tuple[str, list[s
             index = closing_index + 1
             continue
 
+        if quote != "'" and text.startswith("$((", index):
+            # Arithmetic: not a command, but it may contain substitutions.
+            end = _skip_arithmetic(text, index + 1)
+            nested_commands.extend(_extract_nested_commands(text[index + 3 : end - 2])[1])
+            outer_text.append("0")
+            index = end
+            continue
         opens_command = quote != "'" and character == "$" and next_character == "("
         opens_process = not quote and character in {"<", ">"} and next_character == "("
         if opens_command or opens_process:

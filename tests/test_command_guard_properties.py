@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import hypothesis_profiles  # noqa: E402,F401
 from shell_strategies import (  # noqa: E402
-    LEAVES, RANK, expected_gh_rank, expected_git_block, programs)
+    LEAVES, RANK, expected_gh_rank, expected_git_block, programs, shell_words)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 GUARD_PATH = REPOSITORY_ROOT / "llm/claude/hooks.d/command_guard.py"
@@ -142,6 +142,35 @@ def test_quoted_words_round_trip(executable: str, arguments: list[str]) -> None:
     assert command_guard.shell_commands(text) == [as_command((executable, *arguments))]
 
 
+BASH_ENVIRONMENT = {"PATH": "/usr/bin:/bin", "LC_ALL": "C.UTF-8"}
+
+
+@given(shell_words())
+def test_words_match_bash(words) -> None:
+    """Quoting, escapes, ANSI-C and continuations decode exactly as bash does."""
+    text, values = words
+    result = subprocess.run(["bash", "-c", "printf '%s\\0'" + text], capture_output=True,
+                            env=BASH_ENVIRONMENT)
+    assert result.returncode == 0, (text, result.stderr)
+    from_bash = result.stdout.decode("utf-8").split("\0")[:-1]
+    assert from_bash == values, text
+    commands = command_guard.shell_commands("printf '%s\\0'" + text)
+    assert commands == [command_guard.ShellCommand("printf", ("%s\\0", *values))], text
+
+
+ARITHMETIC = st.sampled_from([
+    "x=$(( (1<<2) + 3 ))", "(( y = 1 << 2 ))", 'echo "$((1<<2))"', ": $(( 3 >> 1 ))",
+    "echo $(( (2) * (3) ))", "z=$((1<<(2)))",
+])
+
+
+@given(ARITHMETIC, programs())
+def test_arithmetic_never_hides_following_commands(arithmetic, program) -> None:
+    text = arithmetic + "\n" + program.text
+    assert git_decision(text) == expected_git_block(program), text
+    assert gh_rank(text) == expected_gh_rank(program), text
+
+
 # --- hook entry point ------------------------------------------------------
 
 JSON = st.recursive(
@@ -240,8 +269,10 @@ def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
     executed = {tuple(part.decode() for part in record.split(b"\0")[:-1])
                 for record in records}
     expected = {as_command(leaf.argv) for leaf in program.reachable}
+    parsed = set(command_guard.shell_commands(program.text))
     for argv in executed:
         assert as_command(argv) in expected, (program.text, argv)
+        assert as_command(argv) in parsed, (program.text, argv)
 
 
 # --- the labels match Git --------------------------------------------------
