@@ -137,6 +137,18 @@ class PublishTests(unittest.TestCase):
         self.assertEqual((self.destination / 'SKILL.md').read_text(), 'version one')
         self.assertTrue(lock.exists())
 
+    def test_lock_on_one_target_leaves_both_targets_unchanged(self):
+        # Regression P1: a held .claude lock let .agents update first.
+        self.publish()
+        lock = self.documents / '.claude/.publish-jd.lock'
+        lock.mkdir()
+        (self.source / 'SKILL.md').write_text('changed')
+        with self.assertRaisesRegex(ValueError, 'lock exists'):
+            self.publish()
+        self.assertEqual((self.destination / 'SKILL.md').read_text(), 'version one')
+        self.assertEqual((self.claude_destination / 'SKILL.md').read_text(), 'version one')
+        self.assertFalse((self.documents / '.agents/.publish-jd.lock').exists())
+
     def test_staging_failure_preserves_live_copy(self):
         self.publish()
         (self.source / 'SKILL.md').write_text('changed')

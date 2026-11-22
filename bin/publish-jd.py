@@ -53,7 +53,7 @@ def validate_destination(destination):
     return previous
 
 
-def publish_target(source, documents, target_name, dry_run=False):
+def publish_target(source, documents, target_name, dry_run=False, locked=False):
     documents = documents.expanduser().resolve(strict=True)
     if not documents.is_dir():
         raise ValueError(f'Not a Documents directory: {documents}')
@@ -92,11 +92,7 @@ def publish_target(source, documents, target_name, dry_run=False):
             return
         (snapshot / MANIFEST).write_text(json.dumps(current, indent=2) + '\n', encoding='utf-8')
         agents.mkdir(exist_ok=True)
-        lock = agents / '.publish-jd.lock'
-        try:
-            lock.mkdir()
-        except FileExistsError:
-            raise ValueError(f'Publication lock exists: {lock}') from None
+        lock = None if locked else acquire_lock(agents)
         try:
             # Stage on the destination filesystem before replacing the live copy.
             with tempfile.TemporaryDirectory(prefix='.publish-jd-', dir=agents) as staging:
@@ -124,8 +120,18 @@ def publish_target(source, documents, target_name, dry_run=False):
                 if backup is not None:
                     print(f'Previous version: {backup}')
         finally:
-            lock.rmdir()
+            if lock is not None:
+                lock.rmdir()
     print(f'Published: {destination}')
+
+
+def acquire_lock(agents):
+    lock = agents / '.publish-jd.lock'
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        raise ValueError(f'Publication lock exists: {lock}') from None
+    return lock
 
 
 def publish(source, documents, dry_run=False):
@@ -135,8 +141,20 @@ def publish(source, documents, dry_run=False):
     # Check both copies before changing either; preserve edits made from Windows.
     for name in TARGETS:
         validate_destination(documents / name / 'skills/johnny-decimal')
-    for name in TARGETS:
-        publish_target(source, documents, name, dry_run)
+    # Hold every target's lock before changing any, so a lock held on one
+    # target cannot leave the two copies at different versions.
+    locks = []
+    try:
+        if not dry_run:
+            for name in TARGETS:
+                agents = documents / name
+                agents.mkdir(exist_ok=True)
+                locks.append(acquire_lock(agents))
+        for name in TARGETS:
+            publish_target(source, documents, name, dry_run, locked=True)
+    finally:
+        for lock in reversed(locks):
+            lock.rmdir()
     # Workspace instructions belong to the workspace owner after first setup.
     # Codex and Claude Code both read AGENTS.md, so no CLAUDE.md is seeded.
     template = WORKSPACE / 'AGENTS.md'
