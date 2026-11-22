@@ -1,0 +1,51 @@
+# Mutation targets for tests/mutation/runner.py.
+#
+# test:       shell command run from the root of a scratch copy; {python}
+#             is the runner's interpreter (with pytest and hypothesis).
+# kill_codes: exit codes that mean "a test failed" (pytest and bats use 1).
+# timeout:    seconds per mutant; exceeding it is reported as a timeout,
+#             never as a kill.
+
+[target.guard]
+kind = "python"
+files = ["llm/claude/hooks.d/command_guard.py"]
+test = """
+{python} -m pytest -x -q -p no:cacheprovider tests/test_command_guard.py \
+  && bats llm/claude/hooks.d/tests/
+"""
+timeout = 120
+
+[target.jd]
+kind = "python"
+files = ["llm/skills/johnny-decimal/scripts/jd.py"]
+test = """
+{python} -m pytest -x -q -p no:cacheprovider tests/test_jd_portable.py \
+  && bats llm/skills/johnny-decimal/tests/
+"""
+timeout = 240
+
+[target.publish]
+kind = "python"
+files = ["bin/publish-jd.py"]
+test = "{python} -m pytest -x -q -p no:cacheprovider tests/test_publish_jd.py"
+timeout = 120
+
+[target.install]
+kind = "shell"
+files = ["install.sh"]
+functions = [
+    "_is_owned_symlink",
+    "_backup_target",
+    "_place_link",
+    "link",
+    "ensure_real_dir",
+    "install_local_config",
+    "install_managed_copy",
+    "any_group_enabled",
+    "expand_vars",
+]
+ranges = [
+    { name = "cleanup", start = "^# Diff: anything in the old manifest", end = "^# Phase 6: Summary" },
+]
+test = "bats tests/install.bats"
+timeout = 300

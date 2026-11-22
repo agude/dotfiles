@@ -1,0 +1,5 @@
+# Recorded reasons for mutants that survive, time out, or are inconclusive.
+#
+# reason: equivalent | message-only | unreachable-on-supported-input |
+#         accepted-risk | hangs
+# note:   why the reason holds; required.
