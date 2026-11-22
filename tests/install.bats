@@ -496,3 +496,19 @@ EOF
     grep -Fq '"localSetting": true' "$settings"
     grep -Fq '"localModel": true' "$models"
 }
+
+@test "installer backs up a link whose text escapes the repository" {
+    # Regression I1: "$DOTFILES_DIR/../x" starts with the repository path
+    # but points outside it, so it is foreign and must be backed up.
+    printf 'foreign\n' > "${TEST_ROOT}/outside-file"
+    ln -s "${FIXTURE_REPOSITORY}/../outside-file" "${TEST_HOME}/.fixture-link"
+
+    run_installer --profile default
+
+    [[ "$status" -eq 0 ]]
+    [[ "$(readlink "${TEST_HOME}/.fixture-link")" == "${FIXTURE_REPOSITORY}/fixture/source" ]]
+    run find "$TEST_HOME" -maxdepth 1 -type l -name '.fixture-link.dotfiles-backup.*'
+    [[ "$status" -eq 0 ]]
+    assert_single_result
+    [[ "$(readlink "$output")" == "${FIXTURE_REPOSITORY}/../outside-file" ]]
+}

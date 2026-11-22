@@ -39,11 +39,46 @@ MANAGED_LINKS=()
 # Default before helpers that reference it (run() uses $DRY_RUN).
 DRY_RUN=false
 
+# Collapse "." and ".." components without touching the filesystem, so a
+# dangling link can still be classified. Bash 3.2 compatible.
+_normalize_path() {
+    local path="$1"
+    local part
+    local result=""
+    local -a parts=()
+    local -a kept=()
+
+    IFS='/' read -r -a parts <<< "$path"
+    for part in ${parts[@]+"${parts[@]}"}; do
+        case "$part" in
+            ''|.) ;;
+            ..)
+                if [[ ${#kept[@]} -gt 0 ]]; then
+                    unset "kept[$((${#kept[@]} - 1))]"
+                    kept=(${kept[@]+"${kept[@]}"})
+                fi
+                ;;
+            *) kept+=("$part") ;;
+        esac
+    done
+    for part in ${kept[@]+"${kept[@]}"}; do
+        result="${result}/${part}"
+    done
+    printf '%s' "${result:-/}"
+}
+
+# A symlink is ours when its target, resolved textually against the link's
+# directory, lies inside owner_prefix. A text prefix alone is not enough:
+# "$DOTFILES_DIR/../elsewhere" points outside the repository.
 _is_owned_symlink() {
     local target="$1"
     local owner_prefix="$2"
+    local link_text
 
-    [[ -L "$target" ]] && [[ "$(readlink "$target")" == "${owner_prefix}/"* ]]
+    [[ -L "$target" ]] || return 1
+    link_text="$(readlink "$target")"
+    [[ "$link_text" == /* ]] || link_text="$(dirname "$target")/${link_text}"
+    [[ "$(_normalize_path "$link_text")" == "$(_normalize_path "$owner_prefix")/"* ]]
 }
 
 _backup_target() {
@@ -741,7 +776,7 @@ if [[ ${#OLD_MANIFEST[@]} -gt 0 ]]; then
         fi
         if ! $_found; then
             # Safety: only remove if it's still a symlink pointing into our repo
-            if [[ -L "$old" ]] && [[ "$(readlink "$old")" == "${DOTFILES_DIR}/"* ]]; then
+            if _is_owned_symlink "$old" "$DOTFILES_DIR"; then
                 if [[ ${#REMOVED_LINKS[@]} -eq 0 ]]; then
                     echo "› Cleaning up stale symlinks..."
                 fi
