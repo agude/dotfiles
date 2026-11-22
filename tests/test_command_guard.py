@@ -427,7 +427,7 @@ def test_git_bypass_allows_lexical_lookalikes(text: str) -> None:
 
 
 @pytest.mark.parametrize("text", ["echo {x", "echo }x", 'echo "\\"', "echo $'\\'",
-                                  "echo $'\\1"])
+                                  "echo $'\\1", "cat <<E\\"])
 def test_unterminated_or_edge_text_never_crashes(text: str) -> None:
     try:
         command_guard.shell_commands(text)
@@ -669,6 +669,38 @@ def test_nesting_through_eval_is_limited() -> None:
         "eval " * limit + "git status")
     with pytest.raises(command_guard.ShellParseError):
         command_guard.shell_commands("eval " * (limit + 2) + "git status")
+
+
+# Exact parses where substitution frames, heredoc lifting and quote state meet.
+FRAME_PARSES = [
+    ('echo "$(case a in a) cat <<\'E\'\n(\nE\n;; esac)"', [('echo', ('nested-command',)), ('cat', ())]),
+    ('echo "$( (true) ; cat <<\'E\'\n(\nE\n)"', [('echo', ('nested-command',)), ('true', ()), ('cat', ())]),
+    ("cat <(bash <<'E'\ngit commit --no-verify -m msg\nE\n)", [('cat', ('nested-command',)), ('bash', ()), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ("echo `echo '\\X'`", [('echo', ('nested-command',)), ('echo', ('\\X',))]),
+    ('echo ``; git log', [('echo', ('nested-command',)), ('git', ('log',))]),
+    ("echo $(echo '\\')", [('echo', ('nested-command',)), ('echo', ('\\',))]),
+    ("echo $(echo '`')", [('echo', ('nested-command',)), ('echo', ('`',))]),
+    ('echo $(case a in a) case b in b) x;; esac;; c) git status;; esac)', [('echo', ('nested-command',)), ('x', ()), ('c', ()), ('git', ('status',))]),
+    ('echo $(case a in a)case b in b) git status;; esac;; esac)', [('echo', ('nested-command',)), ('git', ('status',))]),
+    ('echo $(true;case a in a) git status;; esac)', [('echo', ('nested-command',)), ('true', ()), ('git', ('status',))]),
+    ("echo '\\' $(git commit --no-verify -m msg)", [('echo', ('\\', 'nested-command')), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ("echo 'a' <(git commit --no-verify -m msg)", [('echo', ('a', 'nested-command')), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ('echo "a" <(git commit --no-verify -m msg)', [('echo', ('a', 'nested-command')), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ('echo \'"\' <(git commit --no-verify -m msg)', [('echo', ('"', 'nested-command')), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ('echo "\'" <(git commit --no-verify -m msg)', [('echo', ("'", 'nested-command')), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+]
+
+
+@pytest.mark.parametrize(("text", "expected"), FRAME_PARSES,
+                         ids=[text for text, _ in FRAME_PARSES])
+def test_frame_parses(text: str, expected: list) -> None:
+    commands = command_guard.shell_commands(text)
+    assert [(c.executable, c.arguments) for c in commands] == expected
+
+
+def test_unclosed_escaped_backtick_is_unparseable() -> None:
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands("echo `a\\`")
 
 
 def test_git_bypass_main_blocks_parse_failure(
