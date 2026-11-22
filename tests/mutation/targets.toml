@@ -15,7 +15,7 @@ test = """
   -k "not (valid_bash or bash_runs or real_git)" \
   && bats llm/claude/hooks.d/tests/
 """
-timeout = 40
+timeout = 30
 
 [target.jd]
 kind = "python"
