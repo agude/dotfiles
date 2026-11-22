@@ -437,6 +437,7 @@ def test_unterminated_or_edge_text_never_crashes(text: str) -> None:
 
 @pytest.mark.parametrize(("text", "words"), [
     ("echo a\\", ["a\\"]), ("echo \\", ["\\"]), ("echo $'\\1X'", ["\x01X"]),
+    ("echo 2X 3x 4", ["2X", "3x", "4"]), ("echo 2>&1 5", ["5"]),
 ])
 def test_trailing_backslash_and_octal_boundaries(text: str, words: list[str]) -> None:
     assert command_guard.shell_commands(text) == [
