@@ -18,7 +18,9 @@ other exit code is not a kill; it is reported as ``timeout`` or
 from __future__ import annotations
 
 import argparse
+import ast
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -63,6 +65,37 @@ def load_dispositions() -> dict[tuple[str, str], dict]:
         if not entry.get("note"):
             raise SystemExit(f"Disposition needs a note: {entry}")
         result[(entry["target"], entry["key"])] = entry
+    return result
+
+
+def _scope_hashes(source: str, kind: str, config: dict) -> dict[str, str]:
+    """Hash each top-level function (or Bash scope) so reuse can detect edits."""
+    hashes: dict[str, str] = {}
+    if kind == "python":
+        tree = ast.parse(source)
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                segment = ast.get_source_segment(source, node) or ""
+                hashes[node.name] = hashlib.sha256(segment.encode()).hexdigest()
+    else:
+        lines = source.split("\n")
+        for name, first, last in sh_mutate._scopes(lines, config.get("functions"),
+                                                    config.get("ranges")):
+            text = "\n".join(lines[first:last + 1])
+            hashes[name] = hashlib.sha256(text.encode()).hexdigest()
+    return hashes
+
+
+def scope_hashes(config: dict, commit: str | None = None) -> dict[tuple[str, str], str]:
+    result = {}
+    for relative in config["files"]:
+        if commit:
+            source = subprocess.run(["git", "show", f"{commit}:{relative}"], cwd=REPOSITORY,
+                                    check=True, capture_output=True, text=True).stdout
+        else:
+            source = (REPOSITORY / relative).read_text(encoding="utf-8")
+        for name, digest in _scope_hashes(source, config["kind"], config).items():
+            result[(relative, name)] = digest
     return result
 
 
@@ -131,7 +164,7 @@ def run_tests(root: Path, config: dict, timeout: float) -> tuple[str, int | None
 
 
 def run_target(name: str, config: dict, mutants: list[Mutant], jobs: int,
-               verbose: bool) -> list[dict]:
+               verbose: bool, hashes: dict[tuple[str, str], str]) -> list[dict]:
     timeout = float(config.get("timeout", 120))
     scratch = Path(tempfile.mkdtemp(prefix=f"mutation-{name}-"))
     workers = []
@@ -168,6 +201,8 @@ def run_target(name: str, config: dict, mutants: list[Mutant], jobs: int,
                 path.write_bytes(original)
                 free.put(root)
             record = dict(target=name, key=mutant.key, file=mutant.file,
+                          function_hash=hashes.get((mutant.file,
+                                                    mutant.function.split(".")[0])),
                           function=mutant.function, operator=mutant.operator,
                           line=mutant.line, line_text=mutant.line_text.strip(),
                           description=mutant.description, outcome=outcome,
@@ -250,6 +285,12 @@ def main() -> int:
     parser.add_argument("--report-only", action="store_true",
                         help="print the summary without gating on dispositions")
     parser.add_argument("--json", type=Path, help="write all results to this file")
+    parser.add_argument("--resume", type=Path,
+                        help="reuse kills from this earlier --json for unchanged functions; "
+                             "valid only when tests were added, never weakened")
+    parser.add_argument("--resume-commit",
+                        help="commit the --resume results were produced from, for results "
+                             "written without function hashes")
     parser.add_argument("--list", action="store_true", help="list mutants and exit")
     args = parser.parse_args()
 
@@ -263,6 +304,24 @@ def main() -> int:
     results: list[dict] = []
     for name in names:
         mutants = enumerate_target(configs[name])
+        hashes = scope_hashes(configs[name])
+        reused: list[dict] = []
+        if args.resume:
+            previous = json.loads(args.resume.read_text(encoding="utf-8"))
+            old_hashes = (scope_hashes(configs[name], args.resume_commit)
+                          if args.resume_commit else None)
+            kills = {}
+            for record in previous:
+                if record["target"] != name or record["outcome"] != "killed":
+                    continue
+                scope = (record["file"], record["function"].split(".")[0])
+                old = record.get("function_hash") or (old_hashes or {}).get(scope)
+                if old is not None and old == hashes.get(scope):
+                    kills[record["key"]] = record
+            reused = [dict(kills[m.key], function_hash=hashes.get(
+                (m.file, m.function.split(".")[0]))) for m in mutants if m.key in kills]
+            mutants = [m for m in mutants if m.key not in kills]
+            print(f"{name}: reusing {len(reused)} kills from {args.resume}")
         if args.only:
             mutants = [mutant for mutant in mutants if mutant.key in args.only]
         if args.function:
@@ -272,9 +331,10 @@ def main() -> int:
             for mutant in mutants:
                 print(f"{mutant.file}:{mutant.line} {mutant.key}")
             continue
-        if not mutants:
-            continue
-        results.extend(run_target(name, configs[name], mutants, args.jobs, args.verbose))
+        results.extend(reused)
+        if mutants:
+            results.extend(run_target(name, configs[name], mutants, args.jobs, args.verbose,
+                                      hashes))
     if args.list:
         return 0
 
