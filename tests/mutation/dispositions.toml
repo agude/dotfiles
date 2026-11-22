@@ -117,3 +117,249 @@ target = "install"
 key = "cleanup|compare|ceb912ab95|'-gt' -> '-ge'#2"
 reason = "equivalent"
 note = "Same Bash 3.2 empty-array guard; the else branch writes the same empty manifest."
+
+[[survivor]]
+target = "jd"
+key = "browse|constant|b138570057|True -> False"
+reason = "equivalent"
+note = "Flushing the prompt changes only when it appears on a terminal, not what is written."
+
+[[survivor]]
+target = "jd"
+key = "browse|constant|ad3f03bc80|1 -> 2"
+reason = "equivalent"
+note = "The ID prefix is the text before the first space; a larger maxsplit gives the same first item."
+
+[[survivor]]
+target = "jd"
+key = "validate|constant|f17335d2ad|1 -> 2"
+reason = "equivalent"
+note = "Only the last item of rsplit is used; a larger maxsplit gives the same last item."
+
+[[survivor]]
+target = "jd"
+key = "mkdir|constant|cdf94c10f8|1 -> 2"
+reason = "equivalent"
+note = "The ID is the text before the first space; a larger maxsplit gives the same first item."
+
+[[survivor]]
+target = "jd"
+key = "mkdir|constant|47f80339e6|1 -> 2"
+reason = "equivalent"
+note = "The ID is the text before the first space; a larger maxsplit gives the same first item."
+
+[[survivor]]
+target = "jd"
+key = "transfer|constant|af908f643d|448 -> 449"
+reason = "equivalent"
+note = "copytree copies the source directory's mode onto the reserved directory, so the reservation mode is not observable."
+
+[[survivor]]
+target = "jd"
+key = "transfer|string|f352d5cb31|'.jd-move-' -> 'XX.jd-move-XX'"
+reason = "equivalent"
+note = "The staging directory's name is never observed; the staged file is renamed onto the destination."
+
+[[survivor]]
+target = "jd"
+key = "transfer|string|3e643778d5|'file' -> 'XXfileXX'"
+reason = "equivalent"
+note = "The staged file's name is never observed; it is renamed onto the destination."
+
+[[survivor]]
+target = "jd"
+key = "notes|string|e2588f53eb|'jd-note-' -> 'XXjd-note-XX'"
+reason = "equivalent"
+note = "The draft directory's name is never observed; only the draft's contents are read."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|10864a3017|'Find JD folders by ID prefix or name.' -> 'XXFind JD folders by ID prefix or name.XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|3ac4c450de|'List an area (XX-YY), category (XX), or ID (XX.YY).' -> 'XXList an area (XX-YY), category (XX), or ID (XX.YY).XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|dae8477ac8|'Display directories below an area, category, or ID.' -> 'XXDisplay directories below an area, category, or ID.XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|97e780f1c5|'Check document filenames.' -> 'XXCheck document filenames.XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|1bc907403d|'Create an ID in a category, or a folder inside an ID.' -> 'XXCreate an ID in a category, or a folder inside an ID.XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|d5b7e02ea1|'Move SOURCE... to the final full ID (XX.YY).' -> 'XXMove SOURCE... to the final full ID (XX.YY).XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|a85aa02372|'Move SOURCE... to the system inbox (00.01).' -> 'XXMove SOURCE... to the system inbox (00.01).XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|33c0ed64d0|'Read the note for a full ID (XX.YY).' -> 'XXRead the note for a full ID (XX.YY).XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|93c0d479c8|'Append a dated entry to the note for a full ID (XX.YY).' -> 'XXAppend a dated entry to the note for a full ID (XX.YY).XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|750bea64d2|'plain, absolute output; never prompt' -> 'XXplain, absolute output; never promptXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|3339c2207d|'ID prefix or case-insensitive name fragment' -> 'XXID prefix or case-insensitive name fragmentXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|3339c2207d|'QUERY' -> 'XXQUERYXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|64277a4866|'TARGET' -> 'XXTARGETXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|fa6a56c253|'area XX-YY or XX-, category XX, or full ID XX.YY' -> 'XXarea XX-YY or XX-, category XX, or full ID XX.YYXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|16a4e40dd7|'ID' -> 'XXIDXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|16a4e40dd7|'full ID XX.YY; omit to browse at a terminal' -> 'XXfull ID XX.YY; omit to browse at a terminalXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|d36b9517d9|'list entries within an ID in porcelain mode' -> 'XXlist entries within an ID in porcelain modeXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|adbdb649ee|'directory depth (default: 2)' -> 'XXdirectory depth (default: 2)XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|c83610a044|'CATEGORY_OR_ID' -> 'XXCATEGORY_OR_IDXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|c83610a044|'category XX or existing ID XX.YY' -> 'XXcategory XX or existing ID XX.YYXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|3cb22f5c8b|'new ID title or subfolder name' -> 'XXnew ID title or subfolder nameXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|b0eed13419|'NUMBER' -> 'XXNUMBERXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|b0eed13419|'explicit ID suffix; pad to at least two digits' -> 'XXexplicit ID suffix; pad to at least two digitsXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|b8ef5eeff6|'source file(s) or directories' -> 'XXsource file(s) or directoriesXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|b5d7db2059|'destination full ID XX.YY (last positional argument)' -> 'XXdestination full ID XX.YY (last positional argument)XX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|df726e37d2|'FILENAME' -> 'XXFILENAMEXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|df726e37d2|'rename a single source during the move' -> 'XXrename a single source during the moveXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|c80ac6cf46|'PATH' -> 'XXPATHXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|c80ac6cf46|'relative destination below the ID; created if needed' -> 'XXrelative destination below the ID; created if neededXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|36e7052d72|'replace an existing regular file' -> 'XXreplace an existing regular fileXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|2788169c9e|'preview without creating or moving anything' -> 'XXpreview without creating or moving anythingXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
+
+[[survivor]]
+target = "jd"
+key = "parser|string|068f04ca02|'note text; required outside an interactive terminal' -> 'XXnote text; required outside an interactive terminalXX'"
+reason = "message-only"
+note = "argparse help, description or metavar text."
