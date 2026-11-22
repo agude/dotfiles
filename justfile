@@ -110,6 +110,7 @@ test-publish-jd:
 # Verify the JD runtime without Bash or Unix utilities.
 test-jd-portable:
     uv run --no-project tests/test_jd_portable.py -q
+    uv run --no-project tests/test_jd_behavior.py -q
 
 # Run property tests (set HYPOTHESIS_PROFILE=long for a deeper run).
 test-properties: test-guard-properties test-jd-properties test-publish-properties

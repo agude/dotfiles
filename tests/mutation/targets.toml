@@ -21,7 +21,8 @@ timeout = 30
 kind = "python"
 files = ["llm/skills/johnny-decimal/scripts/jd.py"]
 test = """
-{python} -m pytest -x -q -p no:cacheprovider tests/test_jd_portable.py \
+{python} -m pytest -x -q -p no:cacheprovider tests/test_jd_behavior.py \
+  tests/test_jd_portable.py \
   tests/test_jd_properties.py \
   && bats llm/skills/johnny-decimal/tests/
 """

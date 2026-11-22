@@ -55,7 +55,8 @@ def paths(environment=None, script=None):
                      XDG_CONFIG_HOME=config_home)
 
     def expand(value):
-        if not isinstance(value, str) or not value:
+        # Empty values never get here: they fall through to the next default.
+        if not isinstance(value, str):
             raise JDException('Configured paths must be nonempty strings')
         return Path(re.sub(r'\$\{(\w+)\}|\$(\w+)',
                            lambda match: variables.get(match[1] or match[2], match[0]),
@@ -106,7 +107,8 @@ def identifier(value):
 
 def safe_name(name):
     """Reject names Windows cannot represent, including paths and ADS syntax."""
-    if (not name or name in ('.', '..') or name.endswith((' ', '.'))
+    # The trailing-dot rule also rejects '.' and '..'.
+    if (not name or name.endswith((' ', '.'))
             or re.search(r'[<>:"/\\|?*\x00-\x1f\x7f]', name)
             or re.fullmatch(r'(?i:con|prn|aux|nul|conin\$|conout\$|com[1-9\u00b9\u00b2\u00b3]|'
                             r'lpt[1-9\u00b9\u00b2\u00b3])', name.split('.')[0])):
@@ -206,7 +208,7 @@ def list_location(root, args):
                 print(path if args.porcelain else path.name + ('/' if path.is_dir() else ''))
     else:
         pattern = AREA_PATTERN if not query else (
-            CATEGORY_PATTERN if '-' in parent.name[:5] else ID_PATTERN + r' .+')
+            CATEGORY_PATTERN if re.fullmatch(AREA_PATTERN, parent.name) else ID_PATTERN + r' .+')
         for path in directories(parent, pattern):
             display(path, args)
 
