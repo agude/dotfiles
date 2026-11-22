@@ -134,7 +134,11 @@ All LLM configs live under `llm/`:
 - `llm/claude/statusline-command.sh` — status line script (username, cwd, git
   state, context usage). Wired via `statusLine` key in settings files.
 - `llm/claude/hooks.d/` — coat-tree hooks (one subdirectory per event):
-  - `PreToolUse/010.git-guard.sh` — blocks hook/signing bypass flags
+  - `PreToolUse/010.git-guard.sh` — blocks hook/signing bypass flags,
+    including `core.hooksPath` and every false spelling of
+    `commit.gpgsign`; wrappers such as `env`, `command`, `sudo` and `time`
+    are looked through, and input it cannot follow (a script piped into a
+    shell, `xargs git`) is blocked
   - `PreToolUse/030.gh-guard.sh` — gates GitHub CLI operations by risk level
   - `PreToolUse/040.skill-guard.sh` — checks skill-file edits
 - `kb setup` owns the content hook and packaged skills;
@@ -235,6 +239,24 @@ Scripts symlinked to `~/bin/` without file extensions:
   schema, so it can never drift from the binary in use. It prints a skip line
   and passes when OpenCode is absent, which is the CI case; the pre-commit
   hook is where it actually bites.
+
+### Property and Mutation Tests
+- `just test-properties` runs Hypothesis properties for the command guard,
+  Johnny.Decimal and skill publication; `just test-install-model` enumerates
+  installer starting states. Profiles live in `tests/hypothesis_profiles.py`
+  (`HYPOTHESIS_PROFILE=ci|long|stats`, never an example database).
+- `tests/shell_strategies.py` renders shell programs and labels, from their
+  structure, which git and gh commands they run. The guard is checked against
+  those labels; the labels are checked against bash (stub git and gh) and
+  against real Git (a hook and a stub gpg).
+- `just test-mutations TARGET` runs `tests/mutation/runner.py`, a
+  repository mutator (mutmut cannot import path-loaded modules). Every
+  survivor, timeout or inconclusive mutant needs an entry in
+  `tests/mutation/dispositions.toml`; stale entries also fail the gate.
+  Keys hash the changed line's text, so edits elsewhere keep them, but
+  editing that line requires re-recording. Run a single mutant with
+  `uv run --python 3.12 tests/mutation/runner.py TARGET --only KEY --verbose`.
+- Agent planning files live under `.plans/` (ignored by the `.*` rule).
 
 ## Modifying Configurations
 

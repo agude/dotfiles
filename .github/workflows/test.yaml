@@ -36,8 +36,10 @@ jobs:
           sudo apt-get install -y bats jq just tree zsh
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: "3.12"
       - name: Run tests
-        run: just test-shell test-python test-publish-jd test-jd-portable test-pdf
+        run: just test-shell test-python test-publish-jd test-jd-portable test-pdf test-properties test-install-model
 
   bash-3-2:
     name: Shell Tests on Bash 3.2
@@ -50,6 +52,8 @@ jobs:
         run: apk add --no-cache bats jq just python3 tree uv zsh
       - name: Run shell tests
         run: just test-shell
+      - name: Run installer state model under Bash 3.2
+        run: BASH_UNDER_TEST=/usr/local/bin/bash just test-install-model
 
   install:
     name: Install on ${{ matrix.os }}
@@ -86,4 +90,4 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
       - name: Run portable JD tests
-        run: just --shell pwsh --shell-arg=-NoProfile --shell-arg=-Command test-publish-jd test-jd-portable
+        run: just --shell pwsh --shell-arg=-NoProfile --shell-arg=-Command test-publish-jd test-jd-portable test-jd-properties test-publish-properties

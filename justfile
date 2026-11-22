@@ -93,7 +93,7 @@ lint-python:
     git ls-files -z '*.py' | xargs -0 python3 -c 'import ast, pathlib, sys; [ast.parse(pathlib.Path(path).read_text(), filename=path) for path in sys.argv[1:]]'
 
 # Run every test suite.
-test: test-shell test-python test-publish-jd test-jd-portable test-pdf test-integration
+test: test-shell test-python test-publish-jd test-jd-portable test-pdf test-properties test-install-model test-integration
 
 # Run shell-based regression suites.
 test-shell:
@@ -110,6 +110,33 @@ test-publish-jd:
 # Verify the JD runtime without Bash or Unix utilities.
 test-jd-portable:
     uv run --no-project tests/test_jd_portable.py -q
+
+# Run property tests (set HYPOTHESIS_PROFILE=long for a deeper run).
+test-properties: test-guard-properties test-jd-properties test-publish-properties
+
+# Run command-guard properties, including the bash and real-Git oracles.
+test-guard-properties:
+    uv run tests/test_command_guard_properties.py -q
+
+# Run Johnny.Decimal path and state-machine properties.
+test-jd-properties:
+    uv run --no-project tests/test_jd_properties.py
+
+# Run skill-publication properties.
+test-publish-properties:
+    uv run --no-project tests/test_publish_jd_properties.py
+
+# Run the installer state model (BASH_UNDER_TEST selects the Bash).
+test-install-model:
+    uv run tests/test_install_model.py -q
+
+# Run property tests with many more examples.
+test-properties-long:
+    HYPOTHESIS_PROFILE=long just test-properties
+
+# Mutation-test guard, jd, publish, install or all, gated on recorded dispositions (slow).
+test-mutations TARGET="all":
+    uv run --python 3.12 tests/mutation/runner.py {{TARGET}}
 
 # Run PDF skill tests.
 test-pdf:
