@@ -29,6 +29,8 @@ HELPERS = ["run", "_normalize_path", "_is_owned_symlink", "_backup_target", "_pl
 
 HARNESS = r"""
 set -eu
+# A permissive umask makes the helpers' own chmod calls observable.
+umask 022
 DRY_RUN="$1"; DOTFILES_DIR="$2"; shift 2
 MANAGED_LINKS=()
 eval "$(sed -n "$SED_SCRIPT" "$INSTALL_SH")"
