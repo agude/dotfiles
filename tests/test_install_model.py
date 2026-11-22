@@ -31,7 +31,7 @@ BASH = os.environ.get("BASH_UNDER_TEST", "bash")
 TARGET_STATES = [
     "absent", "correct", "owned-wrong", "owned-dangling", "foreign-file", "foreign-dangling",
     "real-file", "real-directory", "parent-foreign-link", "parent-owned-link",
-    "owned-text-escaping",
+    "owned-text-escaping", "foreign-sibling-prefix",
 ]
 SOURCE_STATES = ["present", "missing"]
 TRANSITIONS = ["same", "disable", "enable", "remove-rows"]
@@ -58,12 +58,14 @@ class World:
 
     def __init__(self, root: Path) -> None:
         self.root = root
-        # Spaces in every path catch unquoted expansions.
-        self.repository = root / "dot files"
-        self.home = root / "home dir"
+        # Spaces and glob characters in every path catch unquoted expansions.
+        self.repository = root / "dot files [1]"
+        self.home = root / "home dir [2]"
         self.outside = root / "outside"
+        self.sibling = root / "dot files [1]-sibling"
         for path in (self.repository / "profiles", self.repository / "fixture",
-                     self.repository / "shared/sharedrc.d", self.home, self.outside):
+                     self.repository / "shared/sharedrc.d", self.home, self.outside,
+                     self.sibling):
             path.mkdir(parents=True)
         shutil.copy(REPOSITORY / "install.sh", self.repository / "install.sh")
         (self.repository / "shared/sharedrc.d/000.set_platform.sh").write_text(
@@ -117,6 +119,9 @@ class World:
             (target / "marker").write_text("local directory\n")
         elif state == "owned-text-escaping":
             target.symlink_to(f"{self.repository}/../outside/foreign file")
+        elif state == "foreign-sibling-prefix":
+            (self.sibling / f"file {source}").write_text("sibling\n")
+            target.symlink_to(self.sibling / f"file {source}")
         self.rows.append(("${HOME}/" + str(target.relative_to(self.home)), name, "fixture"))
 
     def write_link_map(self, rows: list[tuple[str, str, str]]) -> None:
@@ -195,6 +200,23 @@ def check_no_destruction(world: World, before: dict, after: dict) -> None:
         assert found, f"{path} {entry} was destroyed"
 
 
+def check_backups(world: World, before: dict, after: dict) -> None:
+    """Owned links are replaced without a backup; anything else gets exactly one."""
+    for path in {*before, *after}:
+        if ".dotfiles-backup." in path:
+            continue
+        new_backups = [candidate for candidate in after
+                       if candidate.startswith(path + ".dotfiles-backup.")
+                       and candidate.count(".dotfiles-backup.") == 1
+                       and Path(candidate).parent == Path(path).parent
+                       and candidate not in before]
+        entry = before.get(path)
+        if entry is None or (entry[0] == "link" and world.is_owned(entry[1])):
+            assert new_backups == [], (path, new_backups)
+        else:
+            assert len(new_backups) <= 1, (path, new_backups)
+
+
 def check_links(world: World, before: dict, after: dict, enabled: bool) -> None:
     for target, source, _ in world.rows:
         path = Path(target.replace("${HOME}", str(world.home)))
@@ -229,6 +251,7 @@ def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None
     world.run("--profile", first_profile)
     after_first = snapshot(world.home, world.outside)
     check_no_destruction(world, before_first, after_first)
+    check_backups(world, before_first, after_first)
     check_links(world, before_first, after_first, enabled=first_profile == "default")
 
     old_manifest = world.manifest()
@@ -247,6 +270,7 @@ def test_install_transitions(tmp_path: Path, transition: str, mode: str) -> None
         assert repository_state(world) == repository_before
         return
     check_no_destruction(world, before, after)
+    check_backups(world, before, after)
     new_manifest = world.manifest()
     check_cleanup(world, before, after, old_manifest, new_manifest)
     if transition == "same":

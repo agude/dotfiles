@@ -1,7 +1,8 @@
 """Enumerate line-level mutants of Bash functions and marked regions.
 
 Bash has no maintained mutation tool, so this applies a fixed set of textual
-operators to one occurrence at a time. Scope is limited to named functions
+operators to one occurrence at a time; unquoting is skipped where bash never
+word-splits. Scope is limited to named functions
 (``name() {`` through the next column-zero ``}``) and to regions delimited by
 start and end regular expressions. Comment lines and ``echo`` lines are not
 mutated: their text is never part of a decision. Every mutant must pass
@@ -83,6 +84,24 @@ def _scopes(lines: list[str], functions: list[str] | None,
     return scopes
 
 
+ASSIGNMENT_PREFIX = re.compile(r"^\s*(?:local\s+(?:-a\s+)?)?[A-Za-z_][A-Za-z0-9_]*=$")
+
+
+def _never_split(line: str, start: int) -> bool:
+    """Whether bash performs no word splitting or globbing at ``start``.
+
+    That holds inside [[ ]] (except a pattern right of == or !=), right after
+    an assignment's '=', and in a case word, so unquoting there is equivalent.
+    """
+    before = line[:start]
+    if ASSIGNMENT_PREFIX.match(before) or re.match(r"^\s*case $", before):
+        return True
+    opened = before.rfind("[[")
+    if opened != -1 and before.rfind("]]") < opened:
+        return not re.search(r"(?:==|!=) $", before)
+    return False
+
+
 def _valid(content: bytes) -> bool:
     result = subprocess.run(["bash", "-n"], input=content, capture_output=True)
     return result.returncode == 0
@@ -101,6 +120,8 @@ def enumerate_mutants(path: Path, relative: str, functions: list[str] | None = N
                 continue
             for operator, pattern, replacement, description in SUBSTITUTIONS:
                 for match in re.finditer(pattern, line, flags=re.MULTILINE):
+                    if operator == "quoting" and _never_split(line, match.start()):
+                        continue
                     mutated_line = line[:match.start()] + match.expand(replacement) \
                         + line[match.end():]
                     if mutated_line == line:

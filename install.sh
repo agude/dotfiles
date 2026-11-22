@@ -188,7 +188,16 @@ install_local_config() {
             echo "  -> Warning: foreign config symlink exists, skipping: $target" >&2
             return 0
         fi
+    fi
 
+    # A managed link whose repository file is gone has nothing to migrate;
+    # replace it with the current template, as for a missing target.
+    if [[ -L "$target" && ! -e "$target" ]]; then
+        echo "  -> Replacing dangling managed config symlink: $target"
+        run rm "$target"
+    fi
+
+    if [[ -L "$target" ]]; then
         migration_path="${target}.dotfiles-migration.$(date +%s).$$"
         echo "  -> Migrating managed config symlink to local file: $target"
         run cp -p "$target" "$migration_path"

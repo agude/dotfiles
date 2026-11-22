@@ -126,8 +126,9 @@ test-jd-properties:
 test-publish-properties:
     uv run --no-project tests/test_publish_jd_properties.py
 
-# Run the installer state model (BASH_UNDER_TEST selects the Bash).
+# Run the installer helper tables and state model (BASH_UNDER_TEST selects the Bash).
 test-install-model:
+    uv run tests/test_install_helpers.py -q
     uv run tests/test_install_model.py -q
 
 # Run property tests with many more examples.

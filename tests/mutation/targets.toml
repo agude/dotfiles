@@ -55,7 +55,8 @@ ranges = [
     { name = "cleanup", start = "^# Diff: anything in the old manifest", end = "^# Phase 6: Summary" },
 ]
 test = """
-{python} -m pytest -x -q -p no:cacheprovider tests/test_install_model.py \
+{python} -m pytest -x -q -p no:cacheprovider tests/test_install_helpers.py \
+  tests/test_install_model.py \
   && bats tests/install.bats
 """
 timeout = 300
