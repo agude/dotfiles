@@ -63,11 +63,6 @@ def gh_rank(text: str) -> int:
     return RANK[decision[0] if decision else None]
 
 
-KNOWN_BYPASSES = pytest.mark.xfail(
-    reason="G1-G18 in .plans/property-mutation/plan.md; fixed in the next commit",
-    strict=True)
-
-
 def as_command(argv: tuple[str, ...]):
     return command_guard.ShellCommand(os.path.basename(argv[0]), tuple(argv[1:]))
 
@@ -85,19 +80,16 @@ def test_generated_programs_are_valid_bash(program) -> None:
 # --- decisions match labels -----------------------------------------------
 
 
-@KNOWN_BYPASSES
 @given(programs())
 def test_git_decision_matches_labeled_leaves(program) -> None:
     assert git_decision(program.text) == expected_git_block(program), program
 
 
-@KNOWN_BYPASSES
 @given(programs())
 def test_gh_decision_matches_labeled_leaves(program) -> None:
     assert gh_rank(program.text) == expected_gh_rank(program), program
 
 
-@KNOWN_BYPASSES
 @given(programs())
 def test_every_reachable_git_and_gh_leaf_is_parsed(program) -> None:
     if program.opaque:
@@ -108,7 +100,6 @@ def test_every_reachable_git_and_gh_leaf_is_parsed(program) -> None:
             assert as_command(leaf.argv) in commands, (program.text, commands)
 
 
-@KNOWN_BYPASSES
 @given(programs(), programs())
 def test_decisions_do_not_depend_on_order(first, second) -> None:
     def joined(a, b):
@@ -131,7 +122,6 @@ def test_parser_fails_closed_on_arbitrary_text(text: str) -> None:
         pass
 
 
-@KNOWN_BYPASSES
 @given(st.integers(0, 3000), st.sampled_from(["$(", "<("]))
 def test_deep_nesting_is_rejected_not_crashed(depth: int, opener: str) -> None:
     text = "echo " + (opener + "echo ") * depth + "git status" + ")" * depth
@@ -146,7 +136,6 @@ ARGUMENT = st.text(st.characters(blacklist_characters="\x00",
                                  blacklist_categories=("Cs",)), min_size=1, max_size=12)
 
 
-@KNOWN_BYPASSES
 @given(SAFE_EXECUTABLES, st.lists(ARGUMENT, max_size=6))
 def test_quoted_words_round_trip(executable: str, arguments: list[str]) -> None:
     text = shlex.join([executable, *arguments])
