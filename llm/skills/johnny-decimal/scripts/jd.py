@@ -34,7 +34,8 @@ def paths(environment=None, script=None):
     environment = os.environ if environment is None else environment
     script = Path(__file__) if script is None else Path(script)
     skill = script.resolve().parent.parent
-    home_value = (environment.get('USERPROFILE') if os.name == 'nt' else environment.get('HOME'))
+    # Windows prefers USERPROFILE; every platform falls back to HOME.
+    home_value = environment.get('USERPROFILE') if os.name == 'nt' else None
     home = Path(home_value or environment.get('HOME') or Path.home()).expanduser().resolve()
     deployed = skill.parent.name == 'skills' and skill.parent.parent.name in ('.agents', '.claude')
     workspace = skill.parent.parent.parent if deployed else None
@@ -222,8 +223,10 @@ def tree(root, args):
     def walk(directory, depth):
         if depth > args.depth:
             return
+        # re.split with a group alternates text and digits, so the key's
+        # positions always compare like with like.
         for path in sorted(directory.iterdir(), key=lambda path: [
-                (0, int(part)) if part.isdigit() else (1, part.casefold())
+                int(part) if part.isdigit() else part.casefold()
                 for part in re.split(r'([0-9]+)', path.name)]):
             if path.is_dir() and not path.is_symlink() and not path.name.startswith('.'):
                 print(path if args.porcelain else '  ' * depth + path.name)

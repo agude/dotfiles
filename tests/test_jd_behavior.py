@@ -112,6 +112,19 @@ class PathsTests(unittest.TestCase):
                              if POSIX else root)
 
 
+class DeployedConfigurationTests(unittest.TestCase):
+    def test_explicit_config_overrides_a_deployed_workspace(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary).resolve()
+            script = base / 'nas/.agents/skills/johnny-decimal/scripts/jd.py'
+            config = base / 'config.json'
+            config.write_text('{"root": "%s"}' % (base / 'elsewhere').as_posix(),
+                              encoding='utf-8')
+            self.assertEqual(jd.paths(dict(HOME=str(base)), script)[0], base / 'nas')
+            self.assertEqual(jd.paths(dict(HOME=str(base), JD_CONFIG=str(config)), script)[0],
+                             base / 'elsewhere')
+
+
 class NamingTests(unittest.TestCase):
     def test_identifier_returns_its_argument(self):
         self.assertEqual(jd.identifier('21.10'), '21.10')
@@ -141,10 +154,10 @@ class InteractionTests(Tree):
     def test_browse_numbers_choices_and_rejects_invalid_input(self):
         selected, prompts = self.browse(['x', '0', '4', '3', '1', '1'])
         self.assertEqual(selected, '21.10')
-        self.assertIn('1: 00-09 System\n2: 10-19 Personal\n3: 20-29 Finances\n', prompts)
-        self.assertIn('1: 21 Banks\n2: 22 X-Ray\n', prompts)
-        self.assertIn('1: 21.10 Example Bank\n', prompts)
-        self.assertEqual(prompts.count('Enter number: '), 6)
+        prompt = 'Enter number: '
+        self.assertEqual(prompts, (
+            '1: 00-09 System\n2: 10-19 Personal\n3: 20-29 Finances\n' + prompt * 4
+            + '1: 21 Banks\n2: 22 X-Ray\n' + prompt + '1: 21.10 Example Bank\n' + prompt))
         selected, _ = self.browse(['3', '2', '1'])
         self.assertEqual(selected, '22.10')
 
@@ -171,10 +184,14 @@ class InteractionTests(Tree):
 
 class ListingTests(Tree):
     def test_search_modes_match_only_their_level(self):
+        # Names that contain "20-" or "21." elsewhere must not match prefix searches.
+        (self.bank.parent / '21.11 2020-report').mkdir()
+        (self.root / '10-19 Personal/11 Alex/11.71 Copy of 21.10').mkdir()
         cases = {'20-': ['20-29 Finances'], '21': ['21 Banks'], '21.': ['21.10 Example Bank'],
-                 'bank': ['21 Banks', '21.10 Example Bank'], '2': ['20-29 Finances',
-                                                               '21 Banks', '21.10 Example Bank',
-                                                               '22 X-Ray', '22.10 Scans']}
+                 'bank': ['21 Banks', '21.10 Example Bank'],
+                 '2': ['20-29 Finances', '21 Banks', '21.10 Example Bank', '21.11 2020-report',
+                       '22 X-Ray', '22.10 Scans', '11.71 Copy of 21.10']}
+        cases['21.'] = ['21.10 Example Bank', '21.11 2020-report']
         for query, expected in cases.items():
             status, out, _ = self.cli('search', query, porcelain=False)
             self.assertEqual(sorted(out.splitlines()), sorted(expected), query)
@@ -191,17 +208,17 @@ class ListingTests(Tree):
         self.assertEqual(out.splitlines(), ['22.10 Scans'])
 
     def test_tree_depth_order_and_filtering(self):
-        for name in ('10 b', '2 a', 'B c', 'a d', '.hidden'):
+        for name in ('10 a', '2 b', 'B c', 'a d', '.hidden'):
             (self.bank / name).mkdir()
-        (self.bank / '2 a/inner').mkdir()
+        (self.bank / '2 b/inner').mkdir()
         (self.bank / 'file').write_text('x')
         if POSIX:
-            (self.bank / 'link').symlink_to(self.bank / '2 a')
+            (self.bank / 'link').symlink_to(self.bank / '2 b')
         status, out, _ = self.cli('tree', '21.10', porcelain=False)
         self.assertEqual(out.splitlines()[1:],
-                         ['  2 a', '    inner', '  10 b', '  a d', '  B c'])
+                         ['  2 b', '    inner', '  10 a', '  a d', '  B c'])
         _, out, _ = self.cli('tree', '21.10', '-L', '1', porcelain=False)
-        self.assertEqual(out.splitlines()[1:], ['  2 a', '  10 b', '  a d', '  B c'])
+        self.assertEqual(out.splitlines()[1:], ['  2 b', '  10 a', '  a d', '  B c'])
         status, _, errors = self.cli('tree', '21.10', '-L', '0')
         self.assertEqual(status, 1)
         self.assertIn('Depth must be positive', errors)
@@ -226,13 +243,16 @@ class ListingTests(Tree):
 
 class FilingTests(Tree):
     @unittest.skipUnless(POSIX, 'POSIX permissions')
-    def test_created_and_moved_directories_are_private(self):
+    def test_new_ids_are_private_and_moves_keep_modes(self):
+        previous = os.umask(0o022)  # a permissive umask makes the explicit mode visible
+        self.addCleanup(os.umask, previous)
         self.cli('mkdir', '21', 'New')
         self.assertEqual((self.bank.parent / '21.11 New').stat().st_mode & 0o777, 0o700)
+        # A moved directory keeps its own mode, as mv would.
         source = self.workspace / 'folder'
-        source.mkdir(mode=0o755)
+        source.mkdir(mode=0o750)
         self.cli('move', str(source), '21.10')
-        self.assertEqual((self.bank / 'folder').stat().st_mode & 0o777, 0o700)
+        self.assertEqual((self.bank / 'folder').stat().st_mode & 0o777, 0o750)
 
     def test_directory_move_removes_source_and_keeps_links_and_times(self):
         source = self.workspace / 'folder'
@@ -341,6 +361,8 @@ class NoteTests(Tree):
         content = (self.jdex / '21.10.md').read_bytes()
         self.assertTrue(content.endswith(b'a\nb\nc\n\n'), content)
         self.assertNotIn(b'\r', content)
+        self.cli('note', '21.10', 'two', 'words', 'endX')
+        self.assertTrue((self.jdex / '21.10.md').read_bytes().endswith(b'two words endX\n\n'))
 
     def test_notes_require_an_id_and_text_outside_a_terminal(self):
         with patch.object(jd, 'interactive', return_value=False):
