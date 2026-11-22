@@ -203,7 +203,7 @@ def test_gh_hook_contract(payload: str) -> None:
 # --- the generator matches bash -------------------------------------------
 
 STUB = """#!/bin/sh
-{ printf '%s\\0' "$(basename "$0")" "$@"; printf '\\036'; } >> "$STUB_LOG"
+printf '%s\\0' "$(basename "$0")" "$@" > "$STUB_LOG/$$"
 """
 
 
@@ -226,7 +226,7 @@ def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
         return
     with tempfile.TemporaryDirectory() as temporary:
         log = Path(temporary) / "log"
-        log.touch()
+        log.mkdir()
         environment = {
             "PATH": f"{stub_directory}:/usr/bin:/bin",
             "HOME": temporary,
@@ -235,7 +235,8 @@ def test_bash_runs_only_reachable_leaves(stub_directory, program) -> None:
         }
         subprocess.run(["bash", "-c", program.text], cwd=temporary, env=environment,
                        stdin=subprocess.DEVNULL, capture_output=True, timeout=20)
-        records = [record for record in log.read_bytes().split(b"\x1e") if record]
+        # One file per stub process: concurrent pipeline stages cannot interleave.
+        records = [path.read_bytes() for path in log.iterdir()]
     executed = {tuple(part.decode() for part in record.split(b"\0")[:-1])
                 for record in records}
     expected = {as_command(leaf.argv) for leaf in program.reachable}
