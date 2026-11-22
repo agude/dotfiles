@@ -8,11 +8,19 @@ Usage:
     uv run --python 3.12 tests/mutation/runner.py TARGET [TARGET ...]
     uv run --python 3.12 tests/mutation/runner.py guard --only KEY --verbose
     uv run --python 3.12 tests/mutation/runner.py guard --report-only
+    uv run --python 3.12 tests/mutation/runner.py guard --journal .plans/guard.jsonl
 
 A mutant is killed only when the target's test command exits with one of its
 ``kill_codes`` (pytest and bats report test failures as 1). A timeout or any
 other exit code is not a kill; it is reported as ``timeout`` or
-``inconclusive`` and needs a recorded disposition like a survivor.
+``inconclusive`` and needs a recorded disposition like a survivor. A mutant
+that times out is rerun once with triple the timeout; only a second timeout
+is reported as ``timeout``, and the record keeps the end of its output.
+
+``--journal`` appends each result as it completes, so an interrupted run can
+resume. A journaled kill or survival is reused only when every run input is
+identical: the repository's files, the target's configuration, the
+Hypothesis profile and the Python version.
 """
 
 from __future__ import annotations
@@ -68,35 +76,33 @@ def load_dispositions() -> dict[tuple[str, str], dict]:
     return result
 
 
-def _scope_hashes(source: str, kind: str, config: dict) -> dict[str, str]:
-    """Hash each top-level function (or Bash scope) so reuse can detect edits."""
-    hashes: dict[str, str] = {}
-    if kind == "python":
-        tree = ast.parse(source)
-        for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                segment = ast.get_source_segment(source, node) or ""
-                hashes[node.name] = hashlib.sha256(segment.encode()).hexdigest()
-    else:
-        lines = source.split("\n")
-        for name, first, last in sh_mutate._scopes(lines, config.get("functions"),
-                                                    config.get("ranges")):
-            text = "\n".join(lines[first:last + 1])
-            hashes[name] = hashlib.sha256(text.encode()).hexdigest()
-    return hashes
+def tracked_files() -> list[str]:
+    """Tracked and untracked-but-not-ignored files, never .git."""
+    listing = subprocess.run(
+        ["git", "ls-files", "-co", "--exclude-standard", "-z"],
+        cwd=REPOSITORY, check=True, capture_output=True).stdout.split(b"\0")
+    return sorted(raw.decode("utf-8") for raw in listing if raw)
 
 
-def scope_hashes(config: dict, commit: str | None = None) -> dict[tuple[str, str], str]:
-    result = {}
-    for relative in config["files"]:
-        if commit:
-            source = subprocess.run(["git", "show", f"{commit}:{relative}"], cwd=REPOSITORY,
-                                    check=True, capture_output=True, text=True).stdout
-        else:
-            source = (REPOSITORY / relative).read_text(encoding="utf-8")
-        for name, digest in _scope_hashes(source, config["kind"], config).items():
-            result[(relative, name)] = digest
-    return result
+def run_inputs(config: dict) -> str:
+    """Hash everything a result depends on, so a journal entry is reused only
+    when rerunning it would give the same outcome."""
+    digest = hashlib.sha256()
+    digest.update(json.dumps(config, sort_keys=True).encode())
+    digest.update(os.environ.get("HYPOTHESIS_PROFILE", "mutation").encode() + b"\0")
+    digest.update(sys.version.encode() + b"\0")
+    skip = DISPOSITIONS.relative_to(REPOSITORY).as_posix()
+    for relative in tracked_files():
+        path = REPOSITORY / relative
+        if relative == skip:
+            continue
+        digest.update(relative.encode() + b"\0")
+        if path.is_symlink():
+            digest.update(b"link:" + os.readlink(path).encode())
+        elif path.is_file():
+            digest.update(b"file:" + path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
 
 
 def enumerate_target(config: dict) -> list[Mutant]:
@@ -114,13 +120,7 @@ def enumerate_target(config: dict) -> list[Mutant]:
 
 def copy_tree(destination: Path) -> None:
     """Copy tracked and untracked-but-not-ignored files, never .git."""
-    listing = subprocess.run(
-        ["git", "ls-files", "-co", "--exclude-standard", "-z"],
-        cwd=REPOSITORY, check=True, capture_output=True).stdout.split(b"\0")
-    for raw in listing:
-        if not raw:
-            continue
-        relative = raw.decode("utf-8")
+    for relative in tracked_files():
         source = REPOSITORY / relative
         if not source.exists() and not source.is_symlink():
             continue
@@ -142,8 +142,13 @@ def clear_caches(root: Path) -> None:
 
 def run_tests(root: Path, config: dict, timeout: float) -> tuple[str, int | None, str]:
     command = config["test"].replace("{python}", sys.executable)
+    # faulthandler dumps the stack of a test still running near the timeout,
+    # so a timeout record names the test that hung.
+    addopts = os.environ.get("PYTEST_ADDOPTS", "")
     environment = dict(os.environ, PYTHONDONTWRITEBYTECODE="1",
-                       HYPOTHESIS_PROFILE=os.environ.get("HYPOTHESIS_PROFILE", "mutation"))
+                       HYPOTHESIS_PROFILE=os.environ.get("HYPOTHESIS_PROFILE", "mutation"),
+                       PYTEST_ADDOPTS=f"{addopts} -o faulthandler_timeout="
+                                      f"{max(1, int(timeout * 0.8))}".strip())
     clear_caches(root)
     process = subprocess.Popen(["bash", "-c", command], cwd=root, env=environment,
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -164,7 +169,7 @@ def run_tests(root: Path, config: dict, timeout: float) -> tuple[str, int | None
 
 
 def run_target(name: str, config: dict, mutants: list[Mutant], jobs: int,
-               verbose: bool, hashes: dict[tuple[str, str], str]) -> list[dict]:
+               verbose: bool, inputs: str, journal) -> list[dict]:
     timeout = float(config.get("timeout", 120))
     scratch = Path(tempfile.mkdtemp(prefix=f"mutation-{name}-"))
     workers = []
@@ -194,25 +199,36 @@ def run_target(name: str, config: dict, mutants: list[Mutant], jobs: int,
             root = free.get()
             path = root / mutant.file
             original = path.read_bytes()
+            slow = False
             try:
                 path.write_bytes(mutant.content)
                 outcome, exit_code, text = run_tests(root, config, timeout)
+                if outcome == "timeout":
+                    # Separate a mutant-induced hang from a suite that is
+                    # merely slow under load.
+                    outcome, exit_code, text = run_tests(root, config, timeout * 3)
+                    slow = outcome != "timeout"
             finally:
                 path.write_bytes(original)
                 free.put(root)
-            record = dict(target=name, key=mutant.key, file=mutant.file,
-                          function_hash=hashes.get((mutant.file,
-                                                    mutant.function.split(".")[0])),
+            record = dict(target=name, inputs=inputs, key=mutant.key, file=mutant.file,
                           function=mutant.function, operator=mutant.operator,
                           line=mutant.line, line_text=mutant.line_text.strip(),
                           description=mutant.description, outcome=outcome,
-                          exit_code=exit_code)
+                          exit_code=exit_code, slow=slow)
+            if outcome in OUTCOMES_NEEDING_REASON - {"survived"}:
+                record["tail"] = text[-3000:]
             with lock:
                 results.append(record)
+                if journal is not None:
+                    journal.write(json.dumps(record) + "\n")
+                    journal.flush()
                 done = len(results)
                 if verbose:
                     print(text[-6000:])
                 if verbose or outcome != "killed":
+                    if "tail" in record and not verbose:
+                        print(record["tail"])
                     print(f"  [{done}/{len(mutants)}] {outcome}: {mutant.file}:{mutant.line} "
                           f"{mutant.function} {mutant.description}", flush=True)
                 elif done % 50 == 0:
@@ -276,7 +292,8 @@ def gate(results: list[dict], targets: list[str], dispositions: dict) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("targets", nargs="+")
-    parser.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+    # Four workers exhausted memory on the guard target; stay conservative.
+    parser.add_argument("--jobs", type=int, default=min(2, os.cpu_count() or 1))
     parser.add_argument("--only", action="append", default=[],
                         help="run only the mutant with this key (repeatable)")
     parser.add_argument("--function", action="append", default=[],
@@ -285,12 +302,10 @@ def main() -> int:
     parser.add_argument("--report-only", action="store_true",
                         help="print the summary without gating on dispositions")
     parser.add_argument("--json", type=Path, help="write all results to this file")
-    parser.add_argument("--resume", type=Path,
-                        help="reuse kills from this earlier --json for unchanged functions; "
-                             "valid only when tests were added, never weakened")
-    parser.add_argument("--resume-commit",
-                        help="commit the --resume results were produced from, for results "
-                             "written without function hashes")
+    parser.add_argument("--journal", type=Path,
+                        help="append each result to this JSON Lines file as it completes, "
+                             "and reuse kills and survivals recorded there under identical "
+                             "run inputs")
     parser.add_argument("--list", action="store_true", help="list mutants and exit")
     args = parser.parse_args()
 
@@ -301,42 +316,54 @@ def main() -> int:
         raise SystemExit(f"Unknown targets: {', '.join(unknown)}")
     dispositions = load_dispositions()
 
-    results: list[dict] = []
+    journaled: list[dict] = []
+    if args.journal and args.journal.exists():
+        journaled = [json.loads(line) for line in
+                     args.journal.read_text(encoding="utf-8").splitlines() if line]
+
+    selected: dict[str, list[Mutant]] = {}
     for name in names:
         mutants = enumerate_target(configs[name])
-        hashes = scope_hashes(configs[name])
-        reused: list[dict] = []
-        if args.resume:
-            previous = json.loads(args.resume.read_text(encoding="utf-8"))
-            old_hashes = (scope_hashes(configs[name], args.resume_commit)
-                          if args.resume_commit else None)
-            kills = {}
-            for record in previous:
-                if record["target"] != name or record["outcome"] != "killed":
-                    continue
-                scope = (record["file"], record["function"].split(".")[0])
-                old = record.get("function_hash") or (old_hashes or {}).get(scope)
-                if old is not None and old == hashes.get(scope):
-                    kills[record["key"]] = record
-            reused = [dict(kills[m.key], function_hash=hashes.get(
-                (m.file, m.function.split(".")[0]))) for m in mutants if m.key in kills]
-            mutants = [m for m in mutants if m.key not in kills]
-            print(f"{name}: reusing {len(reused)} kills from {args.resume}")
         if args.only:
             mutants = [mutant for mutant in mutants if mutant.key in args.only]
         if args.function:
             mutants = [mutant for mutant in mutants
                        if mutant.function.split(".")[0] in args.function]
-        if args.list:
+        selected[name] = mutants
+    if args.only or args.function:
+        found = {mutant.key for mutants in selected.values() for mutant in mutants}
+        missing = sorted(set(args.only) - found)
+        if missing:
+            raise SystemExit(f"Unknown --only keys: {', '.join(missing)}")
+        if not found:
+            raise SystemExit("The selection matches no mutants")
+
+    if args.list:
+        for mutants in selected.values():
             for mutant in mutants:
                 print(f"{mutant.file}:{mutant.line} {mutant.key}")
-            continue
-        results.extend(reused)
-        if mutants:
-            results.extend(run_target(name, configs[name], mutants, args.jobs, args.verbose,
-                                      hashes))
-    if args.list:
         return 0
+
+    results: list[dict] = []
+    journal = args.journal.open("a", encoding="utf-8") if args.journal else None
+    try:
+        for name in names:
+            inputs = run_inputs(configs[name])
+            reusable = {record["key"]: record for record in journaled
+                        if record["target"] == name and record.get("inputs") == inputs
+                        and record["outcome"] in ("killed", "survived")}
+            mutants = selected[name]
+            reused = [reusable[m.key] for m in mutants if m.key in reusable]
+            mutants = [m for m in mutants if m.key not in reusable]
+            if args.journal:
+                print(f"{name}: reusing {len(reused)} results from {args.journal}")
+            results.extend(reused)
+            # Always run, even with nothing left: the baseline must pass today.
+            results.extend(run_target(name, configs[name], mutants, args.jobs, args.verbose,
+                                      inputs, journal))
+    finally:
+        if journal is not None:
+            journal.close()
 
     print(summarize(results))
     if args.json:

@@ -255,7 +255,18 @@ Scripts symlinked to `~/bin/` without file extensions:
   `tests/mutation/dispositions.toml`; stale entries also fail the gate.
   Keys hash the changed line's text, so edits elsewhere keep them, but
   editing that line requires re-recording. Run a single mutant with
-  `uv run --python 3.12 tests/mutation/runner.py TARGET --only KEY --verbose`.
+  `uv run --python 3.12 tests/mutation/runner.py TARGET --only KEY --verbose`;
+  an unknown key or an empty selection exits 1.
+- `--journal FILE` appends each result as it completes. A rerun reuses
+  journaled kills and survivals only when the repository files, target
+  configuration, Hypothesis profile and Python version are unchanged; the
+  baseline always runs. `--jobs` defaults to 2 because four workers ran the
+  guard target out of memory. A timeout is rerun once at triple the limit
+  before it counts, and its record keeps the output tail (pytest's
+  faulthandler names the hanging test).
+- `PLANTED` in `tests/test_install_model.py` holds hand-written regressions
+  the mutation operators cannot produce, such as a manifest that omits a
+  link; the model must reject each one.
 - Agent planning files live under `.plans/` (ignored by the `.*` rule).
 
 ## Modifying Configurations
