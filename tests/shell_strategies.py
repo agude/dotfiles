@@ -256,6 +256,7 @@ def group(draw, children) -> Rendered:
     return _combine([child], text)
 
 
+BASH_ONLY = ["$'", '$"', "&>", "<<<", "<(", ">(", "|&", "function ", "coproc"]
 NO_BACKTICK = re.compile(r"^[^`\\]*$")
 
 
@@ -269,8 +270,8 @@ def nested(draw, children) -> Rendered:
     if NO_BACKTICK.match(child.text) and "$(" not in child.text and "\n" not in child.text:
         forms.append("echo `{x}`")
     form = draw(st.sampled_from(forms))
-    if form.startswith("sh ") and "$'" in child.text:
-        form = "bash" + form[2:]  # sh may be dash, which has no $'...' quoting
+    if form.startswith("sh ") and any(token in child.text for token in BASH_ONLY):
+        form = "bash" + form[2:]  # sh may be dash, which lacks these
     # "$((" would start arithmetic expansion; a space keeps a subshell a subshell.
     inner = (" " if child.text.startswith("(") else "") + child.text
     text = form.format(x=inner + ("\n" if child.heredoc else ""), q=quoted)
