@@ -277,6 +277,21 @@ def nested(draw, children) -> Rendered:
     return _combine([child], text)
 
 
+HEREDOC_TAILS = ["", " >/dev/null", "; :", ">/dev/null", "|cat", " && :", ";:"]
+
+
+@st.composite
+def _quoted_word(draw, base: str) -> tuple[str, str]:
+    """A quoted heredoc word and the delimiter line it stands for."""
+    a, b = base[:1], base[1:]
+    return draw(st.sampled_from([
+        (f"'{base}'", base), (f'"{base}"', base), ("\\" + base, base),
+        (f"{a}'{b}'", base), (f'{a}"{b}"', base), (a + "\\" + b, base),
+        (f"\"{a}'{b}\"", f"{a}'{b}"), (f"'{a}\"{b}'", f'{a}"{b}'),
+        (f"{a}''{b}", base),
+    ]))
+
+
 @st.composite
 def heredoc(draw, children) -> Rendered:
     child = draw(children)
@@ -284,12 +299,12 @@ def heredoc(draw, children) -> Rendered:
     noise = draw(st.sampled_from(["", "don't stop\n", "say \"hi\n", "a \\\n"]))
     if kind == "literal":
         body = noise + child.text
-        quote = draw(st.sampled_from(["'{d}'", '"{d}"', "\\{d}", "{a}'{b}'", '{a}"{b}"']))
-        delimiter = _delimiter("EOF", body, False)
-        word = quote.format(d=delimiter, a=delimiter[:1], b=delimiter[1:])
+        word, delimiter = draw(_quoted_word(_delimiter("EOF", body, False)))
+        if any(line == delimiter for line in body.split("\n")):
+            word, delimiter = "'EOF_Q'", "EOF_Q"
         space = draw(st.sampled_from(["", " ", "\t"]))
         # A command may follow the operator on the same line, before the body.
-        tail = draw(st.sampled_from(["", " >/dev/null", "; :"]))
+        tail = draw(st.sampled_from(HEREDOC_TAILS))
         text = f"cat <<{space}{word}{tail}\n{body}\n{delimiter}\n"
         return _combine([child], text, reachable=(), opaque=False, heredoc=True)
     if kind in ("expanding", "tabs"):
@@ -304,11 +319,12 @@ def heredoc(draw, children) -> Rendered:
             opaque = child.opaque
         strips = kind == "tabs"
         delimiter = _delimiter("END", body, strips)
+        tail = draw(st.sampled_from(HEREDOC_TAILS))
         if strips:
             body = "\n".join("\t" + line for line in body.split("\n"))
-            text = f"cat <<-{delimiter}\n{body}\n\t{delimiter}\n"
+            text = f"cat <<-{delimiter}{tail}\n{body}\n\t{delimiter}\n"
         else:
-            text = f"cat <<{delimiter}\n{body}\n{delimiter}\n"
+            text = f"cat <<{delimiter}{tail}\n{body}\n{delimiter}\n"
         result = _combine([child], text, reachable=reachable, opaque=opaque, heredoc=True)
         return result
     body = child.text

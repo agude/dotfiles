@@ -191,6 +191,10 @@ def test_gh_classifies_commands(text: str, expected: tuple[str, str] | None) -> 
                      id="G19-case-argument-then-bypass"),
         pytest.param("echo $(( $(git commit --no-verify -m msg) + 1 ))",
                      id="G20-substitution-inside-arithmetic"),
+        pytest.param('echo "$({ case a in a) git commit --no-verify -m msg;; esac; })"',
+                     id="G21-case-in-brace-group-in-substitution"),
+        pytest.param('echo "$(echo $(case a in a) git commit -n -m msg;; esac))"',
+                     id="G22-case-in-nested-substitution"),
     ],
 )
 def test_git_bypass_blocks_campaign_regressions(text: str) -> None:
@@ -221,6 +225,7 @@ def test_shell_commands_rejects_opaque_input(text: str) -> None:
         pytest.param("printf 'a | bash'", id="quoted-pipe-to-shell"),
         pytest.param('echo "$(echo case)"', id="G19-case-as-argument"),
         pytest.param("z=$((1<<(2)))", id="G20-arithmetic-with-parentheses"),
+        pytest.param('echo "$(echo ${x} case)"', id="G21-brace-expansion-then-case"),
     ],
 )
 def test_git_bypass_allows_campaign_lookalikes(text: str) -> None:
@@ -348,6 +353,8 @@ def test_malformed_input_never_crashes(text: str) -> None:
         ("echo $'\\U0001F600a'", ["\U0001F600a"]),
         ("echo $'\\x41g'", ["Ag"]),
         ("echo $'\\xg'", ["\\xg"]),
+        ("echo $'\\xX'", ["\\xX"]),
+        ("echo $'\\uX'", ["\\uX"]),
         ("echo $'\\X'", ["\\X"]),
         ("echo $'\\ca'", ["\x01"]),
         ('echo "\\a"', ["\\a"]),

@@ -193,6 +193,22 @@ def _keyword_at(text: str, index: int, keyword: str) -> bool:
     return text.startswith(keyword, index) and (end == len(text) or text[end] in " \t\n;&|()")
 
 
+def _starts_command(text: str, index: int) -> bool:
+    """Whether the character at ``index`` ends one command and starts another.
+
+    Operators always do; braces do only as standalone words, so ``${x}`` does
+    not.
+    """
+    character = text[index]
+    if character in ";&|()\n":
+        return True
+    if character not in "{}":
+        return False
+    before = text[index - 1] if index else " "
+    after = text[index + 1] if index + 1 < len(text) else " "
+    return before in " \t\n;&|()" and after in " \t\n;&|()"
+
+
 def _skip_arithmetic(text: str, index: int) -> int:
     """Return the index after a $((...)) or ((...)) starting at ``index``."""
     depth = 0
@@ -399,7 +415,7 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             output.append("<<< ''")
             index = end
             continue
-        if character in ";&|(){}":
+        if _starts_command(text, index):
             frame.command_start = len(output) + 1
         if character == "\n":
             output.append(character)
@@ -445,7 +461,7 @@ def _find_closing_backtick(text: str, opening_index: int) -> int:
 
 def _find_closing_parenthesis(text: str, opening_index: int) -> int:
     depth = 1
-    cases = 0
+    cases = {1: 0}  # open case statements per parenthesis depth
     quote = ""
     index = opening_index + 1
     command_start = index
@@ -464,21 +480,22 @@ def _find_closing_parenthesis(text: str, opening_index: int) -> int:
             quote = "" if quote == '"' else '"'
         elif (not quote and not text[command_start:index].strip()
               and _keyword_at(text, index, "case")):
-            cases += 1
+            cases[depth] += 1
         elif (not quote and not text[command_start:index].strip()
               and _keyword_at(text, index, "esac")):
-            cases = max(0, cases - 1)
+            cases[depth] = max(0, cases[depth] - 1)
         elif not quote and character == "(":
             depth += 1
+            cases[depth] = 0
         elif not quote and character == ")":
-            if depth == 1 and cases:
+            if cases[depth]:
                 index += 1
                 command_start = index
                 continue
             depth -= 1
             if depth == 0:
                 return index
-        if not quote and character in ";&|()\n":
+        if not quote and _starts_command(text, index):
             command_start = index + 1
         index += 1
 
