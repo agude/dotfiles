@@ -556,6 +556,7 @@ def test_unfollowable_input_is_unparseable(text: str) -> None:
 
 @pytest.mark.parametrize("text", [
     "x | bash script.sh", "x | bash -c 'echo'", "x | bash -xc 'echo'", "xargs echo",
+    "x | bash <<< 'echo'",
     "find . -name x", "bash <<< 'echo'", "x | bash <<'E'\necho\nE",
 ])
 def test_followable_shell_input_parses(text: str) -> None:
@@ -620,6 +621,54 @@ def test_unknown_mode_exits_with_a_message(monkeypatch: pytest.MonkeyPatch) -> N
         monkeypatch.setattr(command_guard.sys, "argv", argv)
         with pytest.raises(SystemExit, match="Unknown guard mode"):
             command_guard.main()
+
+
+# Exact parses of substitutions, quoting and escaped newlines, reviewed against bash.
+LEXICAL_PARSES = [
+    ('echo $(echo \\))', [('echo', ('nested-command',)), ('echo', (')',))]),
+    ("echo $(echo ')')", [('echo', ('nested-command',)), ('echo', (')',))]),
+    ('echo $(echo ")")', [('echo', ('nested-command',)), ('echo', (')',))]),
+    ('echo $(echo `echo x`)', [('echo', ('nested-command',)), ('echo', ('nested-command',)), ('echo', ('x',))]),
+    ('echo $(echo "it\'s")', [('echo', ('nested-command',)), ('echo', ("it's",))]),
+    ('echo $(echo \'say "hi\')', [('echo', ('nested-command',)), ('echo', ('say "hi',))]),
+    ('echo $(echo $(( 1 + 2 )))', [('echo', ('nested-command',)), ('echo', ('0',))]),
+    ('echo <(echo a) >(echo b)', [('echo', ('nested-command', 'nested-command')), ('echo', ('a',)), ('echo', ('b',))]),
+    ('echo "<(not)"', [('echo', ('<(not)',))]),
+    ('echo $((1+2)) $(echo x)', [('echo', ('0', 'nested-command')), ('echo', ('x',))]),
+    ('echo "$((1+$(echo 2)))"', [('echo', ('0',)), ('echo', ('2',))]),
+    ('echo $((1+2))', [('echo', ('0',))]),
+    ('echo a\\\\\ngit log', [('echo', ('a\\',)), ('git', ('log',))]),
+    ("echo \\'\ngit log", [('echo', ("'",)), ('git', ('log',))]),
+    ("echo 'a\nb'", [('echo', ('a\nb',))]),
+    ('echo "a\nb"', [('echo', ('a\nb',))]),
+    ("x | bash <<< 'echo'", [('x', ()), ('bash', ()), ('echo', ())]),
+    ('echo "`echo \'"\'`" $\'x\'', [('echo', ('nested-command', 'x')), ('echo', ('"',))]),
+    ('echo `echo \\`date\\``', [('echo', ('nested-command',)), ('echo', ('nested-command',)), ('date', ())]),
+    ("cat <(cat <<'E'\n)\nE\n)", [('cat', ('nested-command',)), ('cat', ())]),
+    ('echo `echo \\`git commit --no-verify -m msg\\``', [('echo', ('nested-command',)), ('echo', ('nested-command',)), ('git', ('commit', '--no-verify', '-m', 'msg'))]),
+    ('echo `echo \\\\$HOME`', [('echo', ('nested-command',)), ('echo', ('$HOME',))]),
+]
+
+
+@pytest.mark.parametrize(("text", "expected"), LEXICAL_PARSES,
+                         ids=[text for text, _ in LEXICAL_PARSES])
+def test_lexical_parses(text: str, expected: list) -> None:
+    commands = command_guard.shell_commands(text)
+    assert [(c.executable, c.arguments) for c in commands] == expected
+
+
+def test_nested_backtick_substitution_is_inspected() -> None:
+    # Regression G25: \` inside backticks starts a nested substitution.
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(
+        "echo `echo \\`git commit --no-verify -m msg\\``"))
+
+
+def test_nesting_through_eval_is_limited() -> None:
+    limit = command_guard.MAX_DEPTH
+    assert command_guard.ShellCommand("git", ("status",)) in command_guard.shell_commands(
+        "eval " * limit + "git status")
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands("eval " * (limit + 2) + "git status")
 
 
 def test_git_bypass_main_blocks_parse_failure(

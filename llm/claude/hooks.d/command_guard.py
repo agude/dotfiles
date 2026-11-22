@@ -211,7 +211,10 @@ def _starts_command(text: str, index: int) -> bool:
 
 
 def _skip_arithmetic(text: str, index: int) -> int:
-    """Return the index after a $((...)) or ((...)) starting at ``index``."""
+    """Return the index after a $((...)) or ((...)) starting at ``index``.
+
+    Characters before the first parenthesis, such as the "$", are skipped.
+    """
     depth = 0
     while index < len(text):
         if text[index] == "(":
@@ -368,7 +371,7 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             index += 1
             continue
         if text.startswith("$((", index) or (text.startswith("((", index) and word_start):
-            end = _skip_arithmetic(text, index + (1 if character == "$" else 0))
+            end = _skip_arithmetic(text, index)
             output.append(text[index:end])
             index = end
             continue
@@ -448,6 +451,23 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
         index += 1
 
     return _Prepared("".join(output), expanding, shell_bodies)
+
+
+def _unescape_backticks(content: str) -> str:
+    r"""Return the command inside `...`: bash drops the backslash of \\, \` and \$.
+
+    This is what lets `echo \`inner\`` run a nested substitution.
+    """
+    result: list[str] = []
+    index = 0
+    while index < len(content):
+        if content[index] == "\\" and index + 1 < len(content) and content[index + 1] in "\\`$":
+            result.append(content[index + 1])
+            index += 2
+            continue
+        result.append(content[index])
+        index += 1
+    return "".join(result)
 
 
 def _find_closing_backtick(text: str, opening_index: int) -> int:
@@ -530,7 +550,7 @@ def _extract_nested_commands(text: str, body: bool = False) -> tuple[str, list[s
             continue
         if character == "`" and quote != "'":
             closing_index = _find_closing_backtick(text, index)
-            nested_commands.append(text[index + 1 : closing_index])
+            nested_commands.append(_unescape_backticks(text[index + 1 : closing_index]))
             outer_text.append("nested-command")
             index = closing_index + 1
             continue

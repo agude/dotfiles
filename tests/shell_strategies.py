@@ -269,12 +269,15 @@ def nested(draw, children) -> Rendered:
              "bash <<< {q}"]
     if NO_BACKTICK.match(child.text) and "$(" not in child.text and "\n" not in child.text:
         forms.append("echo `{x}`")
+    if not child.heredoc and "\n" not in child.text:
+        forms.append("echo `{e}`")  # any child, escaped for backticks
     form = draw(st.sampled_from(forms))
     if form.startswith("sh ") and any(token in child.text for token in BASH_ONLY):
         form = "bash" + form[2:]  # sh may be dash, which lacks these
     # "$((" would start arithmetic expansion; a space keeps a subshell a subshell.
     inner = (" " if child.text.startswith("(") else "") + child.text
-    text = form.format(x=inner + ("\n" if child.heredoc else ""), q=quoted)
+    escaped = child.text.replace("\\", "\\\\").replace("`", "\\`").replace("$", "\\$")
+    text = form.format(x=inner + ("\n" if child.heredoc else ""), q=quoted, e=escaped)
     return _combine([child], text)
 
 
