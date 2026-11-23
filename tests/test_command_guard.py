@@ -25,6 +25,91 @@ sys.modules[MODULE_SPEC.name] = command_guard
 MODULE_SPEC.loader.exec_module(command_guard)
 
 
+# Cases from mutation survivors. They come first so that a mutant which makes
+# a later test loop forever fails here instead of timing out.
+MUTATION_PARSES = [
+    ("echo \\'a", [("echo", ("'a",))]),
+    ('echo $"a b"', [("echo", ("a b",))]),
+    ("cat <<<'a;b'", [("cat", ())]),
+    ("cat <<-E\n\tx\n\tE\ngit status", [("cat", ()), ("git", ("status",))]),
+    ("\n", []),
+    ("'a'\nb", [("a", ()), ("b", ())]),
+    ("echo $(a)$((1))x", [("echo", ("nested-command0x",)), ("a", ())]),
+    ("echo $(($(git status)))", [("echo", ("0",)), ("git", ("status",))]),
+    ("echo $((1))$(git status)", [("echo", ("0nested-command",)), ("git", ("status",))]),
+    ("echo $((1+$(git status)))", [("echo", ("0",)), ("git", ("status",))]),
+    ("bash <<-EOF\nXgit commit -n\nEOF\n", [("bash", ()), ("Xgit", ("commit", "-n"))]),
+    ("x $(a `b )` ; git commit -n)",
+     [("x", ("nested-command",)), ("a", ("nested-command",)), ("git", ("commit", "-n")),
+      ("b", ())]),
+    ("echo $(a;bcase)", [("echo", ("nested-command",)), ("a", ()), ("bcase", ())]),
+    ("echo $(case a in a)esac) && git commit -n",
+     [("echo", ("nested-command",)), ("git", ("commit", "-n"))]),
+    ("time -p", []),
+    ("coproc cat", [("cat", ())]),
+    ("coproc NAME {\ngit commit -n\n}", [("git", ("commit", "-n"))]),
+    ("function f for x in a; do :; done", [(":", ())]),
+    ("nice - git commit -n", [("-", ("git", "commit", "-n"))]),
+    ("nice -- -x git commit -n", [("-x", ("git", "commit", "-n"))]),
+    ("env -- -u X git commit -n", [("-u", ("X", "git", "commit", "-n"))]),
+    ("echo x | bash -c", [("echo", ("x",)), ("bash", ("-c",))]),
+]
+
+
+@pytest.mark.parametrize(("text", "expected"), MUTATION_PARSES,
+                         ids=[text for text, _ in MUTATION_PARSES])
+def test_mutation_parses(text: str, expected: list) -> None:
+    commands = command_guard.shell_commands(text)
+    assert [(c.executable, c.arguments) for c in commands] == expected
+
+
+@pytest.mark.parametrize("text", ["echo `\\'", "echo $(echo \\)"])
+def test_mutation_unparseable(text: str) -> None:
+    with pytest.raises(command_guard.ShellParseError):
+        command_guard.shell_commands(text)
+
+
+@pytest.mark.parametrize("text", [
+    "case a in a)2>/dev/null git commit -n -m msg;; esac",
+    "echo '$((' $(git commit -n -m msg)",
+    'echo "$(a $(2>x git commit -n -m msg))"',
+    "cat <<EOF\n\"\" '$(git commit -n -m msg)'\nEOF\n",
+    "env --split-string='X=1 git commit -n -m msg'",
+    "env --block-signal=SIGINT git commit -n -m msg",
+    "env --ignore-environment -u NAME git commit -n -m msg",
+])
+def test_mutation_bypasses_are_blocked(text: str) -> None:
+    assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+# A heredoc whose operator sits inside a substitution still takes its body
+# from the following lines (bash 5.2 warns but reads it), so the body is data.
+@pytest.mark.parametrize("text", [
+    "echo $()bash <<EOF\ngit commit -n -m msg\nEOF\n",
+    '"$(a $(b))" <<EOF\ngit commit -n -m msg\nEOF\n',
+    '"$(a `b`)" <<EOF\ngit commit -n -m msg\nEOF\n',
+    '"$(x (y) "z")" <<EOF\ngit commit -n -m msg\nEOF\n',
+    '"$(  case a in a) x;; esac)" <<EOF\ngit commit -n -m msg\nEOF\n',
+    '"$(  case a in a) cat <<EOF;; esac)"\ngit commit -n -m msg\nEOF\n',
+    '"$(case a in a) case b in b) x;; esac;; c) cat <<EOF;; esac)"\n'
+    "git commit -n -m msg\nEOF\n",
+])
+def test_mutation_heredoc_bodies_are_data(text: str) -> None:
+    assert not command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+def test_deep_arithmetic_nesting_fails_closed(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Nested $(( recurses once per level, past Python's recursion limit.
+    command = "echo " + "$((" * 1200 + "1" + "))" * 1200
+    payload = json.dumps({"tool_input": {"command": command}})
+    monkeypatch.setattr(command_guard.sys, "argv", ["command_guard.py", "git-bypass"])
+    monkeypatch.setattr(command_guard.sys, "stdin", io.StringIO(payload))
+    assert command_guard.main() == 2
+    assert "Unable to parse shell command safely" in capsys.readouterr().err
+
+
 def test_shell_commands_parses_environment_and_chain() -> None:
     commands = command_guard.shell_commands(
         "printf ready && env CI=1 git commit --no-verify -m test"
@@ -97,7 +182,8 @@ def test_gh_denies_nested_process_substitution() -> None:
     )
 
 
-@pytest.mark.parametrize("text", ["echo 'unterminated", "cat <(git status"])
+@pytest.mark.parametrize("text", ["echo 'unterminated", "cat <(git status", "cat <<",
+                                  "cat << ; git commit -n"])
 def test_shell_commands_rejects_malformed_input(text: str) -> None:
     with pytest.raises(command_guard.ShellParseError):
         command_guard.shell_commands(text)
@@ -424,6 +510,23 @@ def test_git_bypass_blocks_lexical_cases(text: str) -> None:
 )
 def test_git_bypass_allows_lexical_lookalikes(text: str) -> None:
     assert not command_guard.git_bypass_blocked(command_guard.shell_commands(text))
+
+
+@pytest.mark.parametrize(("text", "index", "expected"), [
+    (";", 0, True),
+    ("{ ", 0, True),
+    ("a;{", 2, True),
+    ("a{ ", 1, False),
+    ("X{ ", 1, False),
+    ("${x}", 1, False),
+    ("a; { b", 3, True),
+    ("a;{b", 2, False),
+    ("a;}", 2, True),
+    ("a;}X", 2, False),
+    ("x", 0, False),
+])
+def test_starts_command_needs_standalone_braces(text: str, index: int, expected: bool) -> None:
+    assert command_guard._starts_command(text, index) is expected
 
 
 @pytest.mark.parametrize("text", ["echo {x", "echo }x", 'echo "\\"', "echo $'\\'",

@@ -16,6 +16,9 @@ other exit code is not a kill; it is reported as ``timeout`` or
 ``inconclusive`` and needs a recorded disposition like a survivor. A mutant
 that times out is rerun once with triple the timeout; only a second timeout
 is reported as ``timeout``, and the record keeps the end of its output.
+Every test command runs under ``ulimit -v`` (the target's ``memory_mb``,
+default 1024), so a mutant that allocates without bound fails a test with
+``MemoryError`` instead of exhausting memory until it times out.
 
 ``--journal`` appends each result as it completes, so an interrupted run can
 resume. A journaled kill or survival is reused only when every run input is
@@ -142,6 +145,11 @@ def clear_caches(root: Path) -> None:
 
 def run_tests(root: Path, config: dict, timeout: float) -> tuple[str, int | None, str]:
     command = config["test"].replace("{python}", sys.executable)
+    # A mutated loop counter can append to a list forever. Capping the
+    # address space turns that into a prompt MemoryError, which fails a test,
+    # instead of a timeout that first exhausts the machine's memory.
+    memory_kib = int(config.get("memory_mb", 1024)) * 1024
+    command = f"ulimit -v {memory_kib} || exit 125\n{command}"
     # faulthandler dumps the stack of a test still running near the timeout,
     # so a timeout record names the test that hung.
     addopts = os.environ.get("PYTEST_ADDOPTS", "")

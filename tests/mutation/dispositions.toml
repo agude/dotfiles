@@ -357,3 +357,527 @@ target = "jd"
 key = "parser|string|068f04ca02|'note text; required outside an interactive terminal' -> 'XXnote text; required outside an interactive terminalXX'"
 reason = "message-only"
 note = "argparse help, description or metavar text."
+
+# --- guard ---
+
+[[survivor]]
+target = "guard"
+key = "_tokens|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 106 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_tokens|arithmetic|2556346f41|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 111 (index += 2) stops the loop from advancing; the suite never finishes, or the runaway list hits the memory cap inside pytest itself."
+
+[[survivor]]
+target = "guard"
+key = "_tokens|arithmetic|9e45f72aeb|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 141 (index += len(operator)) stops the loop from advancing; the suite never finishes, or the runaway list hits the memory cap inside pytest itself."
+
+[[survivor]]
+target = "guard"
+key = "_skip_arithmetic|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 226 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_read_heredoc_word|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 237 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_read_heredoc_word|loop|4f9cac8dbc|'break' -> 'continue'"
+reason = "hangs"
+note = "Mutating line 241 (break) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_read_heredoc_word|constant|11eca0883e|1 -> 0#4"
+reason = "hangs"
+note = "Mutating line 252 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_read_heredoc_word|constant|11eca0883e|1 -> 0#5"
+reason = "hangs"
+note = "Mutating line 257 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|a20831c0af|'' -> 'XXXX'"
+reason = "equivalent"
+note = "Every quote check compares against ', \" or H, so 'XXXX' behaves as unquoted."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|a20831c0af|'top' -> 'XXtopXX'"
+reason = "equivalent"
+note = "The top frame's kind is never compared; only 'paren' and 'tick' are."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|2556346f41|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 324 (index += 2) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|2556346f41|'+=' -> '-='#2"
+reason = "hangs"
+note = "Mutating line 327 (index += 2) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|6973ac1861|'' -> 'XXXX'"
+reason = "equivalent"
+note = "Every quote check compares against ', \" or H, so 'XXXX' behaves as unquoted."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 333 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|6973ac1861|'' -> 'XXXX'#2"
+reason = "equivalent"
+note = "Every quote check compares against ', \" or H, so 'XXXX' behaves as unquoted."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|59476135ae|1 -> 0#2"
+reason = "accepted-risk"
+note = "Differs only for a digit run right after an arithmetic expansion, such as $((1))2>x, which is never an executable name, so no policy decision changes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|59476135ae|1 -> 2#2"
+reason = "accepted-risk"
+note = "Differs only for a digit run right after an arithmetic expansion, such as $((1))2>x, which is never an executable name, so no policy decision changes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|element|59476135ae|drop element '\"<\"'"
+reason = "unreachable-on-supported-input"
+note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|element|59476135ae|drop element '\">\"'"
+reason = "unreachable-on-supported-input"
+note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|b554b951a1|'<' -> 'XX<XX'"
+reason = "unreachable-on-supported-input"
+note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|b554b951a1|'>' -> 'XX>XX'"
+reason = "unreachable-on-supported-input"
+note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='#4"
+reason = "hangs"
+note = "Mutating line 357 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|11eca0883e|1 -> 0#4"
+reason = "hangs"
+note = "Mutating line 357 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|b3bdf4619e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 362 (end += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|string|02c580bff6|'<>' -> 'XX<>XX'"
+reason = "unreachable-on-supported-input"
+note = "'<' and '>' are still found in 'XX<>XX'; the mutant only adds X( as an opener, which bash accepts only in a function definition such as X(), where the empty frame opens and closes with no effect."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='#6"
+reason = "hangs"
+note = "Mutating line 388 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='#7"
+reason = "hangs"
+note = "Mutating line 400 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|11eca0883e|1 -> 0#7"
+reason = "hangs"
+note = "Mutating line 400 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|e1b81d217d|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 411 (index += 3) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|be35f8ea5f|'+' -> '-'"
+reason = "hangs"
+note = "Mutating line 416 (text, index + (3 if strips_tabs else 2))) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='#9"
+reason = "hangs"
+note = "Mutating line 428 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|11eca0883e|1 -> 0#9"
+reason = "hangs"
+note = "Mutating line 428 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|compare|7a8990547b|'<' -> '<='#2"
+reason = "equivalent"
+note = "At the end of the text the extra pass reads one empty line; it adds only a trailing newline to a heredoc body, which parses the same."
+
+[[survivor]]
+target = "guard"
+key = "_prepare|constant|11eca0883e|1 -> 0#10"
+reason = "hangs"
+note = "Mutating line 451 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_unescape_backticks|arithmetic|0c592c7abb|'+' -> '-'"
+reason = "equivalent"
+note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
+
+[[survivor]]
+target = "guard"
+key = "_unescape_backticks|compare|0c592c7abb|'<' -> '<='"
+reason = "equivalent"
+note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
+
+[[survivor]]
+target = "guard"
+key = "_unescape_backticks|constant|0c592c7abb|1 -> 0"
+reason = "equivalent"
+note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_backtick|arithmetic|9c998d89be|'+' -> '-'"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_backtick|compare|9c998d89be|'<' -> '<='"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_backtick|constant|9c998d89be|1 -> 0"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_backtick|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 481 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|arithmetic|2d030843b9|'+' -> '-'"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|compare|2d030843b9|'<' -> '<='"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|constant|2d030843b9|1 -> 0"
+reason = "equivalent"
+note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|arithmetic|2556346f41|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 495 (index += 2) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|arithmetic|11eca0883e|'+=' -> '-='"
+reason = "hangs"
+note = "Mutating line 515 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 515 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_find_closing_parenthesis|constant|11eca0883e|1 -> 0#2"
+reason = "hangs"
+note = "Mutating line 523 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_extract_nested_commands|constant|a1a7502fd0|1 -> 0"
+reason = "equivalent"
+note = "_skip_arithmetic skips characters before the first parenthesis, so starting at the '$' gives the same end."
+
+[[survivor]]
+target = "guard"
+key = "_extract_nested_commands|constant|b11b0e7215|2 -> 1"
+reason = "unreachable-on-supported-input"
+note = "Differs only when $(( has no matching )), such as 'echo $(( $(x ))', which bash rejects."
+
+[[survivor]]
+target = "guard"
+key = "_extract_nested_commands|constant|b11b0e7215|3 -> 2"
+reason = "equivalent"
+note = "The extra leading '(' is not preceded by $, < or >, so it opens no substitution in the arithmetic text."
+
+[[survivor]]
+target = "guard"
+key = "_extract_nested_commands|constant|d2972d25c7|2 -> 1"
+reason = "equivalent"
+note = "The nested text gains a leading '(', a subshell around the same commands; _prepare already lifted heredocs and decoded quotes at the outer level."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement"
+reason = "hangs"
+note = "Mutating line 644 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|return|03501d2f9c|return None"
+reason = "equivalent"
+note = "Callers test the word list only for truthiness; None and [] behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement#2"
+reason = "hangs"
+note = "Mutating line 651 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement#4"
+reason = "hangs"
+note = "Mutating line 655 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement#5"
+reason = "hangs"
+note = "Mutating line 657 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement#6"
+reason = "hangs"
+note = "Mutating line 661 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|return|03501d2f9c|return None#2"
+reason = "equivalent"
+note = "Callers test the word list only for truthiness; None and [] behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|return|03501d2f9c|return None#3"
+reason = "equivalent"
+note = "Callers test the word list only for truthiness; None and [] behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|string|cbdc1dd346|'-' -> 'XX-XX'"
+reason = "equivalent"
+note = "A bare '-' then reaches the option-cluster branch, which pops it and finds no letters, the same as the dedicated branch."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9a9f523599|delete call statement"
+reason = "hangs"
+note = "Mutating line 677 (tokens.pop(0)  # \"env -\" is \"env -i\") stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|string|a1cd4304f1|'uC' -> 'XXuCXX'"
+reason = "unreachable-on-supported-input"
+note = "The mutant also treats -X as taking a value; env has no -X option and rejects it."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|return|03501d2f9c|return None#4"
+reason = "equivalent"
+note = "Callers test the word list only for truthiness; None and [] behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|loop|4f9cac8dbc|'break' -> 'continue'#3"
+reason = "hangs"
+note = "Mutating line 694 (break) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|statement|9daa8d4023|delete call statement#10"
+reason = "hangs"
+note = "Mutating line 696 (tokens.pop(0)) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|constant|65892a9dfa|1 -> 0"
+reason = "equivalent"
+note = "The runner's own name is in OPAQUE_RUNNERS, never in the guarded or shell sets, so including it cannot change the intersection."
+
+[[survivor]]
+target = "guard"
+key = "_command_words|return|093aa7cc1f|return None#3"
+reason = "equivalent"
+note = "The loop ends only when no tokens remain, so the list is empty; callers test it only for truthiness."
+
+[[survivor]]
+target = "guard"
+key = "_nested_shell_text|constant|59f83c43ae|1 -> 0"
+reason = "equivalent"
+note = "The token starts with '-', so including its first character cannot add a match."
+
+[[survivor]]
+target = "guard"
+key = "_reads_script_from_stdin|return|f7781144ea|return None"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_reads_script_from_stdin|constant|63e621d8f2|1 -> 0"
+reason = "equivalent"
+note = "The token starts with '-', so including its first character cannot add a match."
+
+[[survivor]]
+target = "guard"
+key = "_reads_script_from_stdin|return|f7781144ea|return None#2"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_reads_script_from_stdin|return|f7781144ea|return None#3"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "shell_commands|string|44679b9f54|'' -> 'XXXX'"
+reason = "equivalent"
+note = "The initial value is only compared with values it never equals, so any other non-matching string behaves the same."
+
+[[survivor]]
+target = "guard"
+key = "_git_invocation|constant|1f42756763|1 -> 2"
+reason = "equivalent"
+note = "_config_blocked reads only the key of an env: entry, and a larger maxsplit drops only the text after the second '='."
+
+[[survivor]]
+target = "guard"
+key = "_option_tokens|loop|4f9cac8dbc|'break' -> 'continue'"
+reason = "hangs"
+note = "Mutating line 847 (break) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_git_bool_is_false|return|f7781144ea|return None"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_config_blocked|return|f7781144ea|return None"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_is_long_prefix|constant|03a0a68520|1 -> 2"
+reason = "equivalent"
+note = "Only the text before the second '=' is used here, so a larger maxsplit gives the same value."
+
+[[survivor]]
+target = "guard"
+key = "_short_cluster_has|constant|c42c94d454|1 -> 0"
+reason = "equivalent"
+note = "The token starts with '-', so including its first character cannot add a match."
+
+[[survivor]]
+target = "guard"
+key = "_short_cluster_has|return|f7781144ea|return None"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_short_cluster_has|return|f7781144ea|return None#2"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."
+
+[[survivor]]
+target = "guard"
+key = "_gh_invocation|string|d8ef3cce1b|'' -> 'XXXX'"
+reason = "equivalent"
+note = "No policy table lists '' or 'XXXX' as an action, so a missing action classifies the same."
+
+[[survivor]]
+target = "guard"
+key = "_gh_invocation|constant|11eca0883e|1 -> 0"
+reason = "hangs"
+note = "Mutating line 943 (index += 1) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_gh_invocation|loop|4f9cac8dbc|'break' -> 'continue'"
+reason = "hangs"
+note = "Mutating line 946 (break) stops the loop from advancing; the suite never finishes."
+
+[[survivor]]
+target = "guard"
+key = "_mutating_api|constant|6496c5a0b2|1 -> 2"
+reason = "unreachable-on-supported-input"
+note = "Differs only for a method value containing '=', such as --method=POST=x; no HTTP method name contains '='."
+
+[[survivor]]
+target = "guard"
+key = "_mutating_api|return|f7781144ea|return None"
+reason = "equivalent"
+note = "Callers use the result only for truthiness; None and False behave the same."

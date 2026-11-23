@@ -263,7 +263,10 @@ Scripts symlinked to `~/bin/` without file extensions:
   baseline always runs. `--jobs` defaults to 2 because four workers ran the
   guard target out of memory. A timeout is rerun once at triple the limit
   before it counts, and its record keeps the output tail (pytest's
-  faulthandler names the hanging test).
+  faulthandler names the hanging test). Each test command runs under
+  `ulimit -v` (`memory_mb` in `targets.toml`, default 1024), so a mutant
+  that grows a list forever dies with `MemoryError` and counts as a kill
+  instead of exhausting the machine during its timeout.
 - `PLANTED` in `tests/test_install_model.py` holds hand-written regressions
   the mutation operators cannot produce, such as a manifest that omits a
   link; the model must reject each one.

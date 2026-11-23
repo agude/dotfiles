@@ -5,6 +5,8 @@
 # kill_codes: exit codes that mean "a test failed" (pytest and bats use 1).
 # timeout:    seconds per mutant; exceeding it is reported as a timeout,
 #             never as a kill.
+# memory_mb:  address-space limit for the test command (default 1024); a
+#             runaway mutant then fails with MemoryError instead of hanging.
 
 [target.guard]
 kind = "python"

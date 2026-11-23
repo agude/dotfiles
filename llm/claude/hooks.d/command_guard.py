@@ -781,9 +781,9 @@ def shell_commands(text: str, _depth: int = 0) -> list[ShellCommand]:
             here_string = _here_string(segment)
             if command.executable in NESTED_SHELLS and here_string is not None:
                 nested_texts.append(here_string)
-            elif _reads_script_from_stdin(command) and not any(
-                    # Lifted heredocs leave "<<< ''", so one operator covers both.
-                    _is_operator(item, {"<<<"}) for item in segment) and (
+            # A here-string, or the "<<< ''" a lifted heredoc leaves, was
+            # handled above; only one without a word is left, and bash rejects it.
+            elif _reads_script_from_stdin(command) and (
                     previous_operator in PIPE_OPERATORS
                     or any(_is_operator(item, STDIN_REDIRECTS) for item in segment)):
                 raise ShellParseError("Cannot inspect a script piped into a shell")
