@@ -35,6 +35,8 @@ MUTATION_PARSES = [
     ("\n", []),
     ("'a'\nb", [("a", ()), ("b", ())]),
     ("echo $(a)$((1))x", [("echo", ("nested-command0x",)), ("a", ())]),
+    # bash reads $((1))2 as one word, so 2> is not a redirection here.
+    ("echo $((1))2>/dev/null", [("echo", ("02",))]),
     ("echo $(($(git status)))", [("echo", ("0",)), ("git", ("status",))]),
     ("echo $((1))$(git status)", [("echo", ("0nested-command",)), ("git", ("status",))]),
     ("echo $((1+$(git status)))", [("echo", ("0",)), ("git", ("status",))]),

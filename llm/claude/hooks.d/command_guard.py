@@ -275,6 +275,12 @@ def _feeds_shell(prefix: str) -> bool:
     return bool(words) and os.path.basename(words[0]) in NESTED_SHELLS
 
 
+# Output elements after which a digit run starts a word, so it may be a
+# file-descriptor number. push() appends each opener as one element.
+WORD_SEPARATORS = {" ", "\t", "\n", ";", "&", "|", "(", ")"}
+OPENERS = {"$(", "<(", ">("}
+
+
 @dataclass
 class _Frame:
     """One quoting context: the top level, a $(...) or a backtick span."""
@@ -347,8 +353,8 @@ def _prepare(text: str, body: bool = False) -> _Prepared:
             index += 1
             continue
 
-        word_start = not output or output[-1][-1:] in {" ", "\t", "\n", ";", "&", "|",
-                                                       "(", ")", "<", ">"}
+        # Whole elements: an arithmetic expansion ends in ")" but is a word.
+        word_start = not output or output[-1] in WORD_SEPARATORS or output[-1] in OPENERS
         if character == "$" and next_character == "'":
             decoded, index = _decode_ansi_c(text, index + 1)
             output.append(shlex.quote(decoded))
@@ -458,22 +464,13 @@ def _unescape_backticks(content: str) -> str:
 
     This is what lets `echo \`inner\`` run a nested substitution.
     """
-    result: list[str] = []
-    index = 0
-    while index < len(content):
-        if content[index] == "\\" and index + 1 < len(content) and content[index + 1] in "\\`$":
-            result.append(content[index + 1])
-            index += 2
-            continue
-        result.append(content[index])
-        index += 1
-    return "".join(result)
+    return re.sub(r"\\([\\`$])", r"\1", content)
 
 
 def _find_closing_backtick(text: str, opening_index: int) -> int:
     index = opening_index + 1
     while index < len(text):
-        if text[index] == "\\" and index + 1 < len(text):
+        if text[index] == "\\":
             index += 2
             continue
         if text[index] == "`":
@@ -491,7 +488,7 @@ def _find_closing_parenthesis(text: str, opening_index: int) -> int:
 
     while index < len(text):
         character = text[index]
-        if character == "\\" and quote != "'" and index + 1 < len(text):
+        if character == "\\" and quote != "'":
             index += 2
             continue
         if character == "`" and quote != "'":
@@ -557,7 +554,7 @@ def _extract_nested_commands(text: str, body: bool = False) -> tuple[str, list[s
 
         if quote != "'" and text.startswith("$((", index):
             # Arithmetic: not a command, but it may contain substitutions.
-            end = _skip_arithmetic(text, index + 1)
+            end = _skip_arithmetic(text, index)
             nested_commands.extend(_extract_nested_commands(text[index + 3 : end - 2])[1])
             outer_text.append("0")
             index = end
@@ -664,7 +661,7 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
                         nested_texts.append(tokens[1])
                     return []
                 elif token.startswith("--split-string="):
-                    nested_texts.append(token.split("=", 1)[1])
+                    nested_texts.append(token.partition("=")[2])
                     return []
                 elif token in {"--unset", "--chdir"}:
                     del tokens[:2]
@@ -673,11 +670,10 @@ def _command_words(tokens: list[str], nested_texts: list[str]) -> list[str]:
                     tokens.pop(0)
                     if token == "--":
                         break
-                elif token == "-":
-                    tokens.pop(0)  # "env -" is "env -i"
                 elif token.startswith("-"):
                     # A cluster such as -iS 'cmd' or -vu NAME: -u and -C take a
                     # value, -S takes the command text; either may be attached.
+                    # A bare "-" has no letters; "env -" is "env -i".
                     tokens.pop(0)
                     for position, letter in enumerate(token[1:], 2):
                         rest = token[position:]
@@ -718,6 +714,11 @@ def _here_string(tokens: list[str]) -> str | None:
     return None
 
 
+def _is_command_option(argument: str) -> bool:
+    """Whether a shell argument is an option cluster that contains -c."""
+    return argument.startswith("-") and not argument.startswith("--") and "c" in argument
+
+
 def _nested_shell_text(command: ShellCommand) -> str | None:
     if command.executable == "eval":
         return " ".join(command.arguments) or None
@@ -725,10 +726,7 @@ def _nested_shell_text(command: ShellCommand) -> str | None:
         return None
 
     for index, argument in enumerate(command.arguments[:-1]):
-        is_command_option = (
-            argument.startswith("-") and not argument.startswith("--") and "c" in argument[1:]
-        )
-        if is_command_option:
+        if _is_command_option(argument):
             return command.arguments[index + 1]
     return None
 
@@ -740,8 +738,7 @@ def _reads_script_from_stdin(command: ShellCommand) -> bool:
     for argument in command.arguments:
         if argument == "-s":
             return True
-        if (argument.startswith("-") and not argument.startswith("--")
-                and "c" in argument[1:]):
+        if _is_command_option(argument):
             return False
         if not argument.startswith(("-", "+")):
             return False
@@ -825,7 +822,7 @@ def _git_invocation(command: ShellCommand) -> tuple[str, list[str], list[str]] |
     while arguments and arguments[0].startswith("-"):
         option = arguments.pop(0)
         if option.startswith("--config-env="):
-            configs.append("env:" + option.split("=", 1)[1])
+            configs.append("env:" + option.partition("=")[2])
         elif option in GIT_GLOBAL_VALUE_OPTIONS and arguments:
             value = arguments.pop(0)
             if option == "-c":
@@ -882,7 +879,7 @@ def _config_blocked(entry: str) -> bool:
 
 
 def _is_long_prefix(token: str, option: str, minimum: str) -> bool:
-    name = token.split("=", 1)[0]
+    name = token.partition("=")[0]
     return name.startswith(minimum) and option.startswith(name)
 
 
@@ -958,7 +955,7 @@ def _mutating_api(arguments: list[str]) -> bool:
         if token in {"--method", "-X"} and index + 1 < len(arguments):
             if arguments[index + 1].upper() in mutating_methods:
                 return True
-        if token.startswith("--method=") and token.split("=", 1)[1].upper() in mutating_methods:
+        if token.startswith("--method=") and token.partition("=")[2].upper() in mutating_methods:
             return True
         if token.startswith("-X") and token[2:].upper() in mutating_methods:
             return True
