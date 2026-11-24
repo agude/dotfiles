@@ -28,6 +28,8 @@ MODULE_SPEC.loader.exec_module(command_guard)
 # Cases from mutation survivors. They come first so that a mutant which makes
 # a later test loop forever fails here instead of timing out.
 MUTATION_PARSES = [
+    # A plain substitution first: a scan that runs backwards then fails fast.
+    ("echo $(git status)", [("echo", ("nested-command",)), ("git", ("status",))]),
     ("echo \\'a", [("echo", ("'a",))]),
     ('echo $"a b"', [("echo", ("a b",))]),
     ("cat <<<'a;b'", [("cat", ())]),
@@ -79,6 +81,8 @@ def test_mutation_unparseable(text: str) -> None:
     "env --split-string='X=1 git commit -n -m msg'",
     "env --block-signal=SIGINT git commit -n -m msg",
     "env --ignore-environment -u NAME git commit -n -m msg",
+    # The "$(" opener is one output element; a digit after it is an fd number.
+    "echo $(2>/dev/null bash <<'E'\ngit commit --no-verify -m msg\nE\n)",
 ])
 def test_mutation_bypasses_are_blocked(text: str) -> None:
     assert command_guard.git_bypass_blocked(command_guard.shell_commands(text))
@@ -707,6 +711,7 @@ def test_git_options_that_are_bypasses(text: str) -> None:
     ("gh pr -R o/r --web view 1", "allow"), ("gh api -X", "allow"),
     ("gh api --method", "allow"), ("gh api repos/o/r -X", "allow"),
     ("gh api -X POST", "ask"), ("gh --repo o/r pr view 1", "allow"),
+    ("gh api --method=GET repos/o/r", "allow"),
 ])
 def test_gh_argument_edge_cases(text: str, decision: str) -> None:
     result = command_guard.gh_decision(command_guard.shell_commands(text))

@@ -452,42 +452,6 @@ note = "Every quote check compares against ', \" or H, so 'XXXX' behaves as unqu
 
 [[survivor]]
 target = "guard"
-key = "_prepare|constant|59476135ae|1 -> 0#2"
-reason = "accepted-risk"
-note = "Differs only for a digit run right after an arithmetic expansion, such as $((1))2>x, which is never an executable name, so no policy decision changes."
-
-[[survivor]]
-target = "guard"
-key = "_prepare|constant|59476135ae|1 -> 2#2"
-reason = "accepted-risk"
-note = "Differs only for a digit run right after an arithmetic expansion, such as $((1))2>x, which is never an executable name, so no policy decision changes."
-
-[[survivor]]
-target = "guard"
-key = "_prepare|element|59476135ae|drop element '\"<\"'"
-reason = "unreachable-on-supported-input"
-note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
-
-[[survivor]]
-target = "guard"
-key = "_prepare|element|59476135ae|drop element '\">\"'"
-reason = "unreachable-on-supported-input"
-note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
-
-[[survivor]]
-target = "guard"
-key = "_prepare|string|b554b951a1|'<' -> 'XX<XX'"
-reason = "unreachable-on-supported-input"
-note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
-
-[[survivor]]
-target = "guard"
-key = "_prepare|string|b554b951a1|'>' -> 'XX>XX'"
-reason = "unreachable-on-supported-input"
-note = "A digit run right after < or > that is followed by another redirection is an IO number with no target; bash rejects the line as a syntax error."
-
-[[survivor]]
-target = "guard"
 key = "_prepare|arithmetic|11eca0883e|'+=' -> '-='#4"
 reason = "hangs"
 note = "Mutating line 357 (index += 1) stops the loop from advancing; the suite never finishes."
@@ -566,63 +530,9 @@ note = "Mutating line 451 (index += 1) stops the loop from advancing; the suite 
 
 [[survivor]]
 target = "guard"
-key = "_unescape_backticks|arithmetic|0c592c7abb|'+' -> '-'"
-reason = "equivalent"
-note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
-
-[[survivor]]
-target = "guard"
-key = "_unescape_backticks|compare|0c592c7abb|'<' -> '<='"
-reason = "equivalent"
-note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
-
-[[survivor]]
-target = "guard"
-key = "_unescape_backticks|constant|0c592c7abb|1 -> 0"
-reason = "equivalent"
-note = "_find_closing_backtick pairs every backslash with the next character, so backtick content never ends in an unpaired backslash."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_backtick|arithmetic|9c998d89be|'+' -> '-'"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_backtick|compare|9c998d89be|'<' -> '<='"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_backtick|constant|9c998d89be|1 -> 0"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
-
-[[survivor]]
-target = "guard"
 key = "_find_closing_backtick|constant|11eca0883e|1 -> 0"
 reason = "hangs"
 note = "Mutating line 481 (index += 1) stops the loop from advancing; the suite never finishes."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_parenthesis|arithmetic|2d030843b9|'+' -> '-'"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_parenthesis|compare|2d030843b9|'<' -> '<='"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
-
-[[survivor]]
-target = "guard"
-key = "_find_closing_parenthesis|constant|2d030843b9|1 -> 0"
-reason = "equivalent"
-note = "A backslash as the last character ends the loop either way, and the caller raises for the unclosed span in both cases."
 
 [[survivor]]
 target = "guard"
@@ -647,12 +557,6 @@ target = "guard"
 key = "_find_closing_parenthesis|constant|11eca0883e|1 -> 0#2"
 reason = "hangs"
 note = "Mutating line 523 (index += 1) stops the loop from advancing; the suite never finishes."
-
-[[survivor]]
-target = "guard"
-key = "_extract_nested_commands|constant|a1a7502fd0|1 -> 0"
-reason = "equivalent"
-note = "_skip_arithmetic skips characters before the first parenthesis, so starting at the '$' gives the same end."
 
 [[survivor]]
 target = "guard"
@@ -722,18 +626,6 @@ note = "Callers test the word list only for truthiness; None and [] behave the s
 
 [[survivor]]
 target = "guard"
-key = "_command_words|string|cbdc1dd346|'-' -> 'XX-XX'"
-reason = "equivalent"
-note = "A bare '-' then reaches the option-cluster branch, which pops it and finds no letters, the same as the dedicated branch."
-
-[[survivor]]
-target = "guard"
-key = "_command_words|statement|9a9f523599|delete call statement"
-reason = "hangs"
-note = "Mutating line 677 (tokens.pop(0)  # \"env -\" is \"env -i\") stops the loop from advancing; the suite never finishes."
-
-[[survivor]]
-target = "guard"
 key = "_command_words|string|a1cd4304f1|'uC' -> 'XXuCXX'"
 reason = "unreachable-on-supported-input"
 note = "The mutant also treats -X as taking a value; env has no -X option and rejects it."
@@ -770,21 +662,9 @@ note = "The loop ends only when no tokens remain, so the list is empty; callers 
 
 [[survivor]]
 target = "guard"
-key = "_nested_shell_text|constant|59f83c43ae|1 -> 0"
-reason = "equivalent"
-note = "The token starts with '-', so including its first character cannot add a match."
-
-[[survivor]]
-target = "guard"
 key = "_reads_script_from_stdin|return|f7781144ea|return None"
 reason = "equivalent"
 note = "Callers use the result only for truthiness; None and False behave the same."
-
-[[survivor]]
-target = "guard"
-key = "_reads_script_from_stdin|constant|63e621d8f2|1 -> 0"
-reason = "equivalent"
-note = "The token starts with '-', so including its first character cannot add a match."
 
 [[survivor]]
 target = "guard"
@@ -806,12 +686,6 @@ note = "The initial value is only compared with values it never equals, so any o
 
 [[survivor]]
 target = "guard"
-key = "_git_invocation|constant|1f42756763|1 -> 2"
-reason = "equivalent"
-note = "_config_blocked reads only the key of an env: entry, and a larger maxsplit drops only the text after the second '='."
-
-[[survivor]]
-target = "guard"
 key = "_option_tokens|loop|4f9cac8dbc|'break' -> 'continue'"
 reason = "hangs"
 note = "Mutating line 847 (break) stops the loop from advancing; the suite never finishes."
@@ -827,12 +701,6 @@ target = "guard"
 key = "_config_blocked|return|f7781144ea|return None"
 reason = "equivalent"
 note = "Callers use the result only for truthiness; None and False behave the same."
-
-[[survivor]]
-target = "guard"
-key = "_is_long_prefix|constant|03a0a68520|1 -> 2"
-reason = "equivalent"
-note = "Only the text before the second '=' is used here, so a larger maxsplit gives the same value."
 
 [[survivor]]
 target = "guard"
@@ -869,12 +737,6 @@ target = "guard"
 key = "_gh_invocation|loop|4f9cac8dbc|'break' -> 'continue'"
 reason = "hangs"
 note = "Mutating line 946 (break) stops the loop from advancing; the suite never finishes."
-
-[[survivor]]
-target = "guard"
-key = "_mutating_api|constant|6496c5a0b2|1 -> 2"
-reason = "unreachable-on-supported-input"
-note = "Differs only for a method value containing '=', such as --method=POST=x; no HTTP method name contains '='."
 
 [[survivor]]
 target = "guard"

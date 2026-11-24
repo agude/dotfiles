@@ -12,12 +12,18 @@
 kind = "python"
 files = ["llm/claude/hooks.d/command_guard.py"]
 test = """
-{python} -m pytest -x -q -p no:cacheprovider tests/test_command_guard.py \
+{python} -m pytest -x -q -p no:cacheprovider --assert=plain tests/test_command_guard.py \
   tests/test_command_guard_properties.py \
   -k "not (valid_bash or bash_runs or real_git)" \
   && bats llm/claude/hooks.d/tests/
 """
 timeout = 30
+# A runaway mutant that appends one pointer per loop reached 1024 MB only
+# near the 90-second rerun, so whether it was killed depended on load. The
+# suite passes at 384 MB in a fresh copy (256 MB fails in a property test).
+memory_mb = 512
+# --assert=plain: a mutant that fails an assertion over a runaway list would
+# otherwise time out while pytest builds the comparison diff.
 
 [target.jd]
 kind = "python"
